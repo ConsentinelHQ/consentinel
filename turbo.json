@@ -1,6 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["NODE_ENV", "CI", "DATABASE_URL"],
+  "globalEnv": [
+    "NODE_ENV",
+    "CI",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "ALLOW_PRIVATE_SCAN_TARGETS",
+    "SCAN_CONCURRENCY",
+    "SCAN_TIMEOUT_MS",
+    "SCAN_MAX_ATTEMPTS"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

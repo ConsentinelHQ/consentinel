@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { FINDING_SCHEMA_VERSION, type Finding, type ScanResult } from "@consentinel/shared";
 import { createDbWithConnection } from "../src/client";
+import { runMigrations } from "../src/migrate-runner";
 import {
   addSite,
   completeScan,
@@ -70,7 +70,7 @@ function result(url: string, fs: Finding[]): ScanResult {
 
 async function main(): Promise<void> {
   const { db, sql } = createDbWithConnection();
-  await migrate(db, { migrationsFolder: new URL("../migrations", import.meta.url).pathname });
+  await runMigrations(db);
 
   const url = `https://shop-${randomUUID().slice(0, 8)}.example`;
 

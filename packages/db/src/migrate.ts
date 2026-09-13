@@ -1,10 +1,10 @@
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { createDbWithConnection } from "./client";
+import { runMigrations } from "./migrate-runner";
 
 // Migrations only. Never hand-edit schema in an environment.
 async function main(): Promise<void> {
   const { db, sql } = createDbWithConnection();
-  await migrate(db, { migrationsFolder: new URL("../migrations", import.meta.url).pathname });
+  await runMigrations(db);
   await sql.end();
   console.log("migrations applied");
 }

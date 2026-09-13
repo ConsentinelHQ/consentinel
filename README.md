@@ -5,7 +5,8 @@ Consent and tag governance scanner. Two-pass (consent-off / consent-on) Playwrig
 ## Layout
 
 - `apps/web` - Next.js: marketing, free scanner, dashboard (Vercel)
-- `apps/scanner` - long-running worker: Playwright + BullMQ (container, never serverless)
+- `packages/queue` - scan queue, enqueue API, and the SSRF guard. No browser dependency, so Vercel never bundles Chromium.
+- `apps/scanner` - long-running worker: Playwright + BullMQ (container, never serverless). Entry: `dist/main.js`.
 - `packages/shared` - `Finding` / `ScanResult` schema and pure helpers. The contract everything speaks.
 - `packages/db` - Drizzle schema, migrations, and the repository layer (scans, findings, diffs)
 
@@ -25,6 +26,29 @@ pnpm --filter @consentinel/db db:seed
 
 pnpm typecheck && pnpm test && pnpm lint
 ```
+
+## Running the free scanner locally
+
+Three processes: Postgres, Redis, and the worker, plus the web app.
+
+```sh
+pnpm --filter @consentinel/scanner dev    # worker
+pnpm --filter @consentinel/web dev        # http://localhost:3000
+```
+
+Set `ALLOW_PRIVATE_SCAN_TARGETS=true` only if you are scanning a local fixture.
+It disables the SSRF guard and must never be set in production.
+
+## Running the worker
+
+```sh
+# needs Redis and Postgres reachable per .env
+pnpm --filter @consentinel/scanner dev      # watch mode
+pnpm --filter @consentinel/scanner scan <url>   # one-off CLI, no queue
+```
+
+Callers never touch the queue directly - `enqueueScan()` is the single entry point,
+so the SSRF check and the free-tier cache lookup cannot be skipped.
 
 ## Database
 

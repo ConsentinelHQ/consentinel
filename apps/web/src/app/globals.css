@@ -1,0 +1,413 @@
+/* Consentinel design tokens. */
+:root {
+  --paper: #ffffff;
+  --paper-alt: #f5f5f7;
+  --ink: #1d1d1f;
+  --ink-soft: #6e6e73;
+  --hairline: #d2d2d7;
+  --accent: #0066cc;
+
+  /* Verdict palette. Colour carries meaning here, never decoration. */
+  --critical: #d70015;
+  --warning: #b25000;
+  --gated: #00795c;
+
+  --measure: 34rem;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.05;
+  /* Tight tracking is what makes large type feel set rather than default. */
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+h2 {
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+}
+h3 {
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.lede {
+  max-width: var(--measure);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  line-height: 1.4;
+  letter-spacing: -0.018em;
+  color: var(--ink-soft);
+}
+
+.center {
+  text-align: center;
+}
+.center .lede {
+  margin-inline: auto;
+}
+
+section {
+  padding: clamp(5rem, 12vw, 9.5rem) 0;
+}
+
+.tinted {
+  background: var(--paper-alt);
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  padding-top: clamp(4.5rem, 10vw, 7.5rem);
+  padding-bottom: 0;
+}
+
+.hero h1 {
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- scan form ---------- */
+
+.scanbar {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 34rem;
+  margin: 2.75rem auto 0;
+}
+
+.scanbar input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.95rem 1.15rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper-alt);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: border-color 0.15s ease;
+}
+.scanbar input::placeholder {
+  color: var(--ink-soft);
+}
+.scanbar input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+button {
+  font: inherit;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 0.95rem 1.6rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.quiet {
+  margin-top: 0.9rem;
+  font-size: 0.83rem;
+  color: var(--ink-soft);
+}
+
+.error {
+  margin-top: 1rem;
+  color: var(--critical);
+  font-size: 0.95rem;
+}
+
+/* ---------- the hero object: a scan result ---------- */
+
+.specimen {
+  position: relative;
+  max-width: 44rem;
+  margin: clamp(3.5rem, 8vw, 6rem) auto 0;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.22);
+  text-align: left;
+  will-change: transform;
+}
+
+.specimen-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.specimen-url {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.verdict {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--critical);
+  white-space: nowrap;
+}
+
+/* A clean scan must not be rendered in the colour of failure. */
+.verdict.pass {
+  color: var(--gated);
+}
+
+/* Findings are a ruled ledger with a severity gutter, not a deck of cards. */
+.ledger {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 3px 1fr auto;
+  gap: 0 1rem;
+  align-items: center;
+  padding: 0.85rem 1.4rem 0.85rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.row:last-child {
+  border-bottom: none;
+}
+
+.gutter {
+  align-self: stretch;
+  background: var(--hairline);
+}
+.row[data-severity="critical"] .gutter {
+  background: var(--critical);
+}
+.row[data-severity="warning"] .gutter {
+  background: var(--warning);
+}
+.row[data-severity="ok"] .gutter {
+  background: var(--gated);
+}
+
+.row-title {
+  margin-left: 1.4rem;
+  font-size: 0.95rem;
+  letter-spacing: -0.012em;
+}
+
+.row-vendor {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.row.locked .row-title {
+  color: var(--ink-soft);
+}
+
+/* ---------- feature sections ---------- */
+
+.split {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 56rem) {
+  .split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.stat {
+  font-size: clamp(3rem, 7vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.tiles {
+  display: grid;
+  gap: 1px;
+  background: var(--hairline);
+  border-block: 1px solid var(--hairline);
+  grid-template-columns: 1fr;
+  margin-top: 3.5rem;
+}
+@media (min-width: 48rem) {
+  .tiles {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tile {
+  background: var(--paper);
+  padding: 2rem 1.75rem;
+}
+.tinted .tile {
+  background: var(--paper-alt);
+}
+.tile h3 {
+  margin-bottom: 0.6rem;
+}
+.tile p {
+  color: var(--ink-soft);
+  font-size: 0.97rem;
+}
+
+/* ---------- status + gate ---------- */
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+  color: var(--ink-soft);
+}
+
+.pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.gate {
+  max-width: 34rem;
+  margin: 2.5rem auto 0;
+  padding: 1.75rem;
+  background: var(--paper-alt);
+  border-radius: 18px;
+  text-align: left;
+}
+
+.gate label {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.gate input[type="email"] {
+  width: 100%;
+  padding: 0.9rem 1.1rem;
+  margin-top: 1rem;
+  font: inherit;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+
+.gate button {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+footer {
+  padding: 3.5rem 0;
+  border-top: 1px solid var(--hairline);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  .specimen {
+    transform: none !important;
+  }
+}
