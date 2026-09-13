@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getScan, leads } from "@consentinel/db";
 import { db } from "@/lib/server";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { sendReportEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +37,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     contactConsent: parsed.data.contactConsent,
   });
 
-  // Email delivery (Resend) lands with Epic 2.3; the report unlocks in-page now.
-  return NextResponse.json({ report: scan.result });
+  // Delivery must not gate the unlock: losing the lead AND the report because an
+  // email API was down is the worst outcome available.
+  const delivery = await sendReportEmail(parsed.data.email, scan.result);
+  if (!delivery.sent) {
+    console.error("report email not sent", { scanId: parsed.data.scanId, reason: delivery.reason });
+  }
+
+  return NextResponse.json({ report: scan.result, emailed: delivery.sent });
 }

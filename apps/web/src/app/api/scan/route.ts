@@ -3,11 +3,15 @@ import { z } from "zod";
 import { enqueueScan } from "@consentinel/queue";
 import { db, scanQueue } from "@/lib/server";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const body = z.object({ url: z.string().min(1).max(2048) });
+const body = z.object({
+  url: z.string().min(1).max(2048),
+  turnstileToken: z.string().max(4096).optional(),
+});
 
 const SCANS_PER_HOUR = 5;
 const CACHE_MAX_AGE_MS = 15 * 60 * 1000;
@@ -18,7 +22,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Enter a website address to scan." }, { status: 400 });
   }
 
-  const limit = await rateLimit(`scan:${clientKey(request.headers)}`, SCANS_PER_HOUR, 3600);
+  const ip = clientKey(request.headers);
+
+  // Verify the challenge BEFORE spending a rate-limit slot or a browser launch.
+  const challenge = await verifyTurnstile(parsed.data.turnstileToken, ip);
+  if (!challenge.ok) {
+    return NextResponse.json(
+      { error: "We couldn't verify that you're human. Reload the page and try again." },
+      { status: 403 },
+    );
+  }
+
+  const limit = await rateLimit(`scan:${ip}`, SCANS_PER_HOUR, 3600);
   if (!limit.allowed) {
     return NextResponse.json(
       {

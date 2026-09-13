@@ -185,6 +185,7 @@ function EmailGate({ scanId, lockedCount }: { scanId: string; lockedCount: numbe
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [sent, setSent] = useState(false);
+  const [emailed, setEmailed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -206,6 +207,8 @@ function EmailGate({ scanId, lockedCount }: { scanId: string; lockedCount: numbe
           setBusy(false);
           return;
         }
+        const data = (await response.json()) as { emailed?: boolean };
+        setEmailed(data.emailed === true);
         setSent(true);
       } catch {
         setError("That didn't work. Check your connection and try again.");
@@ -218,9 +221,11 @@ function EmailGate({ scanId, lockedCount }: { scanId: string; lockedCount: numbe
   if (sent) {
     return (
       <div className="gate">
-        <h3>Your full report is on its way.</h3>
+        <h3>{emailed ? "Your full report is on its way." : "Your full report is unlocked."}</h3>
         <p className="quiet">
-          Every finding with the request that proves it, and what to change to fix it.
+          {emailed
+            ? "Check your inbox. Every finding comes with the request that proves it and what to change."
+            : "We couldn't email it just now, so it's below. Every finding comes with the request that proves it."}
         </p>
       </div>
     );
