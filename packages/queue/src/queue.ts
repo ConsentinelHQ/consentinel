@@ -29,6 +29,9 @@ export async function assertRedisReachable(url: string, timeoutMs = 5_000): Prom
     retryStrategy: () => null,
     lazyConnect: true,
   });
+  // ioredis emits an unhandled 'error' event on a refused connection, which prints a
+  // stack trace over our own message. We are about to throw a better one.
+  client.on("error", () => {});
   try {
     await client.connect();
     await client.ping();

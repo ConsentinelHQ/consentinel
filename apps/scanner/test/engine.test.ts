@@ -70,8 +70,27 @@ async function main(): Promise<void> {
       result.findings.some((f) => f.type === "cookie-set-pre-consent" && f.vendor === "YouTube"),
     ],
     [
-      "non-essential cookie pre-consent graded critical",
-      result.findings.some((f) => f.vendor === "YouTube" && f.severity === "critical"),
+      "advertising cookie graded critical",
+      result.findings.some(
+        (f) =>
+          f.vendor === "YouTube" &&
+          f.type === "cookie-set-pre-consent" &&
+          f.severity === "critical",
+      ),
+    ],
+    // If everything is critical, nothing is. Triage needs real tiers.
+    [
+      "analytics cookie graded warning, not critical",
+      result.findings.some(
+        (f) =>
+          f.vendor === "Google Analytics" &&
+          f.type === "cookie-set-pre-consent" &&
+          f.severity === "warning",
+      ),
+    ],
+    [
+      "report has both tiers, not one bucket",
+      result.counts.critical > 0 && result.counts.warning > 0,
     ],
     [
       "strictly necessary cookie NOT flagged",

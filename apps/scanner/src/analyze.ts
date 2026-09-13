@@ -139,12 +139,22 @@ export function analyze(raw: RawScan): ScanResult {
     const firstParty = pageHost !== null && c.domain.replace(/^\./, "") === pageHost;
     const known = sig !== null;
     /**
-     * A known non-essential cookie written before consent is a violation, full stop.
-     * First- vs third-party changes the remediation, not the lawfulness, so it must
-     * not change the severity. Unattributed cookies stay a warning because we cannot
-     * prove they are non-essential, and guessing would mean crying wolf.
+     * Severity encodes RISK AND PRIORITY, not lawfulness. Every non-essential cookie
+     * before consent is unlawful, but grading them all critical makes the report
+     * useless for triage - if everything is critical, nothing is, and the privacy
+     * officer reading it gets no help deciding what to fix first.
+     *
+     * Advertising and session recording: critical. Data leaves for profiling,
+     * cross-site targeting, and resale. This is what regulators actually fine.
+     * Analytics: warning. Still a violation, lower exposure, usually a one-line
+     * Consent Mode fix.
+     * Unattributed: warning. We cannot prove it is non-essential, and guessing
+     * would mean crying wolf.
      */
-    const severity: Severity = known ? "critical" : "warning";
+    const severity: Severity =
+      sig?.category === "advertising" || sig?.category === "session-recording"
+        ? "critical"
+        : "warning";
 
     const evidence: Evidence = {
       kind: "cookie",

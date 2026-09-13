@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useCallback, useState, type FormEvent } from "react";
+import { Turnstile } from "./turnstile";
 
 export function ScanForm() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [token, setToken] = useState<string | undefined>(undefined);
+
+  const onToken = useCallback((value: string | undefined) => setToken(value), []);
 
   async function submit(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -19,7 +23,7 @@ export function ScanForm() {
       const response = await fetch("/api/scan", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, turnstileToken: token }),
       });
       const data: unknown = await response.json();
       if (!response.ok) {
@@ -57,6 +61,7 @@ export function ScanForm() {
           {busy ? "Starting" : "Scan"}
         </button>
       </form>
+      <Turnstile onToken={onToken} />
       <p className="quiet">Free. No account. Results in about a minute.</p>
       {error ? (
         <p className="error" role="alert">
