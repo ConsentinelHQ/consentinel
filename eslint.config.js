@@ -1,0 +1,29 @@
+// Shared flat config for every package. Strict by default.
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import prettier from "eslint-config-prettier";
+
+export default tseslint.config(
+  {
+    ignores: ["**/dist/**", "**/.next/**", "**/.turbo/**", "**/coverage/**", "**/node_modules/**"],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: { allowDefaultProject: ["*.config.ts", "*/*/*.config.ts"] },
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      // No `any` without a written reason (roadmap principle 1).
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  { files: ["**/*.js", "**/*.mjs"], ...tseslint.configs.disableTypeChecked },
+  prettier,
+);

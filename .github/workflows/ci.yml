@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+
+jobs:
+  # Fast gate: lint, typecheck, unit tests, build for web + shared.
+  check:
+    name: Lint / typecheck / test / build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck --filter=!@consentinel/scanner
+      - run: pnpm test --filter=!@consentinel/scanner
+      - run: pnpm build --filter=!@consentinel/scanner
+
+  # Scanner has a Chromium dependency; isolated so a browser cache miss never slows the fast gate.
+  scanner:
+    name: Scanner (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(pnpm --filter @consentinel/scanner exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Cache Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @consentinel/scanner exec playwright install --with-deps chromium
+      - if: steps.browser-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @consentinel/scanner exec playwright install-deps chromium
+      - run: pnpm typecheck --filter=@consentinel/scanner
+      - run: pnpm test --filter=@consentinel/scanner
+      - run: pnpm build --filter=@consentinel/scanner
+      - name: Docker build (no push)
+        run: docker build -f apps/scanner/Dockerfile -t consentinel-scanner:ci .
+
+  # We sell security. Fail on known-vulnerable deps.
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
