@@ -34,10 +34,21 @@ const PAGE = `<!doctype html>
 
     document.cookie = '_ga=GA1.2.1234567890.1700000000; path=/';
     document.cookie = '_fbp=fb.1.1700000000.987654321; path=/';
+    // An embedded video's cookies. A real violation most sites never notice.
+    document.cookie = 'VISITOR_INFO1_LIVE=abc123; path=/';
+    document.cookie = 'YSC=xyz789; path=/';
+    // Strictly necessary - must NOT be flagged.
+    document.cookie = 'OptanonConsent=groups=C0001:1; path=/';
+
+    // A tag that only fires once the page settles, like a real GTM measurement hit.
+    setTimeout(function () {
+      new Image().src = 'https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=LATE';
+      new Image().src = 'https://www.clarity.ms/tag/late123';
+    }, 1200);
 
     // Fires ONLY after Accept (the legitimate, gated path):
     document.getElementById('onetrust-accept-btn-handler').addEventListener('click', function () {
-      new Image().src = 'https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=CABC123';
+      new Image().src = 'https://www.redditstatic.com/ads/pixel.js';
       new Image().src = 'https://www.google-analytics.com/g/collect?v=2&tid=G-NV12345XYZ&gcs=G111&en=consent_granted';
     });
     // Reject simply closes the banner; nothing new fires.

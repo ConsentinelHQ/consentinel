@@ -23,5 +23,5 @@ WORKDIR /app
 COPY --from=build /out .
 # Playwright image runs as root by default; drop privileges. Browser is sandboxed at the OS level.
 USER pwuser
-# Until the BullMQ worker lands (Epic 1.1), the CLI is the entrypoint.
-CMD ["node", "dist/cli.js"]
+# Long-running worker process. Reads the scan queue, writes findings to Postgres.
+CMD ["node", "dist/main.js"]

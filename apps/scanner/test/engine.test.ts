@@ -60,8 +60,22 @@ async function main(): Promise<void> {
       result.findings.filter((f) => f.type === "cookie-set-pre-consent").length >= 2,
     ],
     [
-      "TikTok correctly gated, NOT flagged",
-      gated.has("TikTok Pixel") && !flagged.has("TikTok Pixel"),
+      "Reddit correctly gated, NOT flagged",
+      gated.has("Reddit Pixel") && !flagged.has("Reddit Pixel"),
+    ],
+    // The scanner must outlast a deferred tag, or it under-reports the worst sites.
+    ["late-firing tag caught 1.2s after load", flagged.has("Microsoft Clarity")],
+    [
+      "YouTube cookies attributed to the vendor, not listed by cookie name",
+      result.findings.some((f) => f.type === "cookie-set-pre-consent" && f.vendor === "YouTube"),
+    ],
+    [
+      "non-essential cookie pre-consent graded critical",
+      result.findings.some((f) => f.vendor === "YouTube" && f.severity === "critical"),
+    ],
+    [
+      "strictly necessary cookie NOT flagged",
+      !result.findings.some((f) => JSON.stringify(f.evidence).includes("OptanonConsent")),
     ],
     [
       "findings observedUnder = rejected",

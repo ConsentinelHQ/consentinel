@@ -1,13 +1,9 @@
-# ---------------------------------------------------------------------------
-# Consentinel — root .gitignore (Turborepo monorepo)
-# ---------------------------------------------------------------------------
-
-# Dependencies (matches node_modules at any depth in the monorepo)
+# Dependencies
 node_modules/
 .pnp
 .pnp.js
 
-# Package-manager debug logs
+# Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -15,39 +11,38 @@ pnpm-debug.log*
 lerna-debug.log*
 *.log
 
-# ---- Secrets — NEVER commit (we hold ourselves to the standard we sell) ----
+# Secrets - NEVER commit
 .env
 .env.*
 *.pem
 *.key
-# ...but DO commit the template so contributors know what to set:
 !.env.example
 
 # Turborepo
 .turbo/
 
-# TypeScript build artifacts
+# Build artifacts
 dist/
 build/
 *.tsbuildinfo
 
-# Next.js (apps/web)
+# Next.js
 .next/
 out/
 .vercel/
 next-env.d.ts
 
-# Playwright (apps/scanner)
+# Playwright
 test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
 
-# Scanner runtime output (raw captures / findings — data, not source)
+# Scanner runtime output
 **/out/
 *.jsonl
 
-# Test coverage
+# Coverage
 coverage/
 .nyc_output/
 
@@ -56,7 +51,7 @@ coverage/
 .eslintcache
 *.local
 
-# OS / editor noise
+# OS / editor
 .DS_Store
 Thumbs.db
 .idea/

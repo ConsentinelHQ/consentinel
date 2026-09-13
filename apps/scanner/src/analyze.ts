@@ -4,6 +4,7 @@ import {
   sortFindings,
   type Finding,
   type ScanResult,
+  type Severity,
   type ConsentState,
   type Evidence,
   type ConsentSignal,
@@ -16,6 +17,7 @@ import {
   SIGNATURE_LIBRARY_VERSION,
   type Signature,
 } from "./signatures";
+import { classifyCookie } from "./cookies";
 import { CMP_REGISTRY_VERSION } from "./cmp/registry";
 import type { RawScan, CapturedRequest } from "./scanner";
 
@@ -125,11 +127,25 @@ export function analyze(raw: RawScan): ScanResult {
     }
   }
 
-  // 3) Cookies set under denied/rejected consent.
+  // 3) Cookies set under denied/rejected consent, attributed to a vendor.
+  //    A third-party advertising cookie dropped pre-consent is a violation in its own
+  //    right, not a tidy-up item - it is the thing a regulator asks about first.
   const pageHost = safeHost(raw.url);
   for (const c of raw.deniedPass.cookies) {
-    if (/^(__cf|csrf|session)/i.test(c.name)) continue;
+    const sig = classifyCookie(c.name);
+    // Strictly necessary cookies are lawful before consent. Flagging them is crying wolf.
+    if (sig && !sig.consentRequired) continue;
+
     const firstParty = pageHost !== null && c.domain.replace(/^\./, "") === pageHost;
+    const known = sig !== null;
+    /**
+     * A known non-essential cookie written before consent is a violation, full stop.
+     * First- vs third-party changes the remediation, not the lawfulness, so it must
+     * not change the severity. Unattributed cookies stay a warning because we cannot
+     * prove they are non-essential, and guessing would mean crying wolf.
+     */
+    const severity: Severity = known ? "critical" : "warning";
+
     const evidence: Evidence = {
       kind: "cookie",
       name: c.name,
@@ -141,15 +157,21 @@ export function analyze(raw: RawScan): ScanResult {
       id: nextId("cookie"),
       schemaVersion: FINDING_SCHEMA_VERSION,
       type: "cookie-set-pre-consent",
-      severity: "warning",
-      vendor: c.name,
-      category: "unknown",
-      title: `Cookie "${c.name}" set under ${observedUnder} consent`,
-      detail: `Cookie "${c.name}" (domain ${c.domain}) was written before consent was granted.`,
+      severity,
+      vendor: sig?.vendor ?? c.name,
+      category: sig?.category ?? "unknown",
+      title: known
+        ? `${sig.vendor} set ${describe(sig.category)} cookie "${c.name}" under ${observedUnder} consent`
+        : `Unrecognised cookie "${c.name}" set under ${observedUnder} consent`,
+      detail: known
+        ? `${sig.vendor} wrote "${c.name}" on ${c.domain} before consent was granted.`
+        : `Cookie "${c.name}" (domain ${c.domain}) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.`,
       observedUnder,
       evidence,
       compliance: [],
-      remediation: `Do not set non-essential cookies until consent is granted.`,
+      remediation: known
+        ? `Block ${sig.vendor} until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.`
+        : `Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.`,
       firstSeenAt: now,
     });
   }
@@ -185,11 +207,24 @@ export function analyze(raw: RawScan): ScanResult {
     signatureLibraryVersion: SIGNATURE_LIBRARY_VERSION,
     cmpRegistryVersion: CMP_REGISTRY_VERSION,
     cmp,
-    headline: `${headlineCount} tracker${headlineCount === 1 ? "" : "s"} firing before consent`,
+    headline:
+      headlineCount === 0
+        ? "No trackers fired before consent"
+        : `${headlineCount} tracker${headlineCount === 1 ? "" : "s"} firing before consent`,
     counts,
     findings: sorted,
     correctlyGated,
   };
+}
+
+function describe(category: string): string {
+  return category === "advertising"
+    ? "an advertising"
+    : category === "analytics"
+      ? "an analytics"
+      : category === "session-recording"
+        ? "a session-recording"
+        : "a tracking";
 }
 
 function safeHost(url: string): string | null {

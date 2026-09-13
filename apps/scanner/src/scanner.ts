@@ -7,8 +7,15 @@ import {
 } from "./cmp/detect";
 import { acceptConsent, rejectConsent } from "./cmp/driver";
 
-const GOTO_TIMEOUT = 15000;
-const SETTLE_MS = 400;
+const GOTO_TIMEOUT = 20_000;
+const NETWORK_IDLE_TIMEOUT = 8_000;
+/**
+ * Tags do not fire on `load`. GTM injects, GTM's tags then inject, and the actual
+ * measurement hit (the thing that proves data left the browser) lands seconds later.
+ * A short settle sees the library load and misses the transmission - which is the
+ * strongest evidence we have. Wait for network idle, provoke lazy tags, settle again.
+ */
+const SETTLE_MS = 2_500;
 
 export interface ScanOptions {
   /**
@@ -107,6 +114,31 @@ async function newCapturedContext(targetUrl: string, opts: ScanOptions): Promise
   return { browser, context, page, requests };
 }
 
+/**
+ * Real sites defer tags behind scroll, interaction, or an idle callback. Without
+ * this, a scan systematically under-reports the sites most worth reporting on.
+ */
+async function provokeLateTags(page: Page): Promise<void> {
+  try {
+    await page.waitForLoadState("networkidle", { timeout: NETWORK_IDLE_TIMEOUT });
+  } catch {
+    // A page with long-polling or video never goes idle. Carry on.
+  }
+  try {
+    await page.evaluate(() => {
+      window.scrollTo(0, document.body.scrollHeight / 2);
+      window.dispatchEvent(new Event("scroll"));
+    });
+    await page.mouse.move(200, 200);
+    await page.waitForTimeout(SETTLE_MS);
+    await page.evaluate(() => {
+      window.scrollTo(0, 0);
+    });
+  } catch {
+    // Page closed or navigated; whatever we captured still stands.
+  }
+}
+
 async function snapshotCookies(context: BrowserContext): Promise<CapturedCookie[]> {
   const cookies = await context.cookies();
   return cookies.map((c) => ({ name: c.name, domain: c.domain, expires: c.expires }));
@@ -116,7 +148,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   // --- Pass 0: detection ---
   const probe = await newCapturedContext(url, opts);
   await probe.page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
-  await probe.page.waitForTimeout(300);
+  await probe.page.waitForTimeout(600);
   const cmp = await detectCmp(probe.page, probe.requests);
   const consentMode = await detectConsentMode(probe.page);
   await probe.browser.close();
@@ -138,7 +170,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
       reason: "no CMP detected - default state is the denied state",
     };
   }
-  await a.page.waitForTimeout(SETTLE_MS);
+  await provokeLateTags(a.page);
   const deniedPass: PassResult = {
     requests: a.requests,
     cookies: await snapshotCookies(a.context),
@@ -161,7 +193,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
       reason: "no CMP to accept - granted state equals default",
     };
   }
-  await b.page.waitForTimeout(SETTLE_MS);
+  await provokeLateTags(b.page);
   const grantedPass: PassResult = {
     requests: b.requests,
     cookies: await snapshotCookies(b.context),
