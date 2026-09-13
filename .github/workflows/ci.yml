@@ -21,6 +21,21 @@ jobs:
     name: Lint / typecheck / test / build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Data layer tests run against a real Postgres, not a mock.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: consentinel_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/consentinel_test
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -37,6 +52,14 @@ jobs:
           restore-keys: turbo-${{ runner.os }}-
       - run: pnpm format:check
       - run: pnpm lint
+      # A generated migration that drifts from schema.ts is a silent prod failure.
+      - name: Check migrations are in sync with schema
+        run: |
+          pnpm --filter @consentinel/db exec drizzle-kit generate
+          git diff --exit-code packages/db/migrations || {
+            echo "::error::schema.ts changed without a generated migration. Run: pnpm --filter @consentinel/db db:generate";
+            exit 1;
+          }
       - run: pnpm typecheck --filter=!@consentinel/scanner
       - run: pnpm test --filter=!@consentinel/scanner
       - run: pnpm build --filter=!@consentinel/scanner
