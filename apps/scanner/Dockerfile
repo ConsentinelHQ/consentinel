@@ -8,11 +8,15 @@ WORKDIR /app
 FROM base AS deps
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY packages/shared/package.json packages/shared/
+COPY packages/db/package.json packages/db/
+COPY packages/queue/package.json packages/queue/
 COPY apps/scanner/package.json apps/scanner/
 RUN pnpm install --frozen-lockfile --filter @consentinel/scanner...
 
 FROM deps AS build
 COPY packages/shared packages/shared
+COPY packages/db packages/db
+COPY packages/queue packages/queue
 COPY apps/scanner apps/scanner
 RUN pnpm --filter @consentinel/scanner... build
 RUN pnpm --filter @consentinel/scanner --prod deploy /out
