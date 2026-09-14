@@ -1,6 +1,7 @@
 import {
   countBySeverity,
   isUnattributed,
+  SEVERITY_RANK,
   type ScanResult,
   type Severity,
 } from "@consentinel/shared";
@@ -18,6 +19,8 @@ export interface FreeFinding {
   vendor: string;
   title: string;
   locked: boolean;
+  /** How many findings this row stands for. 0 for an unlocked, real finding. */
+  lockedCount: number;
 }
 
 export interface FreeReport {
@@ -61,14 +64,53 @@ export function toFreeReport(result: ScanResult): FreeReport {
     previewIds.add(f.id);
   }
 
-  const findings = attributed.map((f) => ({
-    id: f.id,
-    type: f.type,
-    severity: f.severity,
-    vendor: f.vendor,
-    title: f.title,
-    locked: !previewIds.has(f.id),
-  }));
+  /**
+   * Locked findings collapse to one row per vendor. Six YouTube cookies rendering as
+   * six identical "YouTube - locked" rows reads as repetition, not as six problems,
+   * and it tells the reader nothing about what the gate is withholding.
+   */
+  const findings: FreeFinding[] = [];
+  const lockedByVendor = new Map<string, { severity: Severity; count: number; id: string }>();
+
+  for (const f of attributed) {
+    if (previewIds.has(f.id)) {
+      findings.push({
+        id: f.id,
+        type: f.type,
+        severity: f.severity,
+        vendor: f.vendor,
+        title: f.title,
+        locked: false,
+        lockedCount: 0,
+      });
+      continue;
+    }
+    const existing = lockedByVendor.get(f.vendor);
+    if (existing) {
+      existing.count += 1;
+      // Keep the worst severity so the gutter does not understate the group.
+      if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[existing.severity]) {
+        existing.severity = f.severity;
+      }
+    } else {
+      lockedByVendor.set(f.vendor, { severity: f.severity, count: 1, id: f.id });
+    }
+  }
+
+  for (const [vendor, group] of lockedByVendor) {
+    findings.push({
+      id: group.id,
+      type: "locked-group",
+      severity: group.severity,
+      vendor,
+      title:
+        group.count === 1
+          ? `${vendor} - 1 finding locked`
+          : `${vendor} - ${String(group.count)} findings locked`,
+      locked: true,
+      lockedCount: group.count,
+    });
+  }
 
   return {
     scanId: result.scanId,
@@ -81,7 +123,7 @@ export function toFreeReport(result: ScanResult): FreeReport {
     consentModePresent: result.cmp.consentMode.present,
     findings,
     correctlyGated: result.correctlyGated.map((g) => g.vendor),
-    lockedCount: findings.filter((f) => f.locked).length,
+    lockedCount: findings.reduce((n, f) => n + f.lockedCount, 0),
     unattributedCookies,
   };
 }
