@@ -5,6 +5,6 @@
  * and Chromium into a serverless bundle. The web app enqueues; only the worker
  * container ever touches a browser.
  */
-export * from "./queue";
-export * from "./safety";
-export * from "./enqueue";
+export * from "./queue.js";
+export * from "./safety.js";
+export * from "./enqueue.js";

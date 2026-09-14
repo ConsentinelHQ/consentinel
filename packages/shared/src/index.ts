@@ -1,2 +1,2 @@
-export * from "./finding";
-export * from "./severity";
+export * from "./finding.js";
+export * from "./severity.js";

@@ -1,6 +1,6 @@
 import { assertRedisReachable } from "@consentinel/queue";
-import { loadConfig } from "./config";
-import { startWorker } from "./worker";
+import { loadConfig } from "./config.js";
+import { startWorker } from "./worker.js";
 
 // Container entrypoint. Prove the dependencies are live before claiming to be up:
 // a worker that silently processes nothing is worse than one that crashes.

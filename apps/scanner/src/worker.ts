@@ -6,14 +6,14 @@ import {
   markScanRunning,
   type Database,
 } from "@consentinel/db";
-import { loadConfig, type ScannerConfig } from "./config";
+import { loadConfig, type ScannerConfig } from "./config.js";
 import {
   assertScannableUrl,
   redisConnection,
   SCAN_QUEUE,
   type ScanJobData,
 } from "@consentinel/queue";
-import { scan } from "./index";
+import { scan } from "./index.js";
 
 /**
  * The scanner worker. A long-running container, never a serverless function -

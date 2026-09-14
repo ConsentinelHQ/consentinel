@@ -1,5 +1,5 @@
-import { createDbWithConnection } from "./client";
-import { addSite, upsertUser } from "./repository";
+import { createDbWithConnection } from "./client.js";
+import { addSite, upsertUser } from "./repository.js";
 
 // Local dev seed. Idempotent - safe to run repeatedly.
 async function main(): Promise<void> {

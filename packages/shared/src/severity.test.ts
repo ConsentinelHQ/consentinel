@@ -1,5 +1,5 @@
-import { FINDING_SCHEMA_VERSION, type Finding } from "./finding";
-import { countBySeverity, severityFor, sortFindings } from "./severity";
+import { FINDING_SCHEMA_VERSION, type Finding } from "./finding.js";
+import { countBySeverity, severityFor, sortFindings } from "./severity.js";
 
 const base = (over: Partial<Finding>): Finding => ({
   id: "f1",

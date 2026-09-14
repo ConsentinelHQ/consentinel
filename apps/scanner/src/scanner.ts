@@ -4,8 +4,8 @@ import {
   detectConsentMode,
   type CmpDetection,
   type ConsentModeDetection,
-} from "./cmp/detect";
-import { acceptConsent, rejectConsent } from "./cmp/driver";
+} from "./cmp/detect.js";
+import { acceptConsent, rejectConsent } from "./cmp/driver.js";
 
 const GOTO_TIMEOUT = 20_000;
 const NETWORK_IDLE_TIMEOUT = 8_000;

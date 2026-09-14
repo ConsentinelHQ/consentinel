@@ -1,4 +1,4 @@
-import type { Finding, FindingType, Severity } from "./finding";
+import type { Finding, FindingType, Severity } from "./finding.js";
 
 // Single source of truth for severity. Scanner emits, report renders, both agree.
 export const SEVERITY_BY_TYPE: Record<FindingType, Severity> = {

@@ -1,4 +1,4 @@
-import { scan } from "./index";
+import { scan } from "./index.js";
 
 // Phase 1 harness: drive the engine headlessly before any UI exists.
 // Usage: pnpm --filter @consentinel/scanner scan https://example.com

@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import { CMPS, CMP_REGISTRY_VERSION } from "./registry";
+import { CMPS, CMP_REGISTRY_VERSION } from "./registry.js";
 
 export interface CmpEvidence {
   globals: string[];

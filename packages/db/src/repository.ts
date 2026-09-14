@@ -1,8 +1,8 @@
 import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
 import type { ScanResult } from "@consentinel/shared";
-import type { Database } from "./client";
-import { findings, scans, sites, users, type ScanRow, type ScanTrigger } from "./schema";
-import { fingerprintFinding } from "./fingerprint";
+import type { Database } from "./client.js";
+import { findings, scans, sites, users, type ScanRow, type ScanTrigger } from "./schema.js";
+import { fingerprintFinding } from "./fingerprint.js";
 
 export interface CreateScanInput {
   url: string;

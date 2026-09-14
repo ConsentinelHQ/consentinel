@@ -1,6 +1,6 @@
 import { createScan, findCachedScan, type Database, type ScanRow } from "@consentinel/db";
-import { scanJobOptions, type ScanQueue } from "./queue";
-import { assertScannableUrl } from "./safety";
+import { scanJobOptions, type ScanQueue } from "./queue.js";
+import { assertScannableUrl } from "./safety.js";
 
 export interface EnqueueOptions {
   siteId?: string;

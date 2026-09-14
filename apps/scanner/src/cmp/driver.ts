@@ -1,5 +1,5 @@
 import type { Page } from "playwright";
-import { CMPS } from "./registry";
+import { CMPS } from "./registry.js";
 
 export type ConsentAction = "accept" | "reject";
 

@@ -16,10 +16,10 @@ import {
   extractConsentSignal,
   SIGNATURE_LIBRARY_VERSION,
   type Signature,
-} from "./signatures";
-import { classifyCookie } from "./cookies";
-import { CMP_REGISTRY_VERSION } from "./cmp/registry";
-import type { RawScan, CapturedRequest } from "./scanner";
+} from "./signatures.js";
+import { classifyCookie } from "./cookies.js";
+import { CMP_REGISTRY_VERSION } from "./cmp/registry.js";
+import type { RawScan, CapturedRequest } from "./scanner.js";
 
 export const ENGINE_VERSION = "0.1.0";
 

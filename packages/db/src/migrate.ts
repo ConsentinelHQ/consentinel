@@ -1,5 +1,5 @@
-import { createDbWithConnection } from "./client";
-import { runMigrations } from "./migrate-runner";
+import { createDbWithConnection } from "./client.js";
+import { runMigrations } from "./migrate-runner.js";
 
 // Migrations only. Never hand-edit schema in an environment.
 async function main(): Promise<void> {
