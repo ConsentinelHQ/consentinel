@@ -962,3 +962,15 @@ footer {
     opacity: 0.35;
   }
 }
+
+/* Cookie names under a vendor row: present for verification, quiet enough that
+   the vendor name stays the thing you read. */
+.row-detail {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  word-break: break-all;
+}

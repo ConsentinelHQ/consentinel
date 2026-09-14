@@ -23,6 +23,8 @@ export interface FreeFinding {
   locked: boolean;
   /** How many findings this row stands for. 0 for an unlocked, real finding. */
   lockedCount: number;
+  /** Cookie names and other specifics rolled into this vendor's row. */
+  detail?: string[];
 }
 
 export interface FreeReport {
@@ -157,6 +159,7 @@ export function toFreeReport(result: ScanResult): FreeReport {
  */
 export function toFullReport(result: ScanResult): FreeReport {
   const attributed = dedupe(result.findings.filter((f) => !isUnattributed(f)));
+  const grouped = groupByVendor(attributed);
   const unattributedCookies = [
     ...new Set(result.findings.filter(isUnattributed).map((f) => f.vendor)),
   ];
@@ -166,18 +169,12 @@ export function toFullReport(result: ScanResult): FreeReport {
     url: result.url,
     scannedAt: result.scannedAt,
     headline: result.headline,
-    counts: countBySeverity(attributed),
+    // Counted from the grouped rows, not raw findings: the header must describe
+    // what the reader can actually see.
+    counts: countRows(grouped),
     cmpName: result.cmp.detected?.name ?? null,
     consentModePresent: result.cmp.consentMode.present,
-    findings: attributed.map((f) => ({
-      id: f.id,
-      type: f.type,
-      severity: f.severity,
-      vendor: canonicalVendor(f.vendor),
-      title: f.title,
-      locked: false,
-      lockedCount: 0,
-    })),
+    findings: grouped,
     correctlyGated: result.correctlyGated.map((g) => canonicalVendor(g.vendor)),
     lockedCount: 0,
     unattributedCookies,
@@ -195,4 +192,86 @@ function dedupe(findings: readonly Finding[]): Finding[] {
     out.push(f);
   }
   return out;
+}
+
+/**
+ * Collapse a vendor's findings into one row.
+ *
+ * Nine rows of "Attentive set an advertising cookie X" tells the reader one fact
+ * nine times. What they need is "Attentive fires before consent and sets nine
+ * cookies" - the vendor is the unit of action, because you fix a vendor, not a
+ * cookie. The cookie names stay as detail underneath.
+ */
+function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
+  interface Group {
+    id: string;
+    vendor: string;
+    severity: Severity;
+    type: string;
+    fires: boolean;
+    cookies: string[];
+    otherTitles: string[];
+  }
+
+  const groups = new Map<string, Group>();
+
+  for (const f of findings) {
+    const vendor = canonicalVendor(f.vendor);
+    let g = groups.get(vendor);
+    if (!g) {
+      g = {
+        id: f.id,
+        vendor,
+        severity: f.severity,
+        type: f.type,
+        fires: false,
+        cookies: [],
+        otherTitles: [],
+      };
+      groups.set(vendor, g);
+    }
+
+    // Worst severity wins, so the gutter never understates the group.
+    if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[g.severity]) g.severity = f.severity;
+
+    const cookie = /cookie "([^"]+)"/.exec(f.title)?.[1];
+    if (cookie) {
+      if (!g.cookies.includes(cookie)) g.cookies.push(cookie);
+    } else if (f.type === "tracker-fires-pre-consent" || f.type === "consent-signal-ignored") {
+      g.fires = true;
+      // A tag that ignored an explicit denial is the strongest claim we have.
+      if (f.type === "consent-signal-ignored") g.type = f.type;
+    } else {
+      g.otherTitles.push(f.title);
+    }
+  }
+
+  return [...groups.values()].map((g) => {
+    const parts: string[] = [];
+    if (g.fires) parts.push("fires");
+    if (g.cookies.length > 0) {
+      parts.push(
+        g.cookies.length === 1 ? `sets 1 cookie` : `sets ${String(g.cookies.length)} cookies`,
+      );
+    }
+    const action = parts.length > 0 ? parts.join(" and ") : "was observed";
+
+    return {
+      id: g.id,
+      type: g.type,
+      severity: g.severity,
+      vendor: g.vendor,
+      title: `${g.vendor} ${action} before consent`,
+      detail: [...g.cookies, ...g.otherTitles],
+      locked: false,
+      lockedCount: 0,
+    };
+  });
+}
+
+/** Severity counts over display rows rather than raw findings. */
+function countRows(rows: readonly FreeFinding[]): Record<Severity, number> {
+  const counts: Record<Severity, number> = { critical: 0, warning: 0, info: 0 };
+  for (const r of rows) counts[r.severity] += 1;
+  return counts;
 }
