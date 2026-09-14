@@ -1,8 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // Nav sits in the root layout so every route gets it, including /scan.
 export function SiteNav() {
+  // The app shell has its own bar. Rendering both stacks two navs on /app.
+  const pathname = usePathname();
+  if (pathname.startsWith("/app")) return null;
+
   return (
     <header className="nav">
       <div className="wrap nav-inner">

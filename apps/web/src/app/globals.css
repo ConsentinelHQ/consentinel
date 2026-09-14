@@ -747,3 +747,122 @@ footer {
     transform: none;
   }
 }
+
+/* Clerk renders its own card; this just centres it in our layout. */
+.auth-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- app shell ---------- */
+
+.app-bar {
+  border-bottom: 1px solid var(--hairline);
+  background: var(--paper);
+}
+
+.app-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.75rem;
+}
+
+.app-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-main {
+  padding: clamp(2rem, 5vw, 3.5rem) 0;
+}
+
+.app-head {
+  margin-bottom: 2rem;
+}
+.app-head h1 {
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.app-head .quiet {
+  margin-top: 0.5rem;
+  max-width: 52ch;
+}
+
+.empty {
+  padding: 3rem 1.75rem;
+  border: 1px dashed var(--hairline);
+  border-radius: 18px;
+  text-align: center;
+}
+.empty h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+.empty .quiet {
+  margin: 0.6rem auto 0;
+  max-width: 44ch;
+}
+
+/* Sites are a ruled list, same language as the findings ledger. */
+.site-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.site-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1rem 1.4rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--hairline);
+}
+.site-list li:last-child .site-row {
+  border-bottom: none;
+}
+.site-row:hover {
+  background: var(--paper-alt);
+}
+
+.site-url {
+  font-size: 0.95rem;
+  letter-spacing: -0.012em;
+}
+
+.site-meta,
+.site-schedule {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.add-site {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+.add-site input {
+  flex: 1;
+  min-width: 16rem;
+  padding: 0.85rem 1.1rem;
+  font: inherit;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+.add-site button {
+  padding: 0.85rem 1.4rem;
+}
+.add-site .form-error {
+  flex-basis: 100%;
+}

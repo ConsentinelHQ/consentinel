@@ -228,3 +228,49 @@ export async function addSite(
   if (!existing) throw new Error("failed to add site");
   return existing.id;
 }
+
+export interface SiteSummary {
+  id: string;
+  url: string;
+  label: string | null;
+  schedule: string;
+  lastScanAt: Date | null;
+  lastCritical: number | null;
+  lastStatus: string | null;
+}
+
+/**
+ * Sites for an org with their most recent scan rolled in. One query rather than
+ * N+1: the dashboard lists every site and each needs its latest result.
+ */
+export async function listSitesForOrg(db: Database, orgId: string): Promise<SiteSummary[]> {
+  const rows = await db
+    .select({
+      id: sites.id,
+      url: sites.url,
+      label: sites.label,
+      schedule: sites.schedule,
+      lastScanAt: scans.finishedAt,
+      lastCritical: scans.criticalCount,
+      lastStatus: scans.status,
+    })
+    .from(sites)
+    .leftJoin(
+      scans,
+      and(
+        eq(scans.siteId, sites.id),
+        // Only the newest scan per site.
+        sql`${scans.startedAt} = (select max(started_at) from scans s2 where s2.site_id = ${sites.id})`,
+      ),
+    )
+    .where(eq(sites.orgId, orgId))
+    .orderBy(desc(sites.createdAt));
+
+  return rows.map((r) => ({
+    ...r,
+    schedule: r.schedule,
+    lastScanAt: r.lastScanAt,
+    lastCritical: r.lastCritical,
+    lastStatus: r.lastStatus,
+  }));
+}
