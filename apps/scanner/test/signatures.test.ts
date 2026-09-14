@@ -1,4 +1,5 @@
 import { assessCredibility } from "@consentinel/shared";
+import { classifyCookie } from "../src/cookies";
 import { classify, SIGNATURES } from "../src/signatures";
 
 // Routing tests, not coverage. classify() returns the FIRST match, so order is
@@ -52,6 +53,54 @@ checks.push(["malformed url returns null", classify("not a url") === null]);
 checks.push(["empty page is not credible", !assessCredibility(0, 0).credible]);
 checks.push(["near-empty page is not credible", !assessCredibility(3, 2).credible]);
 checks.push(["real page is credible", assessCredibility(40, 55).credible]);
+
+// Cookie allowlist. A batch run against 20 real sites flagged all of these.
+// Consent-storage and cart plumbing must never be findings.
+const neverFlagged = [
+  "cookieyes-consent",
+  "_pandectes_gdpr",
+  "_ketch_consent_v1_",
+  "datagrail_consent_id",
+  "tcf_consent",
+  "_tracking_consent",
+  "_shopify_essential",
+  "cart",
+  "cart_currency",
+  "localization",
+  "forterToken",
+  "OptanonConsent",
+];
+for (const name of neverFlagged) {
+  const sig = classifyCookie(name);
+  checks.push([
+    `${name} recognised and never flagged`,
+    sig !== null && sig.consentRequired === false,
+  ]);
+}
+
+// Shopify's analytics cookies are NOT plumbing and must stay flagged.
+for (const name of ["_shopify_s", "_shopify_y"]) {
+  const sig = classifyCookie(name);
+  checks.push([
+    `${name} flagged as analytics`,
+    sig !== null && sig.consentRequired && sig.category === "analytics",
+  ]);
+}
+
+// High-frequency vendors from the batch, previously unattributed.
+const attributed: Array<[string, string]> = [
+  ["MR", "Microsoft Advertising"],
+  ["_uetsid", "Microsoft Advertising"],
+  ["_pin_unauth", "Pinterest"],
+  ["__attentive_id", "Attentive"],
+  ["__kla_id", "Klaviyo"],
+  ["ttcsid", "TikTok"],
+  ["demdex", "Adobe Audience Manager"],
+  ["TDID", "The Trade Desk"],
+];
+for (const [name, vendor] of attributed) {
+  checks.push([`${name} attributed to ${vendor}`, classifyCookie(name)?.vendor === vendor]);
+}
 
 // Allowlist entries are the anti-false-positive tool. Losing one is a regression.
 checks.push([
