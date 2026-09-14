@@ -88,6 +88,23 @@ async function main(): Promise<void> {
           f.severity === "warning",
       ),
     ],
+    // Tag managers and analytics are warnings. If everything is critical, nothing is.
+    [
+      "tag-manager request graded warning, not critical",
+      result.findings.some(
+        (f) =>
+          f.vendor === "Google gtag.js" &&
+          f.type === "tracker-fires-pre-consent" &&
+          f.severity === "warning",
+      ),
+    ],
+    // gcs=denied overrides category. A broken consent implementation is always critical.
+    [
+      "consent-signal-ignored stays critical regardless of category",
+      result.findings.every(
+        (f) => f.type !== "consent-signal-ignored" || f.severity === "critical",
+      ),
+    ],
     [
       "report has both tiers, not one bucket",
       result.counts.critical > 0 && result.counts.warning > 0,
