@@ -65,6 +65,20 @@ export function analyze(raw: RawScan): ScanResult {
   for (const h of deniedHits) {
     if (!h.sig.consentRequired) continue;
     const ignoredDenied = h.consentSignal?.state === "denied";
+    /**
+     * Severity is risk and priority, not lawfulness - same rule the cookie path uses.
+     * Advertising and session recording: critical. Data leaves for profiling and
+     * resale, and this is what regulators actually fine.
+     * Analytics, social embeds, tag managers: warning. Still unlawful pre-consent,
+     * lower exposure, usually a one-line Consent Mode fix.
+     *
+     * A tag that saw gcs=denied and fired anyway stays critical whatever it is. That
+     * is a broken consent implementation, not a misconfigured vendor.
+     */
+    const severity: Severity =
+      ignoredDenied || h.sig.category === "advertising" || h.sig.category === "session-recording"
+        ? "critical"
+        : "warning";
     const evidence: Evidence = {
       kind: "request",
       url: h.request.url,
@@ -75,7 +89,7 @@ export function analyze(raw: RawScan): ScanResult {
       id: nextId("preconsent"),
       schemaVersion: FINDING_SCHEMA_VERSION,
       type: ignoredDenied ? "consent-signal-ignored" : "tracker-fires-pre-consent",
-      severity: "critical",
+      severity,
       vendor: h.sig.vendor,
       category: h.sig.category,
       title: ignoredDenied
