@@ -411,3 +411,49 @@ footer {
     transform: none !important;
   }
 }
+
+/* Unattributed cookies sit below the ledger, deliberately quiet. They are evidence
+   the reader may need, not findings competing for the same attention. */
+.unattributed {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.unattributed summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  letter-spacing: -0.012em;
+}
+.unattributed summary:hover {
+  color: var(--ink);
+}
+
+.unattributed .quiet {
+  margin: 0.85rem 0 0;
+  max-width: 46ch;
+}
+
+.cookie-names {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.cookie-names li {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  background: var(--hairline);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  /* Cookie names can be absurdly long. Truncate rather than break the layout. */
+  max-width: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

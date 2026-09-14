@@ -148,8 +148,14 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
       <div className="specimen" style={{ marginTop: "3rem" }}>
         <div className="specimen-head">
           <span className="specimen-url">{report.url}</span>
-          <span className="verdict">
-            {report.counts.critical} critical, {report.counts.warning} to clean up
+          <span className={`verdict${report.counts.critical === 0 ? " pass" : ""}`}>
+            {/* "0 critical, 1 to clean up" reads as a contradiction next to a
+                headline about trackers firing. Say the thing that is true. */}
+            {report.counts.critical > 0
+              ? `${report.counts.critical} critical, ${report.counts.warning} to clean up`
+              : report.counts.warning > 0
+                ? `${report.counts.warning} to clean up, nothing critical`
+                : "Nothing firing before consent"}
           </span>
         </div>
         <ul className="ledger">
@@ -174,6 +180,25 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
             </li>
           ))}
         </ul>
+
+        {report.unattributedCookies.length > 0 && (
+          // Evidence, not findings. Collapsed because we cannot prove these are
+          // non-essential, and listing them inline buries the ones we can prove.
+          <details className="unattributed">
+            <summary>
+              {report.unattributedCookies.length} more cookies we could not attribute
+            </summary>
+            <p className="quiet">
+              These were set before consent but we could not tie them to a known vendor. Confirm
+              with your team whether each one is strictly necessary.
+            </p>
+            <ul className="cookie-names">
+              {report.unattributedCookies.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </details>
+        )}
       </div>
 
       <EmailGate scanId={scanId} lockedCount={report.lockedCount} />

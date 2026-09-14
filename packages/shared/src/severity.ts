@@ -34,3 +34,12 @@ export function countBySeverity(findings: readonly Finding[]): Record<Severity, 
   for (const f of findings) counts[f.severity] += 1;
   return counts;
 }
+
+/**
+ * An unattributed cookie: observed before consent, but we could not tie it to a
+ * vendor. It is evidence, not a finding - we cannot prove it is non-essential, and
+ * listing it beside "Meta Pixel fires before consent" makes the report unreadable.
+ */
+export function isUnattributed(f: Finding): boolean {
+  return f.type === "cookie-set-pre-consent" && f.category === "unknown";
+}

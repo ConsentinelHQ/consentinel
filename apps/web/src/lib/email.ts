@@ -1,5 +1,11 @@
 import "server-only";
-import type { Finding, ScanResult, Severity } from "@consentinel/shared";
+import {
+  countBySeverity,
+  isUnattributed,
+  type Finding,
+  type ScanResult,
+  type Severity,
+} from "@consentinel/shared";
 
 /**
  * Report delivery via Resend's REST API. No SDK: one fetch call, one fewer
@@ -46,8 +52,13 @@ const COLOR: Record<Severity, string> = {
 };
 
 function renderReportHtml(result: ScanResult): string {
-  const rows = result.findings.map(renderFinding).join("");
+  // Same split as the web report: unattributed cookies are evidence, not findings.
+  const attributed = result.findings.filter((f) => !isUnattributed(f));
+  const unattributed = result.findings.filter(isUnattributed).map((f) => esc(f.vendor));
+  const rows = attributed.map(renderFinding).join("");
   const gated = result.correctlyGated.map((g) => esc(g.vendor)).join(", ");
+  // Recounted from attributed findings so the email matches the page.
+  const counts = countBySeverity(attributed);
 
   return `<!doctype html>
 <html><body style="margin:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1d1d1f">
@@ -55,11 +66,20 @@ function renderReportHtml(result: ScanResult): string {
     <h1 style="font-size:28px;line-height:1.15;letter-spacing:-0.03em;margin:0 0 8px">${esc(result.headline)}</h1>
     <p style="margin:0 0 4px;color:#6e6e73;font-size:15px">${esc(result.url)}</p>
     <p style="margin:0 0 28px;color:#6e6e73;font-size:15px">
-      ${result.counts.critical} critical, ${result.counts.warning} to clean up.
+      ${counts.critical} critical, ${counts.warning} to clean up.
       ${result.cmp.detected ? `Consent platform: ${esc(result.cmp.detected.name)}.` : "No consent platform detected."}
     </p>
     ${rows}
     ${gated ? `<p style="margin:28px 0 0;color:#00795c;font-size:14px">Correctly gated: ${gated}</p>` : ""}
+    ${
+      unattributed.length
+        ? `<p style="margin:28px 0 0;color:#6e6e73;font-size:13px;line-height:1.6">
+             ${unattributed.length} more cookies were set before consent that we could not
+             attribute to a known vendor. Confirm whether each is strictly necessary:
+             <br><span style="font-family:ui-monospace,monospace;font-size:12px">${unattributed.join(", ")}</span>
+           </p>`
+        : ""
+    }
     <p style="margin:32px 0 0;color:#6e6e73;font-size:12px;line-height:1.5">
       Scanned ${esc(result.scannedAt)} with engine ${esc(result.engineVersion)},
       signatures ${esc(result.signatureLibraryVersion)}.
@@ -94,17 +114,28 @@ function evidenceLine(finding: Finding): string {
 }
 
 function renderReportText(result: ScanResult): string {
+  const attributed = result.findings.filter((f) => !isUnattributed(f));
+  const unattributed = result.findings.filter(isUnattributed).map((f) => f.vendor);
+  const counts = countBySeverity(attributed);
   const lines = [
     result.headline,
     result.url,
-    `${result.counts.critical} critical, ${result.counts.warning} to clean up`,
+    `${counts.critical} critical, ${counts.warning} to clean up`,
     "",
   ];
-  for (const f of result.findings) {
+  for (const f of attributed) {
     lines.push(
       `[${f.severity.toUpperCase()}] ${f.title}`,
       `  ${evidenceLine(f)}`,
       `  Fix: ${f.remediation}`,
+      "",
+    );
+  }
+  if (unattributed.length > 0) {
+    lines.push(
+      `${unattributed.length} cookies set before consent that we could not attribute.`,
+      "Confirm whether each is strictly necessary:",
+      `  ${unattributed.join(", ")}`,
       "",
     );
   }
