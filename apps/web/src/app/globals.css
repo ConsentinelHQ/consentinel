@@ -5,7 +5,10 @@
   --ink: #1d1d1f;
   --ink-soft: #6e6e73;
   --hairline: #d2d2d7;
-  --accent: #0066cc;
+  /* Primary actions are ink, not a hue. Colour is reserved for severity - a blue
+     button competes with the three colours that actually carry meaning. */
+  --accent: #1d1d1f;
+  --accent-hover: #3a3a3c;
 
   /* Verdict palette. Colour carries meaning here, never decoration. */
   --critical: #d70015;
@@ -165,7 +168,7 @@ button {
   transition: opacity 0.15s ease;
 }
 button:hover:not(:disabled) {
-  opacity: 0.85;
+  background: var(--accent-hover);
 }
 button:disabled {
   opacity: 0.4;
