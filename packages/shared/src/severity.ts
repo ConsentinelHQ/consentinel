@@ -43,3 +43,38 @@ export function countBySeverity(findings: readonly Finding[]): Record<Severity, 
 export function isUnattributed(f: Finding): boolean {
   return f.type === "cookie-set-pre-consent" && f.category === "unknown";
 }
+
+/**
+ * A page that loads almost nothing did not load. Bot management serving an empty
+ * shell, a JS-gated SPA that never hydrated, and a silent navigation failure all
+ * look identical to a clean site otherwise - zero trackers, zero cookies.
+ *
+ * Reporting that as "no trackers fired before consent" is the worst output this
+ * product can produce: it is a false all-clear, and it is unrecoverable with a
+ * buyer who later finds out. Below this threshold we refuse to grade the scan.
+ */
+export const MIN_CREDIBLE_REQUESTS = 12;
+
+export interface ScanCredibility {
+  credible: boolean;
+  requestCount: number;
+  reason?: string;
+}
+
+export function assessCredibility(
+  deniedRequestCount: number,
+  grantedRequestCount: number,
+  // Overridable so local fixtures, which are deliberately tiny, can opt out.
+  minRequests: number = MIN_CREDIBLE_REQUESTS,
+): ScanCredibility {
+  const requestCount = Math.max(deniedRequestCount, grantedRequestCount);
+  if (requestCount >= minRequests) return { credible: true, requestCount };
+  return {
+    credible: false,
+    requestCount,
+    reason:
+      requestCount === 0
+        ? "The page returned no network activity at all."
+        : `The page made only ${String(requestCount)} requests, far below a working page.`,
+  };
+}

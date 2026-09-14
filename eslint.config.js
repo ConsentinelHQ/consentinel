@@ -6,6 +6,8 @@ import prettier from "eslint-config-prettier";
 export default tseslint.config(
   {
     ignores: [
+      // Research harness, not shipped. Runs via tsx outside the build.
+      "scripts/**",
       "**/dist/**",
       "**/.next/**",
       "**/.turbo/**",

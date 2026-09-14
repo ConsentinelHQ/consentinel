@@ -32,6 +32,7 @@ async function main(): Promise<void> {
     ...process.env,
     ALLOW_PRIVATE_SCAN_TARGETS: "true", // the fixture is on loopback
     SCAN_CONCURRENCY: "1",
+    SCAN_MIN_REQUESTS: "1", // fixture page is minimal by design
   });
 
   const { db, sql } = createDbWithConnection(config.DATABASE_URL);

@@ -24,6 +24,11 @@ export interface ScanOptions {
    * tags, and blocking the cascade would hide downstream violations.
    */
   blockThirdParty?: boolean;
+  /**
+   * Minimum requests before a scan is considered credible. Fixtures are tiny by
+   * design and set this low; real scans use the shared default.
+   */
+  minRequests?: number;
 }
 
 export interface CapturedRequest {

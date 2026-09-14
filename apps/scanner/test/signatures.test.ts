@@ -1,3 +1,4 @@
+import { assessCredibility } from "@consentinel/shared";
 import { classify, SIGNATURES } from "../src/signatures";
 
 // Routing tests, not coverage. classify() returns the FIRST match, so order is
@@ -45,6 +46,12 @@ for (const [url, want] of cases) {
 const ids = SIGNATURES.map((s) => s.id);
 checks.push(["no duplicate signature ids", new Set(ids).size === ids.length]);
 checks.push(["malformed url returns null", classify("not a url") === null]);
+
+// A blocked page looks identical to a clean one. Refusing to grade it is the
+// whole point - a false all-clear is unrecoverable with a buyer.
+checks.push(["empty page is not credible", !assessCredibility(0, 0).credible]);
+checks.push(["near-empty page is not credible", !assessCredibility(3, 2).credible]);
+checks.push(["real page is credible", assessCredibility(40, 55).credible]);
 
 // Allowlist entries are the anti-false-positive tool. Losing one is a regression.
 checks.push([

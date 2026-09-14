@@ -13,7 +13,7 @@ import {
   SCAN_QUEUE,
   type ScanJobData,
 } from "@consentinel/queue";
-import { scan } from "./index.js";
+import { scan, UncredibleScanError } from "./index.js";
 
 /**
  * The scanner worker. A long-running container, never a serverless function -
@@ -49,7 +49,21 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       }
 
       await markScanRunning(db, scanId);
-      const result = await withTimeout(scan(check.url), config.SCAN_TIMEOUT_MS);
+      let result;
+      try {
+        result = await withTimeout(
+          scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS }),
+          config.SCAN_TIMEOUT_MS,
+        );
+      } catch (error) {
+        // Bot protection does not relent on attempt two. Fail once, clearly,
+        // rather than burning three worker slots on the same wall.
+        if (error instanceof UncredibleScanError) {
+          await markScanFailed(db, scanId, error.message);
+          throw new UnrecoverableScanError(error.message);
+        }
+        throw error;
+      }
       await completeScan(db, scanId, result);
       return { scanId, critical: result.counts.critical };
     },

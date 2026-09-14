@@ -12,7 +12,7 @@ async function main(): Promise<void> {
   console.log(c("\nConsentinel engine - end-to-end integration proof\n", 1));
 
   // Hermetic: the fixture is the only host allowed to answer.
-  const result: ScanResult = await scan(url, { blockThirdParty: true });
+  const result: ScanResult = await scan(url, { blockThirdParty: true, minRequests: 1 });
 
   // Render
   console.log(c(`  ${result.headline.toUpperCase()}`, 31));
