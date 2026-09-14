@@ -124,11 +124,24 @@ section {
 
 .hero {
   padding-top: clamp(4.5rem, 10vw, 7.5rem);
+  /* The homepage hero overlaps the next section with the specimen card, so it
+     zeroes this out itself. Heroes without a card need real space below. */
+  padding-bottom: clamp(4rem, 9vw, 7rem);
+}
+
+.hero:has(.specimen) {
   padding-bottom: 0;
 }
 
 .hero h1 {
   margin-bottom: 1.5rem;
+  /* Keeps long headlines from running the full 62rem wrap. */
+  max-width: 20ch;
+  margin-inline: auto;
+}
+
+.hero .lede {
+  max-width: 46rem;
 }
 
 /* ---------- scan form ---------- */
@@ -701,4 +714,33 @@ footer {
   margin: 1rem 0 0;
   font-size: 0.85rem;
   color: var(--critical);
+}
+
+/* ---------- depth and motion ---------- */
+
+/* Flat grey reads as a box. A faint radial makes the section feel lit. */
+.tinted {
+  background:
+    radial-gradient(120% 80% at 50% 0%, #ffffff 0%, var(--paper-alt) 60%);
+}
+
+/* Cards lift rather than outline. Matches the specimen's existing treatment. */
+.tier {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -18px rgb(0 0 0 / 0.18);
+}
+
+/* Sections settle into place on entry. Driven by an IntersectionObserver so the
+   trigger point is predictable on tall sections. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+  }
 }

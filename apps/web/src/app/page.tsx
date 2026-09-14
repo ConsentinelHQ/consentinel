@@ -52,7 +52,7 @@ export default function Home() {
       </section>
 
       <section className="tinted">
-        <div className="wrap">
+        <div data-reveal className="wrap">
           <div className="split">
             <div>
               <h2>Proof, not opinions.</h2>
@@ -98,7 +98,7 @@ export default function Home() {
       </section>
 
       <section>
-        <div className="wrap center">
+        <div data-reveal className="wrap center">
           <h2>Find out in a minute.</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
             Scan any page you own. You will get the headline immediately and the full report by
@@ -109,7 +109,9 @@ export default function Home() {
       </section>
 
       <footer>
-        <div className="wrap center">Consentinel. Scan only sites you are authorised to test.</div>
+        <div data-reveal className="wrap center">
+          Consentinel. Scan only sites you are authorised to test.
+        </div>
       </footer>
     </main>
   );

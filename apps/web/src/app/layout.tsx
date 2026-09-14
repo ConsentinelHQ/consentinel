@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
+import { Reveal } from "@/components/reveal";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html className={inter.variable} lang="en">
       <body>
         <SiteNav />
+        <Reveal />
         {children}
       </body>
     </html>

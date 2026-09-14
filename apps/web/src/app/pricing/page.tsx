@@ -22,7 +22,7 @@ export default function Pricing() {
       </section>
 
       <section>
-        <div className="wrap tiers">
+        <div data-reveal className="wrap tiers">
           <div className="tier">
             <h2>Free scan</h2>
             <p className="tier-price">$0</p>
@@ -74,7 +74,7 @@ export default function Pricing() {
       </section>
 
       <section>
-        <div className="wrap center">
+        <div data-reveal className="wrap center">
           <h2>Bigger than 25 pages?</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
             Multi-domain estates, staging environments, and authenticated journeys are all things we
