@@ -72,15 +72,20 @@ p {
 }
 
 a {
-  color: var(--accent);
-  text-decoration: none;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--hairline);
 }
 a:hover {
-  text-decoration: underline;
+  text-decoration-color: var(--ink);
 }
 
 :focus-visible {
-  outline: 3px solid var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -483,6 +488,7 @@ footer {
 }
 
 .nav-mark {
+  text-decoration: none;
   font-weight: 600;
   font-size: 0.95rem;
   letter-spacing: -0.02em;
@@ -497,6 +503,7 @@ footer {
 }
 
 .nav-links a {
+  text-decoration: none;
   font-size: 0.88rem;
   color: var(--ink-soft);
   text-decoration: none;
@@ -604,6 +611,7 @@ footer {
 }
 
 .tier-cta {
+  text-decoration: none;
   display: inline-block;
   margin-top: 1.75rem;
   padding: 0.8rem 1.2rem;
