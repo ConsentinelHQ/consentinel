@@ -1,7 +1,15 @@
 import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
 import type { ScanResult } from "@consentinel/shared";
 import type { Database } from "./client.js";
-import { findings, scans, sites, users, type ScanRow, type ScanTrigger } from "./schema.js";
+import {
+  findings,
+  scans,
+  sites,
+  users,
+  type ScanRow,
+  type ScanSchedule,
+  type ScanTrigger,
+} from "./schema.js";
 import { fingerprintFinding } from "./fingerprint.js";
 
 export interface CreateScanInput {
@@ -273,4 +281,34 @@ export async function listSitesForOrg(db: Database, orgId: string): Promise<Site
     lastCritical: r.lastCritical,
     lastStatus: r.lastStatus,
   }));
+}
+
+/**
+ * Fetch a site only if it belongs to the given org. Scoping the read this way
+ * means an authorisation bug cannot leak another org's data through a guessed
+ * UUID - the query simply returns nothing.
+ */
+export async function getSiteForOrg(
+  db: Database,
+  siteId: string,
+  orgId: string,
+): Promise<typeof sites.$inferSelect | undefined> {
+  const [row] = await db
+    .select()
+    .from(sites)
+    .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)))
+    .limit(1);
+  return row;
+}
+
+export async function setSiteSchedule(
+  db: Database,
+  siteId: string,
+  orgId: string,
+  schedule: ScanSchedule,
+): Promise<void> {
+  await db
+    .update(sites)
+    .set({ schedule })
+    .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
 }

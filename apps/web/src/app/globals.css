@@ -866,3 +866,99 @@ footer {
 .add-site .form-error {
   flex-basis: 100%;
 }
+
+.app-content > .quiet:first-child {
+  margin-bottom: 1.5rem;
+}
+
+.site-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+
+.schedule-control {
+  display: block;
+}
+.schedule-control > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.schedule-control select {
+  padding: 0.85rem 1.1rem;
+  font: inherit;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+
+.section-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 1rem;
+}
+
+/* A scan takes about a minute. Indeterminate, because we cannot honestly
+   estimate progress - the page decides how long it takes, not us. */
+.scan-progress {
+  display: block;
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  overflow: hidden;
+  background: var(--hairline);
+}
+.scan-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    #ff3b30,
+    #ff9500,
+    #ffcc00,
+    #34c759,
+    #007aff,
+    #af52de,
+    #ff3b30
+  );
+  background-size: 200% 100%;
+  animation:
+    sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite,
+    hue 3s linear infinite;
+}
+
+@keyframes hue {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(350%);
+  }
+}
+
+.site-row {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-progress::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.35;
+  }
+}

@@ -200,7 +200,8 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
         )}
       </div>
 
-      <EmailGate scanId={scanId} lockedCount={report.lockedCount} />
+      {/* Nothing is withheld from an owner, so there is nothing to gate. */}
+      {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
     </>
   );
 }

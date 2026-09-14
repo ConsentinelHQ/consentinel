@@ -90,3 +90,33 @@ export function assessCredibility(
         : `The page made only ${String(requestCount)} requests, far below a working page.`,
   };
 }
+
+/**
+ * The cookie and signature libraries grew separately and use different strings
+ * for the same company: "Meta" and "Meta Pixel", "Microsoft Advertising" and
+ * "Microsoft Advertising UET", "TikTok" and "TikTok Pixel".
+ *
+ * A report listing the same vendor three ways reads as careless, and grouping by
+ * vendor splits into fragments. Normalising here rather than editing 200 library
+ * rows keeps the libraries free to be as specific as detection needs.
+ */
+const VENDOR_ALIASES: Record<string, string> = {
+  "Meta Pixel": "Meta",
+  "TikTok Pixel": "TikTok",
+  "Snap Pixel": "Snap",
+  "Pinterest Tag": "Pinterest",
+  "Reddit Pixel": "Reddit",
+  "LinkedIn Insight": "LinkedIn",
+  "Microsoft Advertising UET": "Microsoft Advertising",
+  Microsoft: "Microsoft Advertising",
+  "Google Ads (gtag destination)": "Google Ads",
+  "Google Analytics 4": "Google Analytics",
+  "X (Twitter) Pixel": "X (Twitter)",
+  "YouTube (no-cookie)": "YouTube",
+  "Shopify CDN": "Shopify",
+};
+
+/** Canonical display name for a vendor. Detection keeps its specific label. */
+export function canonicalVendor(vendor: string): string {
+  return VENDOR_ALIASES[vendor] ?? vendor;
+}

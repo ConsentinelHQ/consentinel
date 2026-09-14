@@ -1,5 +1,7 @@
 import {
+  canonicalVendor,
   countBySeverity,
+  type Finding,
   isUnattributed,
   SEVERITY_RANK,
   type ScanResult,
@@ -48,8 +50,12 @@ export function toFreeReport(result: ScanResult): FreeReport {
    */
   // Unattributed cookies are pulled out first. Left in, each one counts as its own
   // "vendor" and a site with thirty of them fills the preview with noise.
-  const attributed = result.findings.filter((f) => !isUnattributed(f));
-  const unattributedCookies = result.findings.filter(isUnattributed).map((f) => f.vendor);
+  const attributed = dedupe(result.findings.filter((f) => !isUnattributed(f)));
+  // Deduped: the same cookie name can appear first- and third-party, and two
+  // identical rows reads as a bug.
+  const unattributedCookies = [
+    ...new Set(result.findings.filter(isUnattributed).map((f) => f.vendor)),
+  ];
 
   const seenVendors = new Set<string>();
   const previewIds = new Set<string>();
@@ -85,7 +91,8 @@ export function toFreeReport(result: ScanResult): FreeReport {
       });
       continue;
     }
-    const existing = lockedByVendor.get(f.vendor);
+    const vendorKey = canonicalVendor(f.vendor);
+    const existing = lockedByVendor.get(vendorKey);
     if (existing) {
       existing.count += 1;
       // Keep the worst severity so the gutter does not understate the group.
@@ -93,11 +100,24 @@ export function toFreeReport(result: ScanResult): FreeReport {
         existing.severity = f.severity;
       }
     } else {
-      lockedByVendor.set(f.vendor, { severity: f.severity, count: 1, id: f.id });
+      lockedByVendor.set(vendorKey, { severity: f.severity, count: 1, id: f.id });
     }
   }
 
-  for (const [vendor, group] of lockedByVendor) {
+  /**
+   * Show the worst handful of locked vendors, not all 35. A wall of "N findings
+   * locked" is not a stronger gate than a short one - it just buries the three
+   * real findings above it and reads as a paywall rather than a preview.
+   */
+  const LOCKED_ROW_LIMIT = 6;
+  const ranked = [...lockedByVendor.entries()]
+    .sort(
+      (a, b) =>
+        SEVERITY_RANK[a[1].severity] - SEVERITY_RANK[b[1].severity] || b[1].count - a[1].count,
+    )
+    .slice(0, LOCKED_ROW_LIMIT);
+
+  for (const [vendor, group] of ranked) {
     findings.push({
       id: group.id,
       type: "locked-group",
@@ -123,7 +143,56 @@ export function toFreeReport(result: ScanResult): FreeReport {
     consentModePresent: result.cmp.consentMode.present,
     findings,
     correctlyGated: result.correctlyGated.map((g) => g.vendor),
-    lockedCount: findings.reduce((n, f) => n + f.lockedCount, 0),
+    // Counts every hidden finding, including vendors not shown as rows.
+    lockedCount: [...lockedByVendor.values()].reduce((n, g) => n + g.count, 0),
     unattributedCookies,
   };
+}
+
+/**
+ * The owner's view: every finding, nothing locked, no gate.
+ *
+ * Shares the FreeReport shape deliberately - one renderer, one set of styles,
+ * and `locked` simply never true. A second component would drift.
+ */
+export function toFullReport(result: ScanResult): FreeReport {
+  const attributed = dedupe(result.findings.filter((f) => !isUnattributed(f)));
+  const unattributedCookies = [
+    ...new Set(result.findings.filter(isUnattributed).map((f) => f.vendor)),
+  ];
+
+  return {
+    scanId: result.scanId,
+    url: result.url,
+    scannedAt: result.scannedAt,
+    headline: result.headline,
+    counts: countBySeverity(attributed),
+    cmpName: result.cmp.detected?.name ?? null,
+    consentModePresent: result.cmp.consentMode.present,
+    findings: attributed.map((f) => ({
+      id: f.id,
+      type: f.type,
+      severity: f.severity,
+      vendor: canonicalVendor(f.vendor),
+      title: f.title,
+      locked: false,
+      lockedCount: 0,
+    })),
+    correctlyGated: result.correctlyGated.map((g) => canonicalVendor(g.vendor)),
+    lockedCount: 0,
+    unattributedCookies,
+  };
+}
+
+/** Collapse findings that render identically. Two rows with the same words is a bug. */
+function dedupe(findings: readonly Finding[]): Finding[] {
+  const seen = new Set<string>();
+  const out: Finding[] = [];
+  for (const f of findings) {
+    const key = `${canonicalVendor(f.vendor)}|${f.title}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(f);
+  }
+  return out;
 }
