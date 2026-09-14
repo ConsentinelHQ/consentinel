@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
+
+// Self-hosted at build time, so no runtime request to Google and no layout shift.
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Consentinel - see which trackers fire before consent",
@@ -11,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html className={inter.variable} lang="en">
       <body>
         <SiteNav />
         {children}
