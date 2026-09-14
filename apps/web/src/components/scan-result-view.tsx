@@ -166,9 +166,8 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
               key={finding.id}
             >
               <span className="gutter" />
-              <span className="row-title">
-                {finding.locked ? `${finding.vendor} - locked` : finding.title}
-              </span>
+              {/* Locked rows already carry their own grouped title. */}
+              <span className="row-title">{finding.title}</span>
               <span className="row-vendor">{finding.severity}</span>
             </li>
           ))}

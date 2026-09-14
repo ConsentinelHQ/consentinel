@@ -159,8 +159,28 @@ export const leads = pgTable(
   (t) => [index("leads_email_idx").on(t.email)],
 );
 
+/**
+ * Contact form submissions. Stored first, emailed second - if delivery fails we
+ * still have the enquiry, which is the whole point of not using a mailto link.
+ */
+export const inquiries = pgTable(
+  "inquiries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    name: text("name"),
+    company: text("company"),
+    /** Which tier or page they came from: "audit", "monitoring", "general". */
+    topic: text("topic").notNull().default("general"),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("inquiries_created_idx").on(t.createdAt)],
+);
+
 export type UserRow = typeof users.$inferSelect;
 export type SiteRow = typeof sites.$inferSelect;
 export type ScanRow = typeof scans.$inferSelect;
 export type FindingRow = typeof findings.$inferSelect;
 export type LeadRow = typeof leads.$inferSelect;
+export type InquiryRow = typeof inquiries.$inferSelect;
