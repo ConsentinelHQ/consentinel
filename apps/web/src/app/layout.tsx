@@ -13,7 +13,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Consentinel - see which trackers fire before consent",
+  // Short in the tab, descriptive in search results.
+  title: {
+    default: "Consentinel",
+    template: "%s | Consentinel",
+  },
   description:
     "Scan any website and get evidence of trackers firing before consent, cookies dropped without permission, and personal data leaking to ad platforms.",
 };
