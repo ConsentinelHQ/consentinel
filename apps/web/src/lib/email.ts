@@ -110,6 +110,8 @@ function evidenceLine(finding: Finding): string {
       return `Script ${e.src}${e.documented ? "" : " (undocumented)"}`;
     case "credential":
       return `Credential in ${e.location}: ${e.tokenPreview}`;
+    case "cmp":
+      return e.detail;
   }
 }
 

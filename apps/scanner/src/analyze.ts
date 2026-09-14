@@ -61,6 +61,50 @@ export function analyze(raw: RawScan): ScanResult {
   let seq = 0;
   const nextId = (t: string): string => `${t}-${String(++seq).padStart(3, "0")}`;
 
+  /**
+   * 0) A consent platform that is installed but never shows a banner.
+   *
+   * Observed on real sites: the CMP loads its SDK, geo-targeting decides a US
+   * visitor needs no banner, and every tag fires immediately. Without this the
+   * report says "we could not find the reject control", which reads as our
+   * failure rather than theirs - and buries the reason everything else fired.
+   */
+  const denied = raw.deniedPass.interaction;
+  if (
+    raw.cmp.detected &&
+    denied.kind === "reject" &&
+    !denied.performed &&
+    denied.bannerPresent === false
+  ) {
+    findings.push({
+      id: nextId("nobanner"),
+      schemaVersion: FINDING_SCHEMA_VERSION,
+      type: "consent-banner-absent",
+      severity: "critical",
+      vendor: raw.cmp.detected.name,
+      category: "unknown",
+      title: `${raw.cmp.detected.name} is installed but no consent banner was shown`,
+      detail:
+        `${raw.cmp.detected.name} loaded on this page but never presented a consent banner, ` +
+        `so no visitor is given a choice before tracking begins. This is commonly a ` +
+        `geo-targeting rule that exempts visitors in some regions. Every finding below ` +
+        `was observed with no choice available.`,
+      remediation:
+        `Check your ${raw.cmp.detected.name} geolocation rules. If the banner is intentionally ` +
+        `limited to certain regions, confirm that matches your legal obligations - several ` +
+        `US states now require an opt-out mechanism regardless of EU rules.`,
+      evidence: {
+        kind: "cmp",
+        platform: raw.cmp.detected.name,
+        bannerShown: false,
+        detail: `${raw.cmp.detected.name} SDK loaded; no banner element became visible`,
+      },
+      observedUnder: "default",
+      firstSeenAt: now,
+      compliance: [],
+    });
+  }
+
   // 1) Trackers firing under denied/rejected consent - the core violation.
   for (const h of deniedHits) {
     if (!h.sig.consentRequired) continue;

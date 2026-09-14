@@ -9,7 +9,7 @@ const POLL_MS = 250;
 
 export type OperateResult =
   | { ok: true; action: ConsentAction; cmp: string; selector: string }
-  | { ok: false; reason: string; tried?: string[] };
+  | { ok: false; reason: string; bannerPresent?: boolean; tried?: string[] };
 
 export async function operate(
   page: Page,
@@ -52,9 +52,30 @@ export async function operate(
     }
     await page.waitForTimeout(POLL_MS);
   }
+  /**
+   * Distinguish "the banner never appeared" from "the banner appeared but we
+   * could not click it". A CMP that loads its SDK and shows no banner is a real
+   * finding - often geo-targeting that exempts US visitors - and it is a
+   * materially different claim from a tooling failure on our side.
+   */
+  let bannerPresent = false;
+  for (const sel of cmp.selectors) {
+    try {
+      if (await page.locator(sel).first().isVisible()) {
+        bannerPresent = true;
+        break;
+      }
+    } catch {
+      // Selector invalid for this page; keep checking the rest.
+    }
+  }
+
   return {
     ok: false,
-    reason: `no clickable ${action} control found for ${cmp.name}`,
+    bannerPresent,
+    reason: bannerPresent
+      ? `${cmp.name} banner is present but no ${action} control could be clicked`
+      : `${cmp.name} is installed but showed no consent banner`,
     tried: attempted.length > 0 ? attempted : selectors,
   };
 }

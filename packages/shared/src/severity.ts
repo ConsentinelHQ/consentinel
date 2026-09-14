@@ -11,6 +11,9 @@ export const SEVERITY_BY_TYPE: Record<FindingType, Severity> = {
   "payment-page-tamper": "critical",
   "dead-tag": "warning",
   "duplicate-tag": "warning",
+  // A consent platform that never shows a banner is not a lesser problem than a
+  // tag firing early - it is the reason the tags fire early.
+  "consent-banner-absent": "critical",
 };
 
 export const SEVERITY_RANK: Record<Severity, number> = { critical: 0, warning: 1, info: 2 };
@@ -20,9 +23,18 @@ export function severityFor(type: FindingType): Severity {
 }
 
 /** Critical first, then stable by vendor and title so diffs between scans are deterministic. */
+/**
+ * Findings that explain the others sort above them. "No consent banner was shown"
+ * is the reason every tracker below it fired; buried at position 30 it reads as
+ * one more line item instead of the root cause.
+ */
+const ROOT_CAUSE_TYPES: ReadonlySet<string> = new Set(["consent-banner-absent"]);
+
 export function sortFindings(findings: readonly Finding[]): Finding[] {
+  const rootCauseRank = (f: Finding): number => (ROOT_CAUSE_TYPES.has(f.type) ? 0 : 1);
   return [...findings].sort(
     (a, b) =>
+      rootCauseRank(a) - rootCauseRank(b) ||
       SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
       a.vendor.localeCompare(b.vendor) ||
       a.title.localeCompare(b.title),

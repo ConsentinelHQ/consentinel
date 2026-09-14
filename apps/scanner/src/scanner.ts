@@ -50,7 +50,7 @@ export interface CapturedCookie {
 
 export type ConsentInteraction =
   | { kind: "none"; reason: string }
-  | { kind: "reject" | "accept"; performed: boolean; selector?: string };
+  | { kind: "reject" | "accept"; performed: boolean; selector?: string; bannerPresent?: boolean };
 
 export interface PassResult {
   requests: CapturedRequest[];
@@ -195,7 +195,9 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     const r = await rejectConsent(a.page, cmpId);
     deniedInteraction = r.ok
       ? { kind: "reject", performed: true, selector: r.selector }
-      : { kind: "reject", performed: false };
+      : // bannerPresent separates "we could not click it" from "it never appeared",
+        // which is a real finding rather than a limitation of ours.
+        { kind: "reject", performed: false, bannerPresent: r.bannerPresent ?? false };
   } else {
     deniedInteraction = {
       kind: "none",

@@ -41,7 +41,9 @@ export type FindingType =
   | "uninventoried-script" // PCI DSS 6.4.3: script with no documented justification
   | "payment-page-tamper" // PCI DSS 11.6.1: change detected on a payment page
   | "dead-tag"
-  | "duplicate-tag";
+  | "duplicate-tag"
+  /** CMP is installed but showed no banner - often geo-targeting that exempts US visitors. */
+  | "consent-banner-absent";
 
 /** Privacy/security regimes a finding can be evaluated against. */
 export type Jurisdiction =
@@ -83,7 +85,9 @@ export type Evidence =
       expires?: number;
     }
   | { kind: "script"; src: string; documented: boolean; integrity?: string }
-  | { kind: "credential"; location: string; tokenPreview: string };
+  | { kind: "credential"; location: string; tokenPreview: string }
+  /** The consent platform's own observed behaviour, rather than a request or cookie. */
+  | { kind: "cmp"; platform: string; bannerShown: boolean; detail: string };
 
 /** Google Consent Mode state observed on the proving request, if any. */
 export interface ConsentSignal {
