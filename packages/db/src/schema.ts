@@ -47,24 +47,83 @@ export const users = pgTable(
   (t) => [uniqueIndex("users_clerk_user_id_idx").on(t.clerkUserId)],
 );
 
+/**
+ * An organisation owns sites and carries the subscription. Sites belong to orgs
+ * rather than users from day one: an agency managing ten client stores is the
+ * customer worth having when pricing is per site, and retrofitting orgs later
+ * means a data migration plus an auth rewrite.
+ *
+ * A solo merchant simply gets a one-member org created at signup.
+ */
+export const orgs = pgTable(
+  "orgs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Clerk owns org identity; this is the local mirror.
+    clerkOrgId: text("clerk_org_id").notNull(),
+    name: text("name").notNull(),
+    /** Stripe customer, created on first subscription. Null until they pay. */
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    /** "none" until a subscription is active. Gates scheduling, not scanning. */
+    plan: text("plan").$type<OrgPlan>().notNull().default("none"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("orgs_clerk_org_id_idx").on(t.clerkOrgId),
+    index("orgs_stripe_customer_idx").on(t.stripeCustomerId),
+  ],
+);
+
+export const orgMembers = pgTable(
+  "org_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").$type<OrgRole>().notNull().default("member"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("org_members_unique_idx").on(t.orgId, t.userId),
+    index("org_members_user_idx").on(t.userId),
+  ],
+);
+
 export const sites = pgTable(
   "sites",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id")
+    orgId: uuid("org_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => orgs.id, { onDelete: "cascade" }),
     url: text("url").notNull(),
     label: text("label"),
+    /** How often to scan automatically. "off" means manual only. */
+    schedule: text("schedule").$type<ScanSchedule>().notNull().default("off"),
+    /** Set by the scheduler after each run, so a query can find what is due. */
+    lastScheduledAt: timestamp("last_scheduled_at", { withTimezone: true }),
     // Baseline for regression alerting (Epic 4.3). Nullable until one is approved.
     baselineScanId: uuid("baseline_scan_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    uniqueIndex("sites_user_url_idx").on(t.userId, t.url),
-    index("sites_user_idx").on(t.userId),
+    uniqueIndex("sites_org_url_idx").on(t.orgId, t.url),
+    index("sites_org_idx").on(t.orgId),
+    // The scheduler queries "what is due" across all orgs, so this index carries
+    // the hot path for every cron tick.
+    index("sites_schedule_idx").on(t.schedule, t.lastScheduledAt),
   ],
 );
+
+export type OrgRole = "owner" | "admin" | "member";
+/** "none" gates scheduling and alerting. Manual scans stay free forever. */
+export type OrgPlan = "none" | "monitoring";
+export type ScanSchedule = "off" | "daily" | "weekly" | "monthly";
 
 export type ScanStatus = "queued" | "running" | "complete" | "failed";
 export type ScanTrigger = "public" | "manual" | "scheduled";

@@ -15,6 +15,13 @@
       "when": 1789393419677,
       "tag": "0001_silky_jean_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789418310189,
+      "tag": "0002_fixed_nomad",
+      "breakpoints": true
     }
   ]
 }

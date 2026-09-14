@@ -210,20 +210,20 @@ export async function upsertUser(
 
 export async function addSite(
   db: Database,
-  userId: string,
+  orgId: string,
   url: string,
   label?: string,
 ): Promise<string> {
   const [row] = await db
     .insert(sites)
-    .values({ userId, url, ...(label !== undefined ? { label } : {}) })
-    .onConflictDoNothing({ target: [sites.userId, sites.url] })
+    .values({ orgId, url, ...(label !== undefined ? { label } : {}) })
+    .onConflictDoNothing({ target: [sites.orgId, sites.url] })
     .returning({ id: sites.id });
   if (row) return row.id;
   const [existing] = await db
     .select({ id: sites.id })
     .from(sites)
-    .where(and(eq(sites.userId, userId), eq(sites.url, url)))
+    .where(and(eq(sites.orgId, orgId), eq(sites.url, url)))
     .limit(1);
   if (!existing) throw new Error("failed to add site");
   return existing.id;
