@@ -109,7 +109,7 @@ export default function Home() {
       </section>
 
       <footer>
-        <div className="wrap">Consentinel. Scan only sites you are authorised to test.</div>
+        <div className="wrap center">Consentinel. Scan only sites you are authorised to test.</div>
       </footer>
     </main>
   );

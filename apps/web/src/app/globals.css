@@ -359,7 +359,8 @@ button:disabled {
 
 .gate {
   max-width: 34rem;
-  margin: 2.5rem auto 0;
+  /* Bottom margin matters: with none, the footer rule butts into the card. */
+  margin: 2.5rem auto clamp(3.5rem, 8vw, 6rem);
   padding: 1.75rem;
   background: var(--paper-alt);
   border-radius: 18px;
@@ -415,9 +416,10 @@ footer {
 /* Unattributed cookies sit below the ledger, deliberately quiet. They are evidence
    the reader may need, not findings competing for the same attention. */
 .unattributed {
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
+  /* Matches the ledger's 1.4rem gutter so it reads as part of the same card. */
+  padding: 1.1rem 1.4rem 1.4rem;
   border-top: 1px solid var(--hairline);
+  background: var(--paper-alt);
 }
 
 .unattributed summary {
