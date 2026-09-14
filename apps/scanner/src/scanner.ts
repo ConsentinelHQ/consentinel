@@ -15,7 +15,11 @@ const NETWORK_IDLE_TIMEOUT = 8_000;
  * A short settle sees the library load and misses the transmission - which is the
  * strongest evidence we have. Wait for network idle, provoke lazy tags, settle again.
  */
-const SETTLE_MS = 2_500;
+/** Requests must stop for this long before we consider the page settled. */
+const QUIET_PERIOD_MS = 2_500;
+const QUIET_POLL_MS = 250;
+/** Hard ceiling. Some pages never go quiet; we cannot wait forever. */
+const MAX_SETTLE_MS = 15_000;
 
 export interface ScanOptions {
   /**
@@ -123,7 +127,7 @@ async function newCapturedContext(targetUrl: string, opts: ScanOptions): Promise
  * Real sites defer tags behind scroll, interaction, or an idle callback. Without
  * this, a scan systematically under-reports the sites most worth reporting on.
  */
-async function provokeLateTags(page: Page): Promise<void> {
+async function provokeLateTags(page: Page, requests: CapturedRequest[]): Promise<void> {
   try {
     await page.waitForLoadState("networkidle", { timeout: NETWORK_IDLE_TIMEOUT });
   } catch {
@@ -135,7 +139,30 @@ async function provokeLateTags(page: Page): Promise<void> {
       window.dispatchEvent(new Event("scroll"));
     });
     await page.mouse.move(200, 200);
-    await page.waitForTimeout(SETTLE_MS);
+
+    /**
+     * A fixed settle makes the finding set depend on network speed: a tag that
+     * fires at 3s is captured on a slow run and missed on a fast one. The same
+     * site returned 71 findings, then 36, then 71 across three consecutive runs.
+     *
+     * Non-reproducible findings are fatal to diffing - scan-to-scan comparison
+     * would report tags as "fixed" that were never touched. So instead of
+     * waiting a fixed time, wait until requests actually stop arriving.
+     */
+    const deadline = Date.now() + MAX_SETTLE_MS;
+    let lastCount = requests.length;
+    let quietSince = Date.now();
+
+    while (Date.now() < deadline) {
+      await page.waitForTimeout(QUIET_POLL_MS);
+      if (requests.length !== lastCount) {
+        lastCount = requests.length;
+        quietSince = Date.now();
+        continue;
+      }
+      if (Date.now() - quietSince >= QUIET_PERIOD_MS) break;
+    }
+
     await page.evaluate(() => {
       window.scrollTo(0, 0);
     });
@@ -175,7 +202,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
       reason: "no CMP detected - default state is the denied state",
     };
   }
-  await provokeLateTags(a.page);
+  await provokeLateTags(a.page, a.requests);
   const deniedPass: PassResult = {
     requests: a.requests,
     cookies: await snapshotCookies(a.context),
@@ -198,7 +225,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
       reason: "no CMP to accept - granted state equals default",
     };
   }
-  await provokeLateTags(b.page);
+  await provokeLateTags(b.page, b.requests);
   const grantedPass: PassResult = {
     requests: b.requests,
     cookies: await snapshotCookies(b.context),
