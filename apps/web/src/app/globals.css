@@ -459,3 +459,235 @@ footer {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- site nav ---------- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(1.6) blur(12px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  height: 3.75rem;
+}
+
+.nav-mark {
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+}
+
+.nav-links a {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+.nav-links a:hover {
+  color: var(--ink);
+}
+
+.nav-cta {
+  padding: 0.5rem 0.95rem;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--ink) !important;
+}
+.nav-cta:hover {
+  background: var(--paper-alt);
+}
+
+/* Below 640px the three text links crowd the mark. Keep the action, drop the rest. */
+@media (max-width: 640px) {
+  .nav-links a:not(.nav-cta) {
+    display: none;
+  }
+}
+
+/* ---------- pricing tiers ---------- */
+
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+  text-align: left;
+}
+
+.tier {
+  padding: 1.75rem;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* The audit is the tier we want read first. Weight, not colour. */
+.tier.featured {
+  border-color: var(--ink);
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.28);
+}
+
+.tier h2 {
+  font-size: 1rem;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.tier-price {
+  font-size: 2.4rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  margin: 0.6rem 0 0;
+  line-height: 1;
+}
+
+.tier-per {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+  letter-spacing: -0.01em;
+}
+
+.tier-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.tier-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  /* Pushes the CTA to the card bottom so buttons line up across tiers. */
+  flex: 1;
+}
+
+.tier-list li {
+  position: relative;
+  padding-left: 1.1rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.tier-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--hairline);
+}
+
+.tier-cta {
+  display: inline-block;
+  margin-top: 1.75rem;
+  padding: 0.8rem 1.2rem;
+  text-align: center;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+.tier-cta:hover {
+  background: var(--paper-alt);
+}
+
+.tier-cta.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.tier-cta.primary:hover {
+  opacity: 0.88;
+}
+
+/* ---------- contact form ---------- */
+
+.contact {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+/* .gate label is display:flex for the consent checkbox. Contact fields stack. */
+.contact .field {
+  display: block;
+  margin-top: 1.1rem;
+}
+
+.field {
+  display: block;
+  margin-top: 1.1rem;
+}
+.contact .field:first-child {
+  margin-top: 0;
+}
+
+.contact .field > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.contact .field input,
+.contact .field select,
+.contact .field textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+
+.contact .field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* Name and company share a row on desktop, stack on narrow screens. */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.contact .field-row .field {
+  margin-top: 1.1rem;
+}
+
+@media (max-width: 520px) {
+  .field-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.form-error {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  color: var(--critical);
+}
