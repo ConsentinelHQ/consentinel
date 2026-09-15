@@ -47,6 +47,9 @@ importers:
       '@consentinel/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@consentinel/notify':
+        specifier: workspace:*
+        version: link:../../packages/notify
       '@consentinel/queue':
         specifier: workspace:*
         version: link:../../packages/queue
@@ -145,6 +148,19 @@ importers:
         version: 4.23.13
       typescript:
         specifier: ^5.6.0
+        version: 5.9.3
+
+  packages/notify:
+    dependencies:
+      '@consentinel/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.2
+      typescript:
+        specifier: ^5.7.2
         version: 5.9.3
 
   packages/queue:

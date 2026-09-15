@@ -1,8 +1,9 @@
-import { and, desc, eq, gte, isNull, ne, sql } from "drizzle-orm";
-import type { ScanResult } from "@consentinel/shared";
+import { and, desc, eq, gte, isNull, lt, ne, sql } from "drizzle-orm";
+import type { ScanResult, Severity } from "@consentinel/shared";
 import type { Database } from "./client.js";
 import {
   findings,
+  orgMembers,
   orgs,
   scans,
   sites,
@@ -164,8 +165,8 @@ export async function countRecentScansForUrl(
 }
 
 export interface ScanDiff {
-  added: Array<{ fingerprint: string; title: string; severity: string }>;
-  fixed: Array<{ fingerprint: string; title: string; severity: string }>;
+  added: Array<{ fingerprint: string; title: string; severity: Severity }>;
+  fixed: Array<{ fingerprint: string; title: string; severity: Severity }>;
   unchanged: number;
 }
 
@@ -363,4 +364,48 @@ export async function listDueSites(db: Database, now = new Date()): Promise<DueS
 /** Claim a site so a concurrent tick does not double-enqueue it. */
 export async function markSiteScheduled(db: Database, siteId: string): Promise<void> {
   await db.update(sites).set({ lastScheduledAt: new Date() }).where(eq(sites.id, siteId));
+}
+
+/** The scan immediately before this one for the same site. Null on first scan. */
+export async function findPreviousScan(
+  db: Database,
+  siteId: string,
+  beforeScanId: string,
+): Promise<ScanRow | undefined> {
+  const [current] = await db
+    .select({ finishedAt: scans.finishedAt })
+    .from(scans)
+    .where(eq(scans.id, beforeScanId))
+    .limit(1);
+  if (!current?.finishedAt) return undefined;
+
+  const [prev] = await db
+    .select()
+    .from(scans)
+    .where(
+      and(
+        eq(scans.siteId, siteId),
+        eq(scans.status, "complete"),
+        lt(scans.finishedAt, current.finishedAt),
+      ),
+    )
+    .orderBy(desc(scans.finishedAt))
+    .limit(1);
+  return prev;
+}
+
+export interface AlertRecipient {
+  email: string;
+  orgId: string;
+}
+
+/** Everyone in the org that owns this site. Per-user opt-out is not built yet. */
+export async function listAlertRecipients(db: Database, siteId: string): Promise<AlertRecipient[]> {
+  return db
+    .select({ email: users.email, orgId: orgs.id })
+    .from(sites)
+    .innerJoin(orgs, eq(orgs.id, sites.orgId))
+    .innerJoin(orgMembers, eq(orgMembers.orgId, orgs.id))
+    .innerJoin(users, eq(users.id, orgMembers.userId))
+    .where(eq(sites.id, siteId));
 }

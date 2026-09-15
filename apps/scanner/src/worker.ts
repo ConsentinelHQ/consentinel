@@ -14,6 +14,7 @@ import {
   type ScanJobData,
 } from "@consentinel/queue";
 import { scan, UncredibleScanError } from "./index.js";
+import { alertOnRegression } from "./alerting.js";
 
 /**
  * The scanner worker. A long-running container, never a serverless function -
@@ -65,6 +66,17 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         throw error;
       }
       await completeScan(db, scanId, result);
+
+      // Alerting is the product's whole promise on a schedule: a scan nobody
+      // reads is worth nothing. Failures here must never fail the scan.
+      // The scan row, not the job payload, is the source of truth for which site
+      // and trigger this was: completeScan just wrote it.
+      try {
+        await alertOnRegression(db, scanId, config);
+      } catch (error) {
+        console.error("alert failed", { scanId, error });
+      }
+
       return { scanId, critical: result.counts.critical };
     },
     {
