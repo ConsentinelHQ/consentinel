@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ScanResultView } from "@/components/scan-result-view";
+import { ShareReport } from "@/components/share-report";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function AppScanPage({ params }: { params: Promise<{ id: st
       <p className="quiet">
         <Link href="/app">Sites</Link>
       </p>
-      <ScanResultView scanId={id} />
+      <ScanResultView actions={<ShareReport scanId={id} />} scanId={id} />
     </div>
   );
 }

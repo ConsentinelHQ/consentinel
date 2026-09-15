@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
 
 type State =
@@ -10,7 +10,16 @@ type State =
 
 const POLL_MS = 2000;
 
-export function ScanResultView({ scanId }: { scanId: string }) {
+export function ScanResultView({
+  scanId,
+  shareToken,
+  actions,
+}: {
+  scanId: string;
+  shareToken?: string | undefined;
+  /** Rendered between the lede and the report card. */
+  actions?: ReactNode;
+}) {
   const [state, setState] = useState<State>({ kind: "loading", status: "queued" });
 
   useEffect(() => {
@@ -19,7 +28,11 @@ export function ScanResultView({ scanId }: { scanId: string }) {
 
     const poll = async (): Promise<void> => {
       try {
-        const response = await fetch(`/api/scan/${scanId}`);
+        const response = await fetch(
+          shareToken
+            ? `/api/scan/${scanId}?t=${encodeURIComponent(shareToken)}`
+            : `/api/scan/${scanId}`,
+        );
         const data = (await response.json()) as {
           status?: string;
           report?: FreeReport;
@@ -47,7 +60,7 @@ export function ScanResultView({ scanId }: { scanId: string }) {
       live = false;
       clearTimeout(timer);
     };
-  }, [scanId]);
+  }, [scanId, shareToken]);
 
   if (state.kind === "failed") {
     return (
@@ -78,10 +91,18 @@ export function ScanResultView({ scanId }: { scanId: string }) {
     );
   }
 
-  return <Report report={state.report} scanId={scanId} />;
+  return <Report actions={actions} report={state.report} scanId={scanId} />;
 }
 
-function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
+function Report({
+  report,
+  scanId,
+  actions,
+}: {
+  report: FreeReport;
+  scanId: string;
+  actions?: ReactNode;
+}) {
   const clean = report.findings.length === 0;
 
   // A clean site is a result, not an empty screen. It is also the moment to offer
@@ -95,6 +116,8 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
             ? `${report.cmpName} held every tracker on ${hostOf(report.url)} until consent was given.`
             : `We found no trackers running on ${hostOf(report.url)} before consent.`}
         </p>
+
+        {actions}
 
         <div className="specimen" style={{ marginTop: "3rem" }}>
           <div className="specimen-head">
@@ -144,6 +167,8 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
           ? `${report.cmpName} is installed on ${hostOf(report.url)}, and these trackers ran anyway.`
           : `No consent banner was found on ${hostOf(report.url)}, so everything below runs ungated.`}
       </p>
+
+      {actions}
 
       <div className="specimen" style={{ marginTop: "3rem" }}>
         <div className="specimen-head">

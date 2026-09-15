@@ -1,6 +1,7 @@
+import { randomBytes } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import type { Database } from "./client.js";
-import { orgs, sites, type OrgPlan, type PlanStatus } from "./schema.js";
+import { orgs, scans, sites, type OrgPlan, type PlanStatus } from "./schema.js";
 
 export interface BillingState {
   orgId: string;
@@ -101,4 +102,41 @@ export async function findOrgIdByStripeCustomerId(
     .where(eq(orgs.stripeCustomerId, customerId))
     .limit(1);
   return row?.id ?? null;
+}
+
+// Share tokens live here rather than repository.ts: they exist to hand a full
+// report to someone with no account, which is a commercial concern, not a scan one.
+
+/** Mints a token on first call, returns the existing one after that. */
+export async function getOrCreateShareToken(db: Database, scanId: string): Promise<string | null> {
+  const [existing] = await db
+    .select({ token: scans.shareToken })
+    .from(scans)
+    .where(eq(scans.id, scanId))
+    .limit(1);
+  if (!existing) return null;
+  if (existing.token) return existing.token;
+
+  // 32 bytes of base64url. Guessing one is not a realistic attack.
+  const token = randomBytes(32).toString("base64url");
+  await db.update(scans).set({ shareToken: token }).where(eq(scans.id, scanId));
+  return token;
+}
+
+export async function revokeShareToken(db: Database, scanId: string): Promise<void> {
+  await db.update(scans).set({ shareToken: null }).where(eq(scans.id, scanId));
+}
+
+/** True when the token matches this scan. Constant-time is unnecessary at 256 bits. */
+export async function shareTokenMatches(
+  db: Database,
+  scanId: string,
+  token: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ token: scans.shareToken })
+    .from(scans)
+    .where(eq(scans.id, scanId))
+    .limit(1);
+  return row?.token != null && row.token === token;
 }

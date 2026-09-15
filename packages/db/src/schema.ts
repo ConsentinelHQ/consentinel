@@ -165,6 +165,8 @@ export const scans = pgTable(
     infoCount: integer("info_count").notNull().default(0),
     /** The exact engine artifact. Immutable evidence for the audit trail. */
     result: jsonb("result").$type<ScanResult>(),
+    /** Random token granting full-report access without a session. Null until shared. */
+    shareToken: text("share_token"),
     error: text("error"),
     queuedAt: timestamp("queued_at", { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
@@ -176,6 +178,8 @@ export const scans = pgTable(
     // Free-tier per-domain cache lookup and rate limiting (Epic 2.4).
     index("scans_url_finished_idx").on(t.url, t.finishedAt),
     index("scans_status_idx").on(t.status),
+    // A share link resolves by token alone, so it must hit an index and be unique.
+    uniqueIndex("scans_share_token_idx").on(t.shareToken),
   ],
 );
 

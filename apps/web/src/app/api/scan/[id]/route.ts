@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { eq, getScan, orgMembers, orgs, sites, users } from "@consentinel/db";
+import { eq, getScan, orgMembers, orgs, shareTokenMatches, sites, users } from "@consentinel/db";
 import { db } from "@/lib/server";
 import { toFreeReport, toFullReport } from "@/lib/free-report";
 
@@ -8,10 +8,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const { id } = await context.params;
+  const token = new URL(request.url).searchParams.get("t");
   const scan = await getScan(db(), id);
   if (!scan) return NextResponse.json({ error: "Scan not found." }, { status: 404 });
 
@@ -32,7 +33,10 @@ export async function GET(
    * owns this scan has already paid for it, so gating their own report behind an
    * email capture is both pointless and insulting.
    */
-  const owns = await callerOwnsScan(scan.siteId);
+  // A valid share token stands in for ownership: the org holder chose to hand
+  // this report to someone, so redacting it would defeat the point.
+  const shared = token !== null && (await shareTokenMatches(db(), id, token));
+  const owns = shared || (await callerOwnsScan(scan.siteId));
   return NextResponse.json({
     status: "complete",
     report: owns ? toFullReport(scan.result) : toFreeReport(scan.result),
