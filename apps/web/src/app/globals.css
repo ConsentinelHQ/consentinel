@@ -974,3 +974,19 @@ footer {
   color: var(--ink-soft);
   word-break: break-all;
 }
+
+/* Sign in is a text link, not a button: the scan is the action we want taken. */
+.nav-signin {
+  text-decoration: none;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+.nav-signin:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 640px) {
+  .nav-signin {
+    display: none;
+  }
+}

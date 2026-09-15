@@ -1,5 +1,6 @@
 "use client";
 
+import { Show } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,9 +22,21 @@ export function SiteNav() {
           <Link href="/how-it-works">How it works</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/contact">Contact</Link>
-          <Link className="nav-cta" href="/#scan">
-            Scan a site
-          </Link>
+          {/* Signed-out visitors get the funnel; signed-in ones get their dashboard.
+              Without this, /app is only reachable by typing the URL. */}
+          <Show when="signed-out">
+            <Link className="nav-signin" href="/sign-in">
+              Sign in
+            </Link>
+            <Link className="nav-cta" href="/#scan">
+              Scan a site
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <Link className="nav-cta" href="/app">
+              Dashboard
+            </Link>
+          </Show>
         </nav>
       </div>
     </header>
