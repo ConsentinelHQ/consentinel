@@ -3,13 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "echo 'source-consumed package, nothing to build'"
+    "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@consentinel/shared": "workspace:*"
@@ -17,5 +20,6 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "typescript": "^5.7.2"
-  }
+  },
+  "types": "./dist/index.d.ts"
 }
