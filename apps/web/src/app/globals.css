@@ -990,3 +990,42 @@ footer {
     display: none;
   }
 }
+
+/* Billing reuses the ruled-list language, but as a dl rather than links. */
+.billing-rows {
+  display: grid;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  overflow: hidden;
+  margin: 0;
+}
+.billing-rows > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem;
+  align-items: baseline;
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+.billing-rows > div:last-child {
+  border-bottom: none;
+}
+.billing-rows dt {
+  color: var(--ink-soft);
+}
+.billing-rows dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Actions need air under whatever block precedes them. */
+.billing-actions {
+  margin-top: 1.5rem;
+}
+.billing-actions .quiet {
+  margin-top: 0.75rem;
+}
+.billing-note {
+  margin-top: 1rem;
+  max-width: 52ch;
+}
