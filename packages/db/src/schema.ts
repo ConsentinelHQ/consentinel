@@ -67,6 +67,13 @@ export const orgs = pgTable(
     stripeSubscriptionId: text("stripe_subscription_id"),
     /** "none" until a subscription is active. Gates scheduling, not scanning. */
     plan: text("plan").$type<OrgPlan>().notNull().default("none"),
+    /** Subscription item, needed to update quantity when sites are added. */
+    stripeSubscriptionItemId: text("stripe_subscription_item_id"),
+    /** Raw Stripe status. Only "active" and "trialing" grant access. */
+    planStatus: text("plan_status").$type<PlanStatus>(),
+    /** Sites paid for. Scheduling gated on site count <= this. */
+    planQuantity: integer("plan_quantity").notNull().default(0),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -123,6 +130,15 @@ export const sites = pgTable(
 export type OrgRole = "owner" | "admin" | "member";
 /** "none" gates scheduling and alerting. Manual scans stay free forever. */
 export type OrgPlan = "none" | "monitoring";
+export type PlanStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "unpaid"
+  | "incomplete"
+  | "incomplete_expired"
+  | "paused";
 export type ScanSchedule = "off" | "daily" | "weekly" | "monthly";
 
 export type ScanStatus = "queued" | "running" | "complete" | "failed";
