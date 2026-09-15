@@ -1,3 +1,5 @@
+// Must be first: the SDK patches globals at import time.
+import "./instrument.js";
 import { assertRedisReachable, createScanQueue, redisConnection } from "@consentinel/queue";
 import { loadConfig } from "./config.js";
 import { startScheduler } from "./scheduler.js";

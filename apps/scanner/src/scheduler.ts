@@ -1,5 +1,6 @@
 import { listDueSites, markSiteScheduled, type Database } from "@consentinel/db";
 import { enqueueScan, type ScanQueue } from "@consentinel/queue";
+import { Sentry } from "./instrument.js";
 
 export interface RunningScheduler {
   stop: () => void;
@@ -41,6 +42,8 @@ export function startScheduler(
     } catch (error) {
       // A failed tick must not kill the worker. The next one retries.
       console.error("scheduler tick failed:", error);
+      // Silent ticks mean nobody is being scanned and nobody knows.
+      Sentry.captureException(error, { tags: { area: "scheduler" } });
     }
   };
 

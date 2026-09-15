@@ -15,6 +15,7 @@ import {
 } from "@consentinel/queue";
 import { scan, UncredibleScanError } from "./index.js";
 import { alertOnRegression } from "./alerting.js";
+import { Sentry } from "./instrument.js";
 
 /**
  * The scanner worker. A long-running container, never a serverless function -
@@ -75,6 +76,8 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         await alertOnRegression(db, scanId, config);
       } catch (error) {
         console.error("alert failed", { scanId, error });
+        // A customer paying for monitoring got no alert. Silent is not acceptable.
+        Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
       }
 
       return { scanId, critical: result.counts.critical };
@@ -90,6 +93,16 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
   worker.on("failed", (job, err) => {
     const scanId = job?.data.scanId;
     const isLastAttempt = !job || job.attemptsMade >= (job.opts.attempts ?? 1);
+    if (isLastAttempt) {
+      // Refusals and bot-blocked pages are expected outcomes, not incidents.
+      const expected = err instanceof UnrecoverableScanError || err instanceof UncredibleScanError;
+      if (!expected) {
+        Sentry.captureException(err, {
+          tags: { area: "scan" },
+          extra: { scanId, url: job?.data.url },
+        });
+      }
+    }
     if (scanId && isLastAttempt) {
       // Best effort: the DB record must not stay "running" forever.
       void markScanFailed(db, scanId, err.message);
