@@ -1,5 +1,6 @@
-import { assertRedisReachable } from "@consentinel/queue";
+import { assertRedisReachable, createScanQueue, redisConnection } from "@consentinel/queue";
 import { loadConfig } from "./config.js";
+import { startScheduler } from "./scheduler.js";
 import { startWorker } from "./worker.js";
 
 // Container entrypoint. Prove the dependencies are live before claiming to be up:
@@ -7,8 +8,13 @@ import { startWorker } from "./worker.js";
 async function main(): Promise<void> {
   const config = loadConfig();
   await assertRedisReachable(config.REDIS_URL);
-  const { worker } = startWorker(config);
+  const { worker, db } = startWorker(config);
   console.log(`scanner worker listening on queue "${worker.name}"`);
+
+  // The scheduler produces, the worker consumes. Same process, separate
+  // connections - BullMQ does not allow one connection to do both.
+  startScheduler(db, createScanQueue(redisConnection(config.REDIS_URL)));
+  console.log("scheduler running");
 }
 
 main().catch((e: unknown) => {

@@ -1,8 +1,9 @@
-import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, ne, sql } from "drizzle-orm";
 import type { ScanResult } from "@consentinel/shared";
 import type { Database } from "./client.js";
 import {
   findings,
+  orgs,
   scans,
   sites,
   users,
@@ -311,4 +312,55 @@ export async function setSiteSchedule(
     .update(sites)
     .set({ schedule })
     .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
+}
+
+const SCHEDULE_INTERVAL_MS: Record<string, number> = {
+  daily: 24 * 60 * 60 * 1000,
+  weekly: 7 * 24 * 60 * 60 * 1000,
+  monthly: 30 * 24 * 60 * 60 * 1000,
+};
+
+export interface DueSite {
+  id: string;
+  url: string;
+  orgId: string;
+  schedule: string;
+}
+
+/**
+ * Sites whose next scheduled scan is due.
+ *
+ * Driven by lastScheduledAt rather than a cron expression per site: the tick can
+ * run at any cadence, miss a beat, or be replayed, and each site still gets
+ * scanned about once per interval. A fixed cron would silently skip a site if the
+ * worker happened to be down at the wrong minute.
+ *
+ * Only orgs on a paid plan are returned - scheduling is what the subscription buys.
+ */
+export async function listDueSites(db: Database, now = new Date()): Promise<DueSite[]> {
+  const rows = await db
+    .select({
+      id: sites.id,
+      url: sites.url,
+      orgId: sites.orgId,
+      schedule: sites.schedule,
+      lastScheduledAt: sites.lastScheduledAt,
+    })
+    .from(sites)
+    .innerJoin(orgs, eq(orgs.id, sites.orgId))
+    .where(and(ne(sites.schedule, "off"), eq(orgs.plan, "monitoring")));
+
+  return rows
+    .filter((r) => {
+      const interval = SCHEDULE_INTERVAL_MS[r.schedule];
+      if (interval === undefined) return false;
+      if (!r.lastScheduledAt) return true; // never run, so it is due now
+      return now.getTime() - r.lastScheduledAt.getTime() >= interval;
+    })
+    .map((r) => ({ id: r.id, url: r.url, orgId: r.orgId, schedule: r.schedule }));
+}
+
+/** Claim a site so a concurrent tick does not double-enqueue it. */
+export async function markSiteScheduled(db: Database, siteId: string): Promise<void> {
+  await db.update(sites).set({ lastScheduledAt: new Date() }).where(eq(sites.id, siteId));
 }
