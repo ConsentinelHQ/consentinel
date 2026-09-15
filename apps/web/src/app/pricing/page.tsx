@@ -59,15 +59,16 @@ export default function Pricing() {
             <p className="tier-price">
               $99<span className="tier-per">/month per site</span>
             </p>
-            <p className="tier-note">In development</p>
+            <p className="tier-note">Cancel any time, from your billing page</p>
             <ul className="tier-list">
-              <li>Scheduled scans on a cadence you set</li>
-              <li>Alerts when a deploy introduces a new ungated tag</li>
-              <li>Diffs between any two scans: new, fixed, regressed</li>
-              <li>Evidence history you can hand to an auditor</li>
+              <li>Scheduled scans daily, weekly, or monthly</li>
+              <li>An email the moment a new tracker starts firing before consent</li>
+              <li>Every finding carries the request or cookie that proves it, and the fix</li>
+              <li>Shareable report links for whoever has to make the change</li>
             </ul>
-            <Link className="tier-cta" href="/contact">
-              Join the list
+            {/* Signed-out visitors get bounced through sign-up and land here ready to pay. */}
+            <Link className="tier-cta" href="/app/billing">
+              Start monitoring
             </Link>
           </div>
         </div>
