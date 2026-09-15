@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSiteForOrg, listScansForSite } from "@consentinel/db";
+import { getBillingState, getSiteForOrg, isEntitled, listScansForSite } from "@consentinel/db";
 import { ScheduleControl } from "@/components/schedule-control";
 import { ScanNowButton } from "@/components/scan-now-button";
 import { ScanProgress } from "@/components/scan-progress";
@@ -19,6 +19,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
   if (!site) notFound();
 
   const scans = await listScansForSite(db(), siteId, 20);
+  const entitled = isEntitled(await getBillingState(db(), session.orgId));
 
   return (
     <div className="wrap app-content">
@@ -33,7 +34,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
 
       <div className="site-actions">
         <ScanNowButton siteId={site.id} />
-        <ScheduleControl schedule={site.schedule} siteId={site.id} />
+        <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
       </div>
 
       <h2 className="section-label">Scan history</h2>

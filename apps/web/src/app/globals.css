@@ -895,6 +895,24 @@ footer {
   border: 1px solid var(--hairline);
   border-radius: 12px;
 }
+.schedule-control select:disabled {
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+
+/* Hint sits under the row without adding to its height, so the
+   button stays aligned with the select whether or not it shows. */
+.site-actions {
+  position: relative;
+}
+.schedule-control .quiet,
+.schedule-control .form-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+}
 
 .section-label {
   font-size: 0.85rem;

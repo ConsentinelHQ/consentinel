@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -10,7 +11,15 @@ const OPTIONS = [
   { value: "monthly", label: "Monthly" },
 ] as const;
 
-export function ScheduleControl({ siteId, schedule }: { siteId: string; schedule: string }) {
+export function ScheduleControl({
+  siteId,
+  schedule,
+  entitled,
+}: {
+  siteId: string;
+  schedule: string;
+  entitled: boolean;
+}) {
   const router = useRouter();
   const [value, setValue] = useState(schedule);
   const [error, setError] = useState<string | null>(null);
@@ -40,13 +49,18 @@ export function ScheduleControl({ siteId, schedule }: { siteId: string; schedule
   return (
     <label className="schedule-control">
       <span>Scan schedule</span>
-      <select onChange={(e) => void change(e.target.value)} value={value}>
+      <select onChange={(e) => void change(e.target.value)} value={value} disabled={!entitled}>
         {OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>
         ))}
       </select>
+      {!entitled && (
+        <p className="quiet">
+          <Link href="/app/billing">Start monitoring</Link> to schedule scans.
+        </p>
+      )}
       {error !== null && <p className="form-error">{error}</p>}
     </label>
   );
