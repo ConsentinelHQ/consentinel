@@ -174,6 +174,20 @@ function Report({ report, scanId }: { report: FreeReport; scanId: string }) {
                 )}
               </span>
               <span className="row-vendor">{finding.severity}</span>
+              {/* Proof and fix. Present only on the full report, never on a locked row. */}
+              {(finding.evidence?.length || finding.remediation) && (
+                <details className="row-proof">
+                  <summary>Evidence and fix</summary>
+                  {finding.evidence && finding.evidence.length > 0 && (
+                    <ul className="proof-list">
+                      {finding.evidence.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {finding.remediation && <p className="proof-fix">{finding.remediation}</p>}
+                </details>
+              )}
             </li>
           ))}
           {report.correctlyGated.map((vendor) => (

@@ -25,6 +25,10 @@ export interface FreeFinding {
   lockedCount: number;
   /** Cookie names and other specifics rolled into this vendor's row. */
   detail?: string[];
+  /** What proves the finding. Full report only; never set on a locked row. */
+  evidence?: string[];
+  /** What to change. Full report only. */
+  remediation?: string;
 }
 
 export interface FreeReport {
@@ -211,6 +215,8 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     fires: boolean;
     cookies: string[];
     otherTitles: string[];
+    evidence: string[];
+    remediation: string[];
   }
 
   const groups = new Map<string, Group>();
@@ -227,12 +233,18 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
         fires: false,
         cookies: [],
         otherTitles: [],
+        evidence: [],
+        remediation: [],
       };
       groups.set(vendor, g);
     }
 
     // Worst severity wins, so the gutter never understates the group.
     if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[g.severity]) g.severity = f.severity;
+
+    const line = evidenceLine(f);
+    if (line && !g.evidence.includes(line)) g.evidence.push(line);
+    if (f.remediation && !g.remediation.includes(f.remediation)) g.remediation.push(f.remediation);
 
     const cookie = /cookie "([^"]+)"/.exec(f.title)?.[1];
     if (cookie) {
@@ -263,6 +275,9 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
       vendor: g.vendor,
       title: `${g.vendor} ${action} before consent`,
       detail: [...g.cookies, ...g.otherTitles],
+      evidence: g.evidence,
+      // One vendor's findings usually share a fix. Keep them distinct if not.
+      remediation: g.remediation.join(" "),
       locked: false,
       lockedCount: 0,
     };
@@ -274,4 +289,23 @@ function countRows(rows: readonly FreeFinding[]): Record<Severity, number> {
   const counts: Record<Severity, number> = { critical: 0, warning: 0, info: 0 };
   for (const r of rows) counts[r.severity] += 1;
   return counts;
+}
+
+/** One readable line of proof per finding, from the evidence union. */
+function evidenceLine(f: Finding): string | null {
+  const e = f.evidence;
+  switch (e.kind) {
+    case "request":
+      return `${e.method} ${e.url}`;
+    case "cookie":
+      return `Cookie "${e.name}" on ${e.domain} (${e.firstParty ? "first" : "third"} party)`;
+    case "script":
+      return `Script ${e.src}`;
+    case "credential":
+      return `Credential exposed in ${e.location}`;
+    case "cmp":
+      return `${e.platform}: ${e.detail}`;
+    default:
+      return null;
+  }
 }
