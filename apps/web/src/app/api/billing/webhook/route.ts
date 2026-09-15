@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import type Stripe from "stripe";
 import { applySubscriptionState, findOrgIdByStripeCustomerId, toPlanStatus } from "@consentinel/db";
 import { db } from "@/lib/server";
@@ -83,6 +84,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
   } catch (error) {
     console.error("[stripe webhook]", event.type, event.id, error);
+    // Stripe retries, but a persistent failure means a paying customer has no access.
+    Sentry.captureException(error, {
+      tags: { area: "billing", event: event.type },
+      extra: { eventId: event.id },
+    });
     // 500 so Stripe retries. Losing this event loses someone's access.
     return NextResponse.json({ error: "handler failed" }, { status: 500 });
   }

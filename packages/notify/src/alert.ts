@@ -65,7 +65,7 @@ function renderHtml(input: AlertInput, host: string): string {
     </h1>
     <p style="margin:0 0 24px;color:#6e6e73;font-size:15px;line-height:1.5">
       A scheduled scan found ${String(input.added.length)} new critical
-      ${input.added.length === 1 ? "finding" : "findings"} that were not there last time.
+      ${input.added.length === 1 ? "finding that was" : "findings that were"} not there last time.
     </p>
     <ul style="margin:0 0 28px;padding-left:20px;font-size:15px">${rows}</ul>
     <a href="${esc(input.reportUrl)}"

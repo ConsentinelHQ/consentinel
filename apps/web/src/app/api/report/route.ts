@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import { getScan, leads } from "@consentinel/db";
 import { db } from "@/lib/server";
@@ -42,6 +43,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   const delivery = await sendReportEmail(parsed.data.email, scan.result);
   if (!delivery.sent) {
     console.error("report email not sent", { scanId: parsed.data.scanId, reason: delivery.reason });
+    // The lead is captured but never received what they asked for.
+    Sentry.captureMessage("report email not sent", {
+      level: "error",
+      tags: { area: "email" },
+      extra: { scanId: parsed.data.scanId, reason: delivery.reason },
+    });
   }
 
   return NextResponse.json({ report: scan.result, emailed: delivery.sent });
