@@ -168,6 +168,12 @@ export const scans = pgTable(
     /** Random token granting full-report access without a session. Null until shared. */
     shareToken: text("share_token"),
     error: text("error"),
+    /**
+     * Bot-management vendor that refused the scan, when one did. Set alongside
+     * status "failed": a blocked scan is a distinct outcome from a broken one,
+     * and the UI turns it into an allowlist instruction rather than an apology.
+     */
+    blockedBy: text("blocked_by"),
     queuedAt: timestamp("queued_at", { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),

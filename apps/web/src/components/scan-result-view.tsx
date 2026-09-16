@@ -5,7 +5,7 @@ import type { FreeReport } from "@/lib/free-report";
 
 type State =
   | { kind: "loading"; status: string }
-  | { kind: "failed"; message: string }
+  | { kind: "failed"; message: string; blockedBy?: string }
   | { kind: "ready"; report: FreeReport };
 
 const POLL_MS = 2000;
@@ -37,6 +37,7 @@ export function ScanResultView({
           status?: string;
           report?: FreeReport;
           error?: string;
+          blockedBy?: string;
         };
         if (!live) return;
 
@@ -45,7 +46,11 @@ export function ScanResultView({
           return;
         }
         if (data.status === "failed") {
-          setState({ kind: "failed", message: data.error ?? "The scan could not be completed." });
+          setState({
+            kind: "failed",
+            message: data.error ?? "The scan could not be completed.",
+            ...(data.blockedBy ? { blockedBy: data.blockedBy } : {}),
+          });
           return;
         }
         setState({ kind: "loading", status: data.status ?? "queued" });
@@ -61,6 +66,12 @@ export function ScanResultView({
       clearTimeout(timer);
     };
   }, [scanId, shareToken]);
+
+  // A block is not a failure, it is a finding about their infrastructure. Saying
+  // "something went wrong" throws away the only useful thing we learned.
+  if (state.kind === "failed" && state.blockedBy) {
+    return <Blocked message={state.message} vendor={state.blockedBy} />;
+  }
 
   if (state.kind === "failed") {
     return (
@@ -340,4 +351,69 @@ function hostOf(url: string): string {
   } catch {
     return url;
   }
+}
+
+/**
+ * Where the rule lives, per vendor. Deliberately no match condition: cold scans do
+ * not announce themselves, because CMPs that recognise a bot serve a reduced banner
+ * and corrupt the measurement. Ask first, then we scan from a known address.
+ */
+const ALLOWLIST_STEPS: Record<string, string[]> = {
+  cloudflare: ["Security > WAF > Custom rules, then add a Skip rule for our address"],
+  akamai: ["Bot Manager > Bot Definitions, then allow our address on the pages to scan"],
+  datadome: ["Dashboard > Management > Custom rules, then add an Allow rule for our address"],
+  perimeterx: ["Portal > Bot Defender > Custom rules, then add an Allow rule for our address"],
+  imperva: ["Site settings > Security > Bot Access Control, then allow our address"],
+};
+
+function Blocked({ vendor, message }: { vendor: string; message: string }) {
+  const steps = ALLOWLIST_STEPS[vendor];
+  const named = vendor !== "unknown";
+
+  return (
+    <>
+      <h1>
+        {named ? `${labelFor(vendor)} blocked the scan.` : "Bot protection blocked the scan."}
+      </h1>
+      <p className="lede" style={{ marginTop: "1.25rem" }}>
+        Your site refused us before the page loaded, so there is nothing to report yet. That
+        protection is doing its job. We just need to be let through once.
+      </p>
+
+      {steps ? (
+        <div className="specimen" style={{ marginTop: "3rem" }}>
+          <div className="specimen-head">
+            <span className="specimen-url">How to allow Consentinel</span>
+          </div>
+          <ul className="ledger">
+            {steps.map((step) => (
+              <li className="row" data-severity="ok" key={step}>
+                <span className="gutter" />
+                <span className="row-title">{step}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="quiet" style={{ marginTop: "2rem" }}>
+          {message}
+        </p>
+      )}
+
+      <p style={{ marginTop: "2rem" }}>
+        <a href="/contact">Tell us you own this site and we will send the address to allow</a>
+      </p>
+    </>
+  );
+}
+
+function labelFor(vendor: string): string {
+  const labels: Record<string, string> = {
+    cloudflare: "Cloudflare",
+    akamai: "Akamai",
+    datadome: "DataDome",
+    perimeterx: "HUMAN",
+    imperva: "Imperva",
+  };
+  return labels[vendor] ?? "Bot protection";
 }

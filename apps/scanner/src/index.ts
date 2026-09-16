@@ -1,4 +1,10 @@
-import { assessCredibility, type ScanResult } from "@consentinel/shared";
+import {
+  assessCredibility,
+  detectBlock,
+  vendorLabel,
+  type BlockEvidence,
+  type ScanResult,
+} from "@consentinel/shared";
 import { scanUrl, type ScanOptions } from "./scanner.js";
 import { analyze } from "./analyze.js";
 
@@ -22,9 +28,40 @@ export class UncredibleScanError extends Error {
   }
 }
 
+/**
+ * The site's bot protection refused us. Distinct from an uncredible scan: here we
+ * know who blocked us and can tell the customer exactly what to allowlist.
+ */
+export class ScanBlockedError extends Error {
+  readonly evidence: BlockEvidence;
+
+  constructor(evidence: BlockEvidence) {
+    super(
+      `${vendorLabel(evidence.vendor)} blocked the scan (${evidence.signal}). ` +
+        `Allowlist Consentinel and run it again.`,
+    );
+    this.name = "ScanBlockedError";
+    this.evidence = evidence;
+  }
+}
+
 /** Scan a URL end to end and return the structured, severity-ranked result. */
 export async function scan(url: string, opts: ScanOptions = {}): Promise<ScanResult> {
   const raw = await scanUrl(url, opts);
+
+  // Explicit block detection runs first: it names the vendor, where the
+  // request-count heuristic below can only guess that something went wrong.
+  for (const pass of [raw.deniedPass, raw.grantedPass]) {
+    const main = pass.mainResponse;
+    if (!main) continue;
+    const evidence = detectBlock({
+      status: main.status,
+      headers: main.headers,
+      cookieNames: pass.cookies.map((c) => c.name),
+      title: main.title,
+    });
+    if (evidence) throw new ScanBlockedError(evidence);
+  }
 
   // Refuse to grade a page that never really loaded. A false all-clear is the
   // most damaging output this engine can produce.

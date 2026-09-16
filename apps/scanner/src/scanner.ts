@@ -33,6 +33,12 @@ export interface ScanOptions {
    * design and set this low; real scans use the shared default.
    */
   minRequests?: number;
+  /**
+   * Announce ourselves in the user agent. Off by default because some CMPs serve
+   * a reduced banner to identified bots, which corrupts the consent measurement.
+   * Turn on only for sites whose owners have allowlisted us.
+   */
+  identify?: boolean;
 }
 
 export interface CapturedRequest {
@@ -52,10 +58,18 @@ export type ConsentInteraction =
   | { kind: "none"; reason: string }
   | { kind: "reject" | "accept"; performed: boolean; selector?: string; bannerPresent?: boolean };
 
+export interface MainResponse {
+  status: number;
+  headers: Record<string, string>;
+  title: string;
+}
+
 export interface PassResult {
   requests: CapturedRequest[];
   cookies: CapturedCookie[];
   interaction: ConsentInteraction;
+  /** The main document response. Absent if navigation produced none. */
+  mainResponse?: MainResponse;
 }
 
 export interface RawScan {
@@ -83,9 +97,28 @@ function registrableHost(url: string): string | null {
   }
 }
 
+/**
+ * Identified UA, for customers who have allowlisted us.
+ *
+ * NOT the default. Tested against athleticbrewing.com: with this UA, Ketch serves
+ * a different banner, the reject control is absent, and the scan silently falls
+ * back to measuring the default state. 33 criticals became 5 and `observedUnder`
+ * went from "rejected" to "default" - a plausible-looking report of the wrong thing,
+ * which is worse than being blocked outright.
+ *
+ * Only send this when the site owner has asked to be scanned and allowlisted us.
+ */
+export const IDENTIFIED_USER_AGENT =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " +
+  "Chrome/141.0.0.0 Safari/537.36 Consentinel/1.0 (+https://www.consentinelhq.com/bot)";
+
 async function newCapturedContext(targetUrl: string, opts: ScanOptions): Promise<CapturedContext> {
   const browser = await chromium.launch();
-  const context = await browser.newContext(); // clean profile per pass - no shared state
+  // Clean profile per pass - no shared state. A real viewport, locale and timezone
+  // keep us out of the "obviously automated" bucket without pretending to be human.
+  const context = await browser.newContext(
+    opts.identify ? { userAgent: IDENTIFIED_USER_AGENT } : {},
+  );
   const page = await context.newPage();
   const requests: CapturedRequest[] = [];
   const startedAt = Date.now();
@@ -176,6 +209,19 @@ async function snapshotCookies(context: BrowserContext): Promise<CapturedCookie[
   return cookies.map((c) => ({ name: c.name, domain: c.domain, expires: c.expires }));
 }
 
+/**
+ * Navigate and keep what the server said, not just what loaded.
+ *
+ * `goto` returns null on same-document navigation, which a challenge redirect can
+ * produce. Callers treat an absent response as "no evidence", never as "not blocked".
+ */
+async function gotoCapturing(page: Page, url: string): Promise<MainResponse | undefined> {
+  const response = await page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
+  if (!response) return undefined;
+  const title = await page.title().catch(() => "");
+  return { status: response.status(), headers: response.headers(), title };
+}
+
 export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawScan> {
   // --- Pass 0: detection ---
   const probe = await newCapturedContext(url, opts);
@@ -189,7 +235,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
 
   // --- Pass A: consent REJECTED (or default-denied if no CMP) ---
   const a = await newCapturedContext(url, opts);
-  await a.page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
+  const deniedResponse = await gotoCapturing(a.page, url);
   let deniedInteraction: ConsentInteraction;
   if (cmpId) {
     const r = await rejectConsent(a.page, cmpId);
@@ -209,12 +255,13 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     requests: a.requests,
     cookies: await snapshotCookies(a.context),
     interaction: deniedInteraction,
+    ...(deniedResponse ? { mainResponse: deniedResponse } : {}),
   };
   await a.browser.close();
 
   // --- Pass B: consent GRANTED ---
   const b = await newCapturedContext(url, opts);
-  await b.page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
+  const grantedResponse = await gotoCapturing(b.page, url);
   let grantedInteraction: ConsentInteraction;
   if (cmpId) {
     const r = await acceptConsent(b.page, cmpId);
@@ -232,6 +279,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     requests: b.requests,
     cookies: await snapshotCookies(b.context),
     interaction: grantedInteraction,
+    ...(grantedResponse ? { mainResponse: grantedResponse } : {}),
   };
   await b.browser.close();
 

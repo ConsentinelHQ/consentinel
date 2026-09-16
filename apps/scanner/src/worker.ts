@@ -2,6 +2,7 @@ import { Worker, type Job } from "bullmq";
 import {
   completeScan,
   createDbWithConnection,
+  markScanBlocked,
   markScanFailed,
   markScanRunning,
   type Database,
@@ -13,7 +14,7 @@ import {
   SCAN_QUEUE,
   type ScanJobData,
 } from "@consentinel/queue";
-import { scan, UncredibleScanError } from "./index.js";
+import { scan, ScanBlockedError, UncredibleScanError } from "./index.js";
 import { alertOnRegression } from "./alerting.js";
 import { Sentry } from "./instrument.js";
 
@@ -60,6 +61,12 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       } catch (error) {
         // Bot protection does not relent on attempt two. Fail once, clearly,
         // rather than burning three worker slots on the same wall.
+        // A WAF does not change its mind on attempt two. Record who blocked us
+        // and stop, rather than burning three worker slots on the same wall.
+        if (error instanceof ScanBlockedError) {
+          await markScanBlocked(db, scanId, error.evidence.vendor, error.message);
+          throw new UnrecoverableScanError(error.message);
+        }
         if (error instanceof UncredibleScanError) {
           await markScanFailed(db, scanId, error.message);
           throw new UnrecoverableScanError(error.message);
@@ -95,7 +102,10 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
     const isLastAttempt = !job || job.attemptsMade >= (job.opts.attempts ?? 1);
     if (isLastAttempt) {
       // Refusals and bot-blocked pages are expected outcomes, not incidents.
-      const expected = err instanceof UnrecoverableScanError || err instanceof UncredibleScanError;
+      const expected =
+        err instanceof UnrecoverableScanError ||
+        err instanceof UncredibleScanError ||
+        err instanceof ScanBlockedError;
       if (!expected) {
         Sentry.captureException(err, {
           tags: { area: "scan" },

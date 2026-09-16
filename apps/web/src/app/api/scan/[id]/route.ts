@@ -21,6 +21,9 @@ export async function GET(
       status: "failed",
       url: scan.url,
       error: scan.error ?? "The scan could not be completed.",
+      // Present only when a WAF refused us. The UI turns this into an
+      // allowlist instruction rather than a dead end.
+      ...(scan.blockedBy ? { blockedBy: scan.blockedBy } : {}),
     });
   }
 

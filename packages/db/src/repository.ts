@@ -49,6 +49,19 @@ export async function markScanFailed(db: Database, scanId: string, error: string
     .where(eq(scans.id, scanId));
 }
 
+/** A WAF refused us. Recorded distinctly so the report can say who, and what to do. */
+export async function markScanBlocked(
+  db: Database,
+  scanId: string,
+  vendor: string,
+  message: string,
+): Promise<void> {
+  await db
+    .update(scans)
+    .set({ status: "failed", error: message, blockedBy: vendor, finishedAt: new Date() })
+    .where(eq(scans.id, scanId));
+}
+
 /**
  * Persist a completed scan: denormalized summary, immutable result blob, and one
  * row per finding. Single transaction - a scan is either fully stored or not at

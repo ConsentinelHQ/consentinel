@@ -36,6 +36,13 @@
       "when": 1789492073456,
       "tag": "0004_light_elektra",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789550900025,
+      "tag": "0005_awesome_baron_zemo",
+      "breakpoints": true
     }
   ]
 }
