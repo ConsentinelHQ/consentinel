@@ -141,4 +141,19 @@ export interface ScanResult {
   findings: Finding[];
   /** Tags that fired ONLY after consent — proof the engine does not cry wolf. */
   correctlyGated: Array<{ vendor: string; category: VendorCategory }>;
+  /**
+   * Why the denied pass observed what it did.
+   *
+   * Without this, a "default" observation is unreadable: a CMP that showed no
+   * banner (often geo-targeting) and a banner whose reject control we could not
+   * click are completely different problems, one theirs and one ours.
+   */
+  consentAttempt?: {
+    performed: boolean;
+    bannerPresent?: boolean;
+    /** Banner shown with no decline control. A finding about them, not a tooling miss. */
+    noRejectOffered?: boolean;
+    reason?: string;
+    selector?: string;
+  };
 }

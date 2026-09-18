@@ -282,6 +282,23 @@ export function analyze(raw: RawScan): ScanResult {
     counts,
     findings: sorted,
     correctlyGated,
+    // Carried through so a "default" observation is explicable rather than opaque.
+    consentAttempt: {
+      performed:
+        raw.deniedPass.interaction.kind !== "none" && raw.deniedPass.interaction.performed === true,
+      ...("bannerPresent" in raw.deniedPass.interaction
+        ? { bannerPresent: raw.deniedPass.interaction.bannerPresent }
+        : {}),
+      ...("noRejectOffered" in raw.deniedPass.interaction
+        ? { noRejectOffered: raw.deniedPass.interaction.noRejectOffered }
+        : {}),
+      ...("reason" in raw.deniedPass.interaction
+        ? { reason: raw.deniedPass.interaction.reason }
+        : {}),
+      ...("selector" in raw.deniedPass.interaction
+        ? { selector: raw.deniedPass.interaction.selector }
+        : {}),
+    },
   };
 }
 

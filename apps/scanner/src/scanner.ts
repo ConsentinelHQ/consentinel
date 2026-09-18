@@ -56,7 +56,14 @@ export interface CapturedCookie {
 
 export type ConsentInteraction =
   | { kind: "none"; reason: string }
-  | { kind: "reject" | "accept"; performed: boolean; selector?: string; bannerPresent?: boolean };
+  | {
+      kind: "reject" | "accept";
+      performed: boolean;
+      selector?: string;
+      bannerPresent?: boolean;
+      /** Banner shown with no decline control at all. Their configuration, not our miss. */
+      noRejectOffered?: boolean;
+    };
 
 export interface MainResponse {
   status: number;
@@ -243,7 +250,12 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
       ? { kind: "reject", performed: true, selector: r.selector }
       : // bannerPresent separates "we could not click it" from "it never appeared",
         // which is a real finding rather than a limitation of ours.
-        { kind: "reject", performed: false, bannerPresent: r.bannerPresent ?? false };
+        {
+          kind: "reject",
+          performed: false,
+          bannerPresent: r.bannerPresent ?? false,
+          noRejectOffered: r.noRejectOffered ?? false,
+        };
   } else {
     deniedInteraction = {
       kind: "none",

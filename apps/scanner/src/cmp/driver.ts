@@ -9,7 +9,14 @@ const POLL_MS = 250;
 
 export type OperateResult =
   | { ok: true; action: ConsentAction; cmp: string; selector: string }
-  | { ok: false; reason: string; bannerPresent?: boolean; tried?: string[] };
+  | {
+      ok: false;
+      reason: string;
+      bannerPresent?: boolean;
+      /** Banner shown, but it had no decline control at all. Their choice, not our miss. */
+      noRejectOffered?: boolean;
+      tried?: string[];
+    };
 
 export async function operate(
   page: Page,
@@ -36,12 +43,20 @@ export async function operate(
    */
   const deadline = Date.now() + WAIT_FOR_CONTROL_MS;
   const attempted: string[] = [];
+  /**
+   * Tracked separately from `attempted`: a control we saw and failed to click is
+   * our bug, a control that was never on the page is their configuration. Relying
+   * on `attempted` being empty would couple that distinction to whether
+   * isVisible() happens to throw.
+   */
+  let sawControl = false;
 
   while (Date.now() < deadline) {
     for (const sel of selectors) {
       try {
         const loc = page.locator(sel).first();
         if (!(await loc.isVisible())) continue;
+        sawControl = true;
         await loc.scrollIntoViewIfNeeded({ timeout: 1000 });
         await loc.click({ timeout: 3000 });
         if (!attempted.includes(sel)) attempted.push(sel);
@@ -70,12 +85,25 @@ export async function operate(
     }
   }
 
+  /**
+   * Three outcomes, and only one is our problem.
+   *
+   * No banner: the CMP loaded and showed nothing, usually geo-targeting. Theirs.
+   * Banner with no reject control: notice-only, the visitor cannot decline. Theirs,
+   * and a stronger finding than a leaky tag because it is deliberate.
+   * Banner with a control we could not click: ours, and a bug to fix.
+   */
+  const noRejectOffered = bannerPresent && action === "reject" && !sawControl;
+
   return {
     ok: false,
     bannerPresent,
-    reason: bannerPresent
-      ? `${cmp.name} banner is present but no ${action} control could be clicked`
-      : `${cmp.name} is installed but showed no consent banner`,
+    noRejectOffered,
+    reason: !bannerPresent
+      ? `${cmp.name} is installed but showed no consent banner`
+      : noRejectOffered
+        ? `${cmp.name} banner offers no way to decline`
+        : `${cmp.name} banner is present but no ${action} control could be clicked`,
     tried: attempted.length > 0 ? attempted : selectors,
   };
 }

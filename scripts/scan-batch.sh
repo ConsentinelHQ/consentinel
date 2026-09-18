@@ -5,22 +5,33 @@ cd "$(dirname "$0")/.."
 mkdir -p scripts/out
 
 SITES=(
+  "https://www.allbirds.com"
+  "https://vuori.com"
+  "https://www.untuckit.com"
+  "https://mizzenandmain.com"
+  "https://rothys.com"
+  "https://www.beautycounter.com"
+  "https://iliabeauty.com"
+  "https://youthtothepeople.com"
+  "https://burrow.com"
+  "https://floyddetroit.com"
+  "https://www.brooklinen.com"
   "https://athleticbrewing.com"
   "https://magicspoon.com"
+  "https://drinkolipop.com"
+  "https://huckberry.com"
+  "https://www.cotopaxi.com"
+  "https://www.thefarmersdog.com"
+  "https://meetlalo.com"
+  "https://www.hims.com"
+  "https://ritual.com"
 )
 
 for url in "${SITES[@]}"; do
   slug=$(echo "$url" | sed -E 's|https?://||; s|/$||; s|[^a-z0-9]|-|g')
   echo "--- $url"
   if pnpm --silent --filter @consentinel/scanner scan "$url" > "scripts/out/$slug.json" 2>"scripts/out/$slug.err"; then
-    node -e '
-      const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
-      const f = r.findings ?? [];
-      const n = s => f.filter(x => x.severity === s).length;
-      const vendors = [...new Set(f.map(x => x.vendor).filter(Boolean))];
-      console.log(`  ${n("critical")} critical / ${n("warning")} warning | CMP: ${r.cmp?.name ?? "none"} | observed: ${r.consentState ?? "?"}`);
-      console.log(`  vendors (${vendors.length}): ${vendors.join(", ")}`);
-    ' "scripts/out/$slug.json"
+    node scripts/summarize.cjs "scripts/out/$slug.json"
   else
     echo "  FAILED - see scripts/out/$slug.err"
   fi
