@@ -17,7 +17,12 @@ export const FINDING_SCHEMA_VERSION = "1.0.0" as const;
 export type Severity = "critical" | "warning" | "info";
 
 /** The consent state the page was in when an observation was made. */
-export type ConsentState = "default" | "rejected" | "granted";
+/**
+ * "gpc": no reject control was clicked, but the visitor sent Global Privacy
+ * Control. Under California's CCPA regulations that signal is a valid opt-out
+ * of sale and sharing, so advertising that fires anyway is a finding.
+ */
+export type ConsentState = "default" | "rejected" | "granted" | "gpc";
 
 export type VendorCategory =
   | "analytics"

@@ -1,14 +1,15 @@
 import {
   FINDING_SCHEMA_VERSION,
   countBySeverity,
+  severityFor,
   sortFindings,
+  type CmpSummary,
+  type ConsentSignal,
+  type ConsentState,
+  type Evidence,
   type Finding,
   type ScanResult,
   type Severity,
-  type ConsentState,
-  type Evidence,
-  type ConsentSignal,
-  type CmpSummary,
 } from "@consentinel/shared";
 import { randomUUID } from "node:crypto";
 import {
@@ -55,7 +56,9 @@ export function analyze(raw: RawScan): ScanResult {
   const observedUnder: ConsentState =
     raw.deniedPass.interaction.kind === "reject" && raw.deniedPass.interaction.performed
       ? "rejected"
-      : "default";
+      : raw.deniedPass.gpc
+        ? "gpc"
+        : "default";
 
   const findings: Finding[] = [];
   let seq = 0;
@@ -80,13 +83,13 @@ export function analyze(raw: RawScan): ScanResult {
       id: nextId("nobanner"),
       schemaVersion: FINDING_SCHEMA_VERSION,
       type: "consent-banner-absent",
-      severity: "critical",
+      severity: severityFor("consent-banner-absent"),
       vendor: raw.cmp.detected.name,
       category: "unknown",
       title: `${raw.cmp.detected.name} is installed but no consent banner was shown`,
       detail:
         `${raw.cmp.detected.name} loaded on this page but never presented a consent banner, ` +
-        `so no visitor is given a choice before tracking begins. This is commonly a ` +
+        `so visitors in the scanned region are not asked before tracking begins. This is commonly a ` +
         `geo-targeting rule that exempts visitors in some regions. Every finding below ` +
         `was observed with no choice available.`,
       remediation:
@@ -171,7 +174,7 @@ export function analyze(raw: RawScan): ScanResult {
         id: nextId("pii"),
         schemaVersion: FINDING_SCHEMA_VERSION,
         type: "pii-leak-to-tracker",
-        severity: "critical",
+        severity: severityFor("pii-leak-to-tracker"),
         vendor: sig.vendor,
         category: "unknown",
         title: `Email address leaked to ${sig.vendor}`,

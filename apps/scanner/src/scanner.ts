@@ -39,6 +39,13 @@ export interface ScanOptions {
    * Turn on only for sites whose owners have allowlisted us.
    */
   identify?: boolean;
+  /**
+   * Send Global Privacy Control on the denied pass: a `Sec-GPC: 1` header on
+   * every request and navigator.globalPrivacyControl = true. Off by default
+   * until measured, because a CMP that honours GPC may suppress its banner and
+   * change what a reject-click scan observes.
+   */
+  gpc?: boolean;
 }
 
 export interface CapturedRequest {
@@ -77,6 +84,8 @@ export interface PassResult {
   interaction: ConsentInteraction;
   /** The main document response. Absent if navigation produced none. */
   mainResponse?: MainResponse;
+  /** Whether this pass sent Global Privacy Control. */
+  gpc?: boolean;
 }
 
 export interface RawScan {
@@ -119,13 +128,24 @@ export const IDENTIFIED_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " +
   "Chrome/141.0.0.0 Safari/537.36 Consentinel/1.0 (+https://www.consentinelhq.com/bot)";
 
-async function newCapturedContext(targetUrl: string, opts: ScanOptions): Promise<CapturedContext> {
+async function newCapturedContext(
+  targetUrl: string,
+  opts: ScanOptions,
+  signalGpc = false,
+): Promise<CapturedContext> {
   const browser = await chromium.launch();
-  // Clean profile per pass - no shared state. A real viewport, locale and timezone
-  // keep us out of the "obviously automated" bucket without pretending to be human.
-  const context = await browser.newContext(
-    opts.identify ? { userAgent: IDENTIFIED_USER_AGENT } : {},
-  );
+  // Clean profile per pass - no shared state.
+  const context = await browser.newContext({
+    ...(opts.identify ? { userAgent: IDENTIFIED_USER_AGENT } : {}),
+    // GPC travels to every host, first and third party, exactly as a browser sends it.
+    ...(signalGpc ? { extraHTTPHeaders: { "Sec-GPC": "1" } } : {}),
+  });
+  if (signalGpc) {
+    // Before any page script runs, so a CMP reading the flag on load sees it.
+    await context.addInitScript(
+      'Object.defineProperty(Navigator.prototype, "globalPrivacyControl", { get: () => true, configurable: true });',
+    );
+  }
   const page = await context.newPage();
   const requests: CapturedRequest[] = [];
   const startedAt = Date.now();
@@ -241,7 +261,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   const cmpId = cmp.detected?.id ?? null;
 
   // --- Pass A: consent REJECTED (or default-denied if no CMP) ---
-  const a = await newCapturedContext(url, opts);
+  const a = await newCapturedContext(url, opts, opts.gpc === true);
   const deniedResponse = await gotoCapturing(a.page, url);
   let deniedInteraction: ConsentInteraction;
   if (cmpId) {
@@ -268,6 +288,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     cookies: await snapshotCookies(a.context),
     interaction: deniedInteraction,
     ...(deniedResponse ? { mainResponse: deniedResponse } : {}),
+    gpc: opts.gpc === true,
   };
   await a.browser.close();
 

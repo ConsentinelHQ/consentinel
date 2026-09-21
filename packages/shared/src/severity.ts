@@ -13,7 +13,11 @@ export const SEVERITY_BY_TYPE: Record<FindingType, Severity> = {
   "duplicate-tag": "warning",
   // A consent platform that never shows a banner is not a lesser problem than a
   // tag firing early - it is the reason the tags fire early.
-  "consent-banner-absent": "critical",
+  // Context, not a violation. Scans run from the US, where CCPA-model sites show
+  // no banner by design: Vuori's own OneTrust rules serve GDPR opt-in to 44
+  // countries and a no-banner CCPA rule to the US. Graded critical, this listed
+  // every CMP as a critical "vendor". The violations are the trackers that fire.
+  "consent-banner-absent": "info",
 };
 
 export const SEVERITY_RANK: Record<Severity, number> = { critical: 0, warning: 1, info: 2 };
