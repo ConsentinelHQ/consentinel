@@ -59,6 +59,5 @@ Thumbs.db
 !.vscode/extensions.json
 !.vscode/settings.json
 
-prospects.csv
-prospects.done
+prospects*
 domains*.txt

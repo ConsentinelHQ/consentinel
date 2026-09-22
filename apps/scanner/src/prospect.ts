@@ -69,6 +69,10 @@ function repoRoot(): string {
 const base = repoRoot();
 const outCsv = resolve(base, "prospects.csv");
 const doneFile = resolve(base, "prospects.done");
+const cacheFile = resolve(base, "prospects.contacts.json");
+const cache: Record<string, Contact | string> = existsSync(cacheFile)
+  ? (JSON.parse(readFileSync(cacheFile, "utf8")) as Record<string, Contact | string>)
+  : {};
 const COLUMNS = [
   "domain",
   "status",
@@ -107,7 +111,8 @@ function tally(result: ScanResult): Tally {
   for (const f of result.findings) {
     if (f.severity !== "critical" || !/advert|marketing/i.test(f.category)) continue;
     const v = canonicalVendor(f.vendor);
-    if (v === self) continue;
+    // The store's own platform is not a third party it chose to add.
+    if (v === self || /^shopify\b/i.test(v)) continue;
     firing.set(v, (firing.get(v) ?? 0) + 1);
   }
   return { critical: result.counts.critical, gated, firing };
@@ -286,8 +291,8 @@ async function main(): Promise<void> {
     console.log(`scan   ${domain}`);
     const ev = await gather(`https://${host}`);
     if (typeof ev === "string") {
+      // Not marked done: a crashed browser is transient and worth retrying.
       writeRow({ domain, status: ev });
-      markDone();
       console.log(`       ${ev}`);
       continue;
     }
@@ -305,15 +310,20 @@ async function main(): Promise<void> {
       continue;
     }
 
-    let contact: Contact | string;
-    try {
-      contact = await findContact(domain);
-    } catch (error) {
-      // Not marked done: a Hunter outage or quota hit should retry next run.
-      const reason = `hunter failed: ${error instanceof Error ? error.message : String(error)}`;
-      writeRow({ ...summary, status: reason });
-      console.log(`       ${reason}`);
-      continue;
+    // Cached per domain: re-running to fix copy or evidence must not spend credits twice.
+    let contact = cache[domain];
+    if (contact === undefined) {
+      try {
+        contact = await findContact(domain);
+      } catch (error) {
+        // Not marked done: a Hunter outage or quota hit should retry next run.
+        const reason = `hunter failed: ${error instanceof Error ? error.message : String(error)}`;
+        writeRow({ ...summary, status: reason });
+        console.log(`       ${reason}`);
+        continue;
+      }
+      cache[domain] = contact;
+      writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
     }
     if (typeof contact === "string") {
       writeRow({ ...summary, status: contact });
