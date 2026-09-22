@@ -1,5 +1,6 @@
 "use client";
 
+import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
 
@@ -92,12 +93,9 @@ export function ScanResultView({
       <>
         <h1>Loading your site twice.</h1>
         <p className="lede" style={{ marginTop: "1.25rem" }}>
-          Once refusing consent, once accepting it. This takes about a minute.
+          Once refusing consent, once accepting it. This takes a minute or two.
         </p>
-        <div className="status">
-          <span className="pulse" />
-          <span>{state.status === "running" ? "Scanning" : "Waiting for a scanner"}</span>
-        </div>
+        <ScanProgress status={state.status} />
       </>
     );
   }
