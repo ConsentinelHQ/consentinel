@@ -61,9 +61,8 @@ export function analyze(raw: RawScan): ScanResult {
         : "default";
   // GPC is an opt-out signal, not a consent state, so it needs its own wording.
   const gpc = observedUnder === "gpc";
-  const firesPhrase = gpc
-    ? "fires with Global Privacy Control on"
-    : `fires under ${observedUnder} consent`;
+  const underPhrase = gpc ? "with Global Privacy Control on" : `under ${observedUnder} consent`;
+  const firesPhrase = gpc ? "fires with Global Privacy Control on" : `fires ${underPhrase}`;
   const when = gpc ? "with Global Privacy Control on" : "before consent";
   const cookieWhen = gpc ? "while Global Privacy Control was on" : "before consent was granted";
 
@@ -239,8 +238,8 @@ export function analyze(raw: RawScan): ScanResult {
       vendor: sig?.vendor ?? c.name,
       category: sig?.category ?? "unknown",
       title: known
-        ? `${sig.vendor} set ${describe(sig.category)} cookie "${c.name}" under ${observedUnder} consent`
-        : `Unrecognised cookie "${c.name}" set under ${observedUnder} consent`,
+        ? `${sig.vendor} set ${describe(sig.category)} cookie "${c.name}" ${underPhrase}`
+        : `Unrecognised cookie "${c.name}" set ${underPhrase}`,
       detail: known
         ? `${sig.vendor} wrote "${c.name}" on ${c.domain} ${cookieWhen}.`
         : `Cookie "${c.name}" (domain ${c.domain}) was written ${cookieWhen}. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.`,

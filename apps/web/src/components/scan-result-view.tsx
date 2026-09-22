@@ -247,8 +247,11 @@ function Report({
               {report.unattributedCookies.length} more cookies we could not attribute
             </summary>
             <p className="quiet">
-              These were set before consent but we could not tie them to a known vendor. Confirm
-              with your team whether each one is strictly necessary.
+              {report.gpc
+                ? "These were set while Global Privacy Control was on"
+                : "These were set before consent"}{" "}
+              but we could not tie them to a known vendor. Confirm with your team whether each one
+              is strictly necessary.
             </p>
             <ul className="cookie-names">
               {report.unattributedCookies.map((name) => (
