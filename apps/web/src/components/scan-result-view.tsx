@@ -138,7 +138,10 @@ function Report({
               report.correctlyGated.map((vendor) => (
                 <li className="row" data-severity="ok" key={`gated-${vendor}`}>
                   <span className="gutter" />
-                  <span className="row-title">{vendor} waited for consent</span>
+                  <span className="row-title">
+                    {vendor}{" "}
+                    {report.gpc ? "stopped with Global Privacy Control on" : "waited for consent"}
+                  </span>
                   <span className="row-vendor">ok</span>
                 </li>
               ))
@@ -227,7 +230,10 @@ function Report({
           {report.correctlyGated.map((vendor) => (
             <li className="row" data-severity="ok" key={`gated-${vendor}`}>
               <span className="gutter" />
-              <span className="row-title">{vendor} waited for consent</span>
+              <span className="row-title">
+                {vendor}{" "}
+                {report.gpc ? "stopped with Global Privacy Control on" : "waited for consent"}
+              </span>
               <span className="row-vendor">ok</span>
             </li>
           ))}

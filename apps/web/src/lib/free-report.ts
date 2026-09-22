@@ -32,6 +32,12 @@ export interface FreeFinding {
 }
 
 export interface FreeReport {
+  /**
+   * The denied pass sent Global Privacy Control instead of clicking reject.
+   * Gated vendors then stopped because of the signal, not because they waited
+   * for a consent choice, and the copy has to say so.
+   */
+  gpc?: boolean;
   scanId: string;
   url: string;
   scannedAt: string;
@@ -48,7 +54,7 @@ export interface FreeReport {
 
 const PREVIEW_LIMIT = 3;
 
-export function toFreeReport(result: ScanResult): FreeReport {
+function toFreeReportBase(result: ScanResult): FreeReport {
   /**
    * Show one finding per vendor before showing a second from any vendor. A site with
    * six YouTube cookies would otherwise fill the whole preview with YouTube and hide
@@ -161,7 +167,7 @@ export function toFreeReport(result: ScanResult): FreeReport {
  * Shares the FreeReport shape deliberately - one renderer, one set of styles,
  * and `locked` simply never true. A second component would drift.
  */
-export function toFullReport(result: ScanResult): FreeReport {
+function toFullReportBase(result: ScanResult): FreeReport {
   const attributed = dedupe(result.findings.filter((f) => !isUnattributed(f)));
   const grouped = groupByVendor(attributed);
   const unattributedCookies = [
@@ -308,4 +314,16 @@ function evidenceLine(f: Finding): string | null {
     default:
       return null;
   }
+}
+
+function observedUnderGpc(result: ScanResult): boolean {
+  return result.findings.some((f) => f.observedUnder === "gpc");
+}
+
+export function toFreeReport(result: ScanResult): FreeReport {
+  return { ...toFreeReportBase(result), gpc: observedUnderGpc(result) };
+}
+
+export function toFullReport(result: ScanResult): FreeReport {
+  return { ...toFullReportBase(result), gpc: observedUnderGpc(result) };
 }
