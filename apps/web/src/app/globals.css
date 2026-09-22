@@ -1087,3 +1087,24 @@ footer {
   background: var(--paper-alt);
   border-radius: 12px;
 }
+
+/*
+ * Short pages (a scan loading, a clean result, an error) must not leave the
+ * footer floating mid-screen. The page fills the window and the footer sits
+ * at the bottom of it.
+ */
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+body > main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+main > footer,
+body > footer {
+  margin-top: auto;
+}
