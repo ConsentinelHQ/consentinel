@@ -1,0 +1,1067 @@
+{
+  "scanId": "858c103e-2186-4861-80bb-8517dc77a6c5",
+  "url": "https://burrow.com",
+  "scannedAt": "2026-09-21T22:33:27.944Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "shopify-native",
+      "name": "Shopify Consent",
+      "confidence": "medium"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "15 trackers firing before consent",
+  "counts": {
+    "critical": 22,
+    "warning": 27,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "Shopify Consent",
+      "category": "unknown",
+      "title": "Shopify Consent is installed but no consent banner was shown",
+      "detail": "Shopify Consent loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your Shopify Consent geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "Shopify Consent",
+        "bannerShown": false,
+        "detail": "Shopify Consent SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z",
+      "compliance": []
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Braze",
+      "category": "advertising",
+      "title": "Braze fires under gpc consent",
+      "detail": "Braze (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://js.appboycdn.com/web-sdk/5.4/braze.no-module.min.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Braze behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-012",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Criteo",
+      "category": "advertising",
+      "title": "Criteo fires under gpc consent",
+      "detail": "Criteo (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://dynamic.criteo.com/js/ld/ld.js?a=123822",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Criteo behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-028",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads set an advertising cookie \"_gcl_au\" under gpc consent",
+      "detail": "Google Ads wrote \"_gcl_au\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_gcl_au",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1797805959
+      },
+      "compliance": [],
+      "remediation": "Block Google Ads until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-013",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ad.doubleclick.net/ccm/s/collect?auid=1566721034.1790029959&gtm=45He69i2h1v77544123za200zd77544123xeaxf1&fmt=8",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Hotjar",
+      "category": "session-recording",
+      "title": "Hotjar fires under gpc consent",
+      "detail": "Hotjar (session-recording) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.hotjar.com/c/hotjar-602795.js?sv=6",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Hotjar behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta",
+      "category": "advertising",
+      "title": "Meta set an advertising cookie \"_fbp\" under gpc consent",
+      "detail": "Meta wrote \"_fbp\" on burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fbp",
+        "domain": "burrow.com",
+        "firstParty": true,
+        "expires": 1797805957.876973
+      },
+      "compliance": [],
+      "remediation": "Block Meta until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-040",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta",
+      "category": "advertising",
+      "title": "Meta set an advertising cookie \"_fbp\" under gpc consent",
+      "detail": "Meta wrote \"_fbp\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fbp",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1797805959
+      },
+      "compliance": [],
+      "remediation": "Block Meta until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-034",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft",
+      "category": "advertising",
+      "title": "Microsoft set an advertising cookie \"MUID\" under gpc consent",
+      "detail": "Microsoft wrote \"MUID\" on .bing.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "MUID",
+        "domain": ".bing.com",
+        "firstParty": false,
+        "expires": 1823725959.235007
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-048",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"_uetsid\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"_uetsid\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_uetsid",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1790116378
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-049",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"_uetvid\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"_uetvid\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_uetvid",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1823725978
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-035",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"MR\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"MR\" on .bat.bing.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "MR",
+        "domain": ".bat.bing.com",
+        "firstParty": false,
+        "expires": 1790634759.235034
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising UET",
+      "category": "advertising",
+      "title": "Microsoft Advertising UET fires under gpc consent",
+      "detail": "Microsoft Advertising UET (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://bat.bing.com/bat.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Advertising UET behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-010",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Pinterest Tag",
+      "category": "advertising",
+      "title": "Pinterest Tag fires under gpc consent",
+      "detail": "Pinterest Tag (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://s.pinimg.com/ct/core.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Pinterest Tag behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Shopify",
+      "category": "advertising",
+      "title": "Shopify set an advertising cookie \"_shopify_marketing\" under gpc consent",
+      "detail": "Shopify wrote \"_shopify_marketing\" on burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_marketing",
+        "domain": "burrow.com",
+        "firstParty": true,
+        "expires": 1821565958.939916
+      },
+      "compliance": [],
+      "remediation": "Block Shopify until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-015",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Taboola",
+      "category": "advertising",
+      "title": "Taboola fires under gpc consent",
+      "detail": "Taboola (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.taboola.com/libtrc/unip/2047176/tfa.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Taboola behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-041",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_tt_enable_cookie\" under gpc consent",
+      "detail": "TikTok wrote \"_tt_enable_cookie\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_tt_enable_cookie",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1823725959
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-036",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_ttp\" under gpc consent",
+      "detail": "TikTok wrote \"_ttp\" on .tiktok.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ttp",
+        "domain": ".tiktok.com",
+        "firstParty": false,
+        "expires": 1823725959.258199
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-042",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_ttp\" under gpc consent",
+      "detail": "TikTok wrote \"_ttp\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ttp",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1823725959
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-047",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"ttcsid_D6BNHQJC77U0SFL8I2DG\" under gpc consent",
+      "detail": "TikTok wrote \"ttcsid_D6BNHQJC77U0SFL8I2DG\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ttcsid_D6BNHQJC77U0SFL8I2DG",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1823725977
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-046",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"ttcsid\" under gpc consent",
+      "detail": "TikTok wrote \"ttcsid\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ttcsid",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1823725977
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-011",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok Pixel",
+      "category": "advertising",
+      "title": "TikTok Pixel fires under gpc consent",
+      "detail": "TikTok Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=D6BNHQJC77U0SFL8I2DG&lib=ttq",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate TikTok Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_oo_cid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_oo_cid\" set under gpc consent",
+      "detail": "Cookie \"_oo_cid\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_oo_cid",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589958.57795
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-027",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ab.storage.deviceId.d76c9890-0a3f-4691-b5d6-118a739e5dee",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ab.storage.deviceId.d76c9890-0a3f-4691-b5d6-118a739e5dee\" set under gpc consent",
+      "detail": "Cookie \"ab.storage.deviceId.d76c9890-0a3f-4691-b5d6-118a739e5dee\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ab.storage.deviceId.d76c9890-0a3f-4691-b5d6-118a739e5dee",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589959
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-050",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ab.storage.sessionId.d76c9890-0a3f-4691-b5d6-118a739e5dee",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ab.storage.sessionId.d76c9890-0a3f-4691-b5d6-118a739e5dee\" set under gpc consent",
+      "detail": "Cookie \"ab.storage.sessionId.d76c9890-0a3f-4691-b5d6-118a739e5dee\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ab.storage.sessionId.d76c9890-0a3f-4691-b5d6-118a739e5dee",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589978
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-045",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "acs",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"acs\" set under gpc consent",
+      "detail": "Cookie \"acs\" (domain .media6degrees.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "acs",
+        "domain": ".media6degrees.com",
+        "firstParty": false,
+        "expires": 1805581959.621682
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-031",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ajs_anonymous_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ajs_anonymous_id\" set under gpc consent",
+      "detail": "Cookie \"ajs_anonymous_id\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ajs_anonymous_id",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1821565978
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-043",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "clid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"clid\" set under gpc consent",
+      "detail": "Cookie \"clid\" (domain .media6degrees.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "clid",
+        "domain": ".media6degrees.com",
+        "firstParty": false,
+        "expires": 1805581959.621622
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-016",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Cloudflare Web Analytics",
+      "category": "analytics",
+      "title": "Cloudflare Web Analytics fires under gpc consent",
+      "detail": "Cloudflare Web Analytics (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.cloudflareinsights.com/beacon.min.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Cloudflare Web Analytics behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-029",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_15NMTV2PDM\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_15NMTV2PDM\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_15NMTV2PDM",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589959.180532
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-037",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_NL1Y32JK4W\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_NL1Y32JK4W\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_NL1Y32JK4W",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589959.312266
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-030",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589959.312498
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-014",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics 4",
+      "category": "analytics",
+      "title": "Google Analytics 4 fires under gpc consent",
+      "detail": "Google Analytics 4 (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.google.com/g/collect?v=2&tid=G-15NMTV2PDM&gtm=45je69l0h2v880367042z877544123za20gzb77544123zd77544123xf1&_p=1790029958938&_gaz=1&gcd=13l3l3l3l9l1&npa=1&dma=0&gdid=dN2ZkMj&_eu=EAAAAGAC&are=1&cid=968431729.1790029959&frm=0&ir=1&pscdl=noapi&rcb=13&sr=1280x720&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uam=&uamb=0&uap=macOS&uapv=26.4.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938465~115938469~118897920~118897930~120213116~120385422~120469145~120469153&sid=1790029959&sct=1&seg=0&dl=https%3A%2F%2Fburrow.com%2F&dt=Burrow%20%7C%20Modular%20Furniture%20%26%20Sofas%20with%20Tool-Free%20Assembly&en=page_view&_fv=1&_nsi=1&_ss=1&tfd=1986",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Analytics 4 behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=G-15NMTV2PDM",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-W34DB8J&l=dataLayer",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-fv",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-fv\" set under gpc consent",
+      "detail": "Cookie \"ig-fv\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-fv",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1821565958
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-id\" set under gpc consent",
+      "detail": "Cookie \"ig-id\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-id",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1821565958
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-pv",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-pv\" set under gpc consent",
+      "detail": "Cookie \"ig-pv\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-pv",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1821565958
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-vars",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-vars\" set under gpc consent",
+      "detail": "Cookie \"ig-vars\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-vars",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1821565958
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-039",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ppid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ppid\" set under gpc consent",
+      "detail": "Cookie \"ppid\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ppid",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1790620359
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Segment",
+      "category": "tag-manager",
+      "title": "Segment fires under gpc consent",
+      "detail": "Segment (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.segment.com/v1/projects/AgOF974aDMLVVuL7Fo9yxHFgQAToxpt1/settings",
+        "method": "GET",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Segment behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-044",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "sglst",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"sglst\" set under gpc consent",
+      "detail": "Cookie \"sglst\" (domain .media6degrees.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sglst",
+        "domain": ".media6degrees.com",
+        "firstParty": false,
+        "expires": 1805581959.621656
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics fires under gpc consent",
+      "detail": "Shopify Analytics (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://monorail-edge.shopifysvc.com/unstable/produce_batch",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Shopify Analytics behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_analytics\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_analytics\" on burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_analytics",
+        "domain": "burrow.com",
+        "firstParty": true,
+        "expires": 1821565958.939908
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-026",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_s\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_s\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_s",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1790031758.942313
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-025",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_y\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_y\" on .burrow.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_y",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1821133958.942275
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-032",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tatari-cookie-test",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tatari-cookie-test\" set under gpc consent",
+      "detail": "Cookie \"tatari-cookie-test\" (domain burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tatari-cookie-test",
+        "domain": "burrow.com",
+        "firstParty": true,
+        "expires": 1824589959.229058
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-033",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tatari-session-cookie",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tatari-session-cookie\" set under gpc consent",
+      "detail": "Cookie \"tatari-session-cookie\" (domain .burrow.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tatari-session-cookie",
+        "domain": ".burrow.com",
+        "firstParty": true,
+        "expires": 1824589959.230657
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    },
+    {
+      "id": "cookie-038",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "uid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"uid\" set under gpc consent",
+      "detail": "Cookie \"uid\" (domain .criteo.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "uid",
+        "domain": ".criteo.com",
+        "firstParty": false,
+        "expires": 1823725959.380013
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:33:27.944Z"
+    }
+  ],
+  "correctlyGated": [],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

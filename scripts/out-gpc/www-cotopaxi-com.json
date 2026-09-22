@@ -1,0 +1,386 @@
+{
+  "scanId": "a16cf286-24c4-4ba4-a17e-cb15195af093",
+  "url": "https://www.cotopaxi.com",
+  "scannedAt": "2026-09-21T22:38:21.143Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "shopify-native",
+      "name": "Shopify Consent",
+      "confidence": "medium"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "3 trackers firing before consent",
+  "counts": {
+    "critical": 0,
+    "warning": 16,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "Shopify Consent",
+      "category": "unknown",
+      "title": "Shopify Consent is installed but no consent banner was shown",
+      "detail": "Shopify Consent loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your Shopify Consent geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "Shopify Consent",
+        "bannerShown": false,
+        "detail": "Shopify Consent SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z",
+      "compliance": []
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__apex_test__",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__apex_test__\" set under gpc consent",
+      "detail": "Cookie \"__apex_test__\" (domain .cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__apex_test__",
+        "domain": ".cotopaxi.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "AMP_6d4f915888",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"AMP_6d4f915888\" set under gpc consent",
+      "detail": "Cookie \"AMP_6d4f915888\" (domain .cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "AMP_6d4f915888",
+        "domain": ".cotopaxi.com",
+        "firstParty": true,
+        "expires": 1821566263
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Amplitude",
+      "category": "analytics",
+      "title": "Amplitude fires under gpc consent",
+      "detail": "Amplitude (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://sr-client-cfg.amplitude.com/config/6d4f9158886e0c6d78e3bd97663ba920?config_group=browser",
+        "method": "GET",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Amplitude behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-013",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "bt_ck",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"bt_ck\" set under gpc consent",
+      "detail": "Cookie \"bt_ck\" (domain www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "bt_ck",
+        "domain": "www.cotopaxi.com",
+        "firstParty": false,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Cloudflare Web Analytics",
+      "category": "analytics",
+      "title": "Cloudflare Web Analytics fires under gpc consent",
+      "detail": "Cloudflare Web Analytics (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.cloudflareinsights.com/beacon.min.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Cloudflare Web Analytics behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-007",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-c",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-c\" set under gpc consent",
+      "detail": "Cookie \"ede-c\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-c",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1790030562.499471
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-010",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-expid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-expid\" set under gpc consent",
+      "detail": "Cookie \"ede-expid\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-expid",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1821566264.49978
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-011",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-expvar",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-expvar\" set under gpc consent",
+      "detail": "Cookie \"ede-expvar\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-expvar",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1821566264.499795
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-006",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-i",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-i\" set under gpc consent",
+      "detail": "Cookie \"ede-i\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-i",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1821566264.499762
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-008",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-p",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-p\" set under gpc consent",
+      "detail": "Cookie \"ede-p\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-p",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1790030562.499482
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-009",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-r",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-r\" set under gpc consent",
+      "detail": "Cookie \"ede-r\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-r",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1790030562.499492
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-005",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ede-s",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ede-s\" set under gpc consent",
+      "detail": "Cookie \"ede-s\" (domain .www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ede-s",
+        "domain": ".www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1790032064.499714
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "first_pla_call",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"first_pla_call\" set under gpc consent",
+      "detail": "Cookie \"first_pla_call\" (domain www.cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "first_pla_call",
+        "domain": "www.cotopaxi.com",
+        "firstParty": false,
+        "expires": 1792622263
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-W62P6P",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "rstr_d",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"rstr_d\" set under gpc consent",
+      "detail": "Cookie \"rstr_d\" (domain .cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "rstr_d",
+        "domain": ".cotopaxi.com",
+        "firstParty": true,
+        "expires": 1792607863
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    },
+    {
+      "id": "cookie-012",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "styliticsWidgetSession",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"styliticsWidgetSession\" set under gpc consent",
+      "detail": "Cookie \"styliticsWidgetSession\" (domain .cotopaxi.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "styliticsWidgetSession",
+        "domain": ".cotopaxi.com",
+        "firstParty": true,
+        "expires": 1824590263.089257
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:38:21.143Z"
+    }
+  ],
+  "correctlyGated": [],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

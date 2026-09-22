@@ -1,0 +1,488 @@
+{
+  "scanId": "994474ef-6964-4d37-b08b-2b9967225d0a",
+  "url": "https://www.thefarmersdog.com",
+  "scannedAt": "2026-09-21T22:39:18.453Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "datagrail",
+      "name": "DataGrail",
+      "confidence": "medium"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "10 trackers firing before consent",
+  "counts": {
+    "critical": 6,
+    "warning": 14,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "DataGrail",
+      "category": "unknown",
+      "title": "DataGrail is installed but no consent banner was shown",
+      "detail": "DataGrail loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your DataGrail geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "DataGrail",
+        "bannerShown": false,
+        "detail": "DataGrail SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z",
+      "compliance": []
+    },
+    {
+      "id": "preconsent-010",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "FullStory",
+      "category": "session-recording",
+      "title": "FullStory fires under gpc consent",
+      "detail": "FullStory (session-recording) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://edge.fullstory.com/s/fs.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate FullStory behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads fires under gpc consent",
+      "detail": "Google Ads (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googleadservices.com/pagead/conversion/878220319/?random=1790030307656&cv=11&fst=1790030307656&fmt=7&bg=ffffff&guid=ON&async=1&en=page_view&gtm=45892e69i2h1v874077957za204zb9117480728zd9117480728xecxf4&gcd=13l3l3l3l9l1&dma=0&tag_exp=115616985~115938465~115938468~118897920~118897930~120213116~120385423~120412526~120469145~120469153~120847433&u_w=1280&u_h=720&url=https%3A%2F%2Fwww.thefarmersdog.com%2F&rcb=13&evjid=47FVU1VTU8eVFRNbCQ&capi=1&gtm_ee=1&frm=0&tiba=Human-Grade%20Fresh%20Dog%20Food%20Delivery%20%7C%20The%20Farmer%E2%80%99s%20Dog&npa=1&pscdl=noapi&auid=562577314.1790030308&label=prbwCO2UlsgDEJ-o4qID&hn=www.googleadservices.com&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uamb=0&uam=&uap=macOS&uapv=26.4.0&uaw=0&ec_mode=a&oid=GG_487394459.1790030308&oidsrc=3&ecsid2=295499577.1790030308&_tu=ABA&gcl_ctr=1~0~0~0&data=event%3Dgtag.config&gap.gtb=1&category=acrcp_v1_512&emd=tvd.1&eme=tv.1~&gap.ch=4&ept=5&epp=5~22~74",
+        "method": "GET",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Ads behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads set an advertising cookie \"_gcl_au\" under gpc consent",
+      "detail": "Google Ads wrote \"_gcl_au\" on .thefarmersdog.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_gcl_au",
+        "domain": ".thefarmersdog.com",
+        "firstParty": true,
+        "expires": 1797806308
+      },
+      "compliance": [],
+      "remediation": "Block Google Ads until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ad.doubleclick.net/ccm/s/collect?auid=562577314.1790030308&gtm=45892e69i2h1v874077957za204zb9117480728zd9117480728xecxf4&fmt=8",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising UET",
+      "category": "advertising",
+      "title": "Microsoft Advertising UET fires under gpc consent",
+      "detail": "Microsoft Advertising UET (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://bat.bing.com/bat.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Advertising UET behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_dd_s",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_dd_s\" set under gpc consent",
+      "detail": "Cookie \"_dd_s\" (domain www.thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_dd_s",
+        "domain": "www.thefarmersdog.com",
+        "firstParty": false,
+        "expires": 1821566325
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-013",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ajs_anonymous_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ajs_anonymous_id\" set under gpc consent",
+      "detail": "Cookie \"ajs_anonymous_id\" (domain .thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ajs_anonymous_id",
+        "domain": ".thefarmersdog.com",
+        "firstParty": true,
+        "expires": 1821566328
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "cf_clearance",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"cf_clearance\" set under gpc consent",
+      "detail": "Cookie \"cf_clearance\" (domain .thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "cf_clearance",
+        "domain": ".thefarmersdog.com",
+        "firstParty": true,
+        "expires": 1821566307.556796
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Cloudflare Web Analytics",
+      "category": "analytics",
+      "title": "Cloudflare Web Analytics fires under gpc consent",
+      "detail": "Cloudflare Web Analytics (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Cloudflare Web Analytics behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Datadog RUM",
+      "category": "analytics",
+      "title": "Datadog RUM fires under gpc consent",
+      "detail": "Datadog RUM (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://browser-intake-datadoghq.com/api/v2/logs?ddsource=browser&dd-api-key=pubd59577b9c7d222b2c49b78b18fc6d411&dd-evp-origin-version=6.33.0&dd-evp-origin=browser&dd-request-id=55648d64-492f-4010-ae9e-f7a18275c44e",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Datadog RUM behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "datagrail_gpc_seen",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"datagrail_gpc_seen\" set under gpc consent",
+      "detail": "Cookie \"datagrail_gpc_seen\" (domain www.thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "datagrail_gpc_seen",
+        "domain": "www.thefarmersdog.com",
+        "firstParty": false,
+        "expires": 1821566307
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "fs_lua",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"fs_lua\" set under gpc consent",
+      "detail": "Cookie \"fs_lua\" (domain .thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "fs_lua",
+        "domain": ".thefarmersdog.com",
+        "firstParty": true,
+        "expires": 1790032108
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "fs_uid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"fs_uid\" set under gpc consent",
+      "detail": "Cookie \"fs_uid\" (domain .thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "fs_uid",
+        "domain": ".thefarmersdog.com",
+        "firstParty": true,
+        "expires": 1821566310
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=G-RE8PS4CSKE&gtg_health=1",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "referral",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"referral\" set under gpc consent",
+      "detail": "Cookie \"referral\" (domain www.thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "referral",
+        "domain": "www.thefarmersdog.com",
+        "firstParty": false,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Segment",
+      "category": "tag-manager",
+      "title": "Segment fires under gpc consent",
+      "detail": "Segment (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.segment.com/analytics.js/v1/mm6L09wAd0PG1RKTh8KJmkzsFWVl8RnY/analytics.min.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Segment behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-012",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tfd_do-not-sell-share",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tfd_do-not-sell-share\" set under gpc consent",
+      "detail": "Cookie \"tfd_do-not-sell-share\" (domain www.thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tfd_do-not-sell-share",
+        "domain": "www.thefarmersdog.com",
+        "firstParty": false,
+        "expires": 1790116706.034592
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tfd-segment-session-data",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tfd-segment-session-data\" set under gpc consent",
+      "detail": "Cookie \"tfd-segment-session-data\" (domain .thefarmersdog.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tfd-segment-session-data",
+        "domain": ".thefarmersdog.com",
+        "firstParty": true,
+        "expires": 1790032128
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    },
+    {
+      "id": "preconsent-011",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Wistia",
+      "category": "social",
+      "title": "Wistia fires under gpc consent",
+      "detail": "Wistia (social) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://fast.wistia.com/assets/external/E-v1.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Wistia behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:39:18.453Z"
+    }
+  ],
+  "correctlyGated": [
+    {
+      "vendor": "TikTok Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Amazon Advertising",
+      "category": "advertising"
+    },
+    {
+      "vendor": "X (Twitter) Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Snap Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Reddit Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Pinterest Tag",
+      "category": "advertising"
+    }
+  ],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

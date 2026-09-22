@@ -1,0 +1,1683 @@
+{
+  "scanId": "857ebc1e-9f5f-4c3c-b915-9aa68849c33c",
+  "url": "https://mizzenandmain.com",
+  "scannedAt": "2026-09-21T22:41:39.781Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "onetrust",
+      "name": "OneTrust",
+      "confidence": "high"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "17 trackers firing before consent",
+  "counts": {
+    "critical": 45,
+    "warning": 34,
+    "info": 0
+  },
+  "findings": [
+    {
+      "id": "cookie-066",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Adobe Audience Manager",
+      "category": "advertising",
+      "title": "Adobe Audience Manager set an advertising cookie \"demdex\" under gpc consent",
+      "detail": "Adobe Audience Manager wrote \"demdex\" on .demdex.net before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "demdex",
+        "domain": ".demdex.net",
+        "firstParty": false,
+        "expires": 1805582458.565003
+      },
+      "compliance": [],
+      "remediation": "Block Adobe Audience Manager until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive fires under gpc consent",
+      "detail": "Attentive (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.attn.tv/mizzenandmain/dtag.js",
+        "method": "HEAD",
+        "resourceType": "xhr"
+      },
+      "compliance": [],
+      "remediation": "Gate Attentive behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-027",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_cco\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_cco\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_cco",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726458
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-031",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_dv\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_dv\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_dv",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790116858
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_id\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_id",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726458
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-033",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_pv\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_pv\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_pv",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-025",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_session_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_session_id\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_session_id",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-034",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_ss_referrer\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_ss_referrer\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_ss_referrer",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attn_eat_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attn_eat_id\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attn_eat_id",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726456.986559
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-026",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"_attn_\" under gpc consent",
+      "detail": "Attentive wrote \"_attn_\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_attn_",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726458
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-032",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"_attn_bopd_\" under gpc consent",
+      "detail": "Attentive wrote \"_attn_bopd_\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_attn_bopd_",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726458
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-017",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads fires under gpc consent",
+      "detail": "Google Ads (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googleadservices.com/pagead/conversion/1001030056/?random=1790030467336&cv=11&fst=1790030467336&fmt=7&bg=ffffff&guid=ON&async=1&en=conversion&gtm=45be69i2v894668200z8894775473za20gzb894775473zd894775473xeaxf1&gcs=G111&gcd=13v3v3v3vdl1&dma=0&tag_exp=115938466~115938469~118897920~118897930~120213116~120385422~120469145~120469153~120847433&u_w=1280&u_h=720&url=https%3A%2F%2Fwww.mizzenandmain.com%2F&rcb=4&label=tWlDCKuogcUZEKiDqt0D&capi=1&frm=0&tiba=Classic%20Style.%20Modern%20Performance.%20%7C%20Mizzen%2BMain&ga_uid=G-2BCYJD649H.9WK_klGi1KwpCJ1sXVJiw&did=dYWJhMj&gdid=dYWJhMj&bttype=purchase&value=0&currency_code=USD&hn=www.googleadservices.com&npa=1&pscdl=noapi&auid=1492685152.1790030458&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uamb=0&uam=&uap=macOS&uapv=26.4.0&uaw=0&ec_mode=a&oid=GG_1835174245.1790030467&oidsrc=3&ecsid2=810005193.1790030467&_tu=CBA&gcl_ctr=1~0~0~0&category=acrcp_v1_512&em=tv.1&emd=tvd.1&ept=5",
+        "method": "GET",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Ads behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z",
+      "consentSignal": {
+        "gcs": "G111",
+        "state": "granted"
+      }
+    },
+    {
+      "id": "cookie-078",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads set an advertising cookie \"_gcl_au\" under gpc consent",
+      "detail": "Google Ads wrote \"_gcl_au\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_gcl_au",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1797806458
+      },
+      "compliance": [],
+      "remediation": "Block Google Ads until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-013",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads (gtag destination)",
+      "category": "advertising",
+      "title": "Google Ads (gtag destination) fires under gpc consent",
+      "detail": "Google Ads (gtag destination) (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/destination?id=AW-1001030056&cx=c&gtm=4e69i2",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Ads (gtag destination) behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-011",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ad.doubleclick.net/ccm/s/collect?auid=1492685152.1790030458&gtm=45He69i2v894775473za200zd894775473xeaxf1&fmt=8",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-068",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick set an advertising cookie \"IDE\" under gpc consent",
+      "detail": "Google DoubleClick wrote \"IDE\" on .doubleclick.net before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "IDE",
+        "domain": ".doubleclick.net",
+        "firstParty": false,
+        "expires": 1824590458.579517
+      },
+      "compliance": [],
+      "remediation": "Block Google DoubleClick until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-010",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Impact",
+      "category": "advertising",
+      "title": "Impact fires under gpc consent",
+      "detail": "Impact (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://d.impactradius-event.com/A202073-9124-437e-827e-84c99e5fcdc81.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Impact behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Klaviyo",
+      "category": "advertising",
+      "title": "Klaviyo fires under gpc consent",
+      "detail": "Klaviyo (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=Ubg3Ln",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Klaviyo behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Klaviyo",
+      "category": "advertising",
+      "title": "Klaviyo set an advertising cookie \"__kla_id\" under gpc consent",
+      "detail": "Klaviyo wrote \"__kla_id\" on www.mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__kla_id",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1824590457.93479
+      },
+      "compliance": [],
+      "remediation": "Block Klaviyo until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-015",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Magnite (Rubicon)",
+      "category": "advertising",
+      "title": "Magnite (Rubicon) fires under gpc consent",
+      "detail": "Magnite (Rubicon) (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://pixel.rubiconproject.com/tap.php?v=8981&nid=2307&put=25057c63-3e7f-4451-bbb5-aacea65194a6&gdpr=0&gdpr_consent=&expires=30&next=https%3A%2F%2Fmatch.adsrvr.org%2Ftrack%2Fcmf%2Frubicon",
+        "method": "GET",
+        "resourceType": "document"
+      },
+      "compliance": [],
+      "remediation": "Gate Magnite (Rubicon) behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-028",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta",
+      "category": "advertising",
+      "title": "Meta set an advertising cookie \"_fbp\" under gpc consent",
+      "detail": "Meta wrote \"_fbp\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fbp",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1797806458
+      },
+      "compliance": [],
+      "remediation": "Block Meta until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-065",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft",
+      "category": "advertising",
+      "title": "Microsoft set an advertising cookie \"MUID\" under gpc consent",
+      "detail": "Microsoft wrote \"MUID\" on .bing.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "MUID",
+        "domain": ".bing.com",
+        "firstParty": false,
+        "expires": 1823726458.519555
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-060",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"_uetsid\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"_uetsid\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_uetsid",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790116858
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-061",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"_uetvid\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"_uetvid\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_uetvid",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726458
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-064",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"MR\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"MR\" on .bat.bing.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "MR",
+        "domain": ".bat.bing.com",
+        "firstParty": false,
+        "expires": 1790635258.519579
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising UET",
+      "category": "advertising",
+      "title": "Microsoft Advertising UET fires under gpc consent",
+      "detail": "Microsoft Advertising UET (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://bat.bing.com/bat.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Advertising UET behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Clarity",
+      "category": "session-recording",
+      "title": "Microsoft Clarity fires under gpc consent",
+      "detail": "Microsoft Clarity (session-recording) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.clarity.ms/tag/tfw5km34xf?ref=gtm",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Clarity behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-040",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Postscript",
+      "category": "advertising",
+      "title": "Postscript set an advertising cookie \"__ps_fva\" under gpc consent",
+      "detail": "Postscript wrote \"__ps_fva\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__ps_fva",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Block Postscript until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-038",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Postscript",
+      "category": "advertising",
+      "title": "Postscript set an advertising cookie \"__ps_lu\" under gpc consent",
+      "detail": "Postscript wrote \"__ps_lu\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__ps_lu",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Block Postscript until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-036",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Postscript",
+      "category": "advertising",
+      "title": "Postscript set an advertising cookie \"__ps_r\" under gpc consent",
+      "detail": "Postscript wrote \"__ps_r\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__ps_r",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Block Postscript until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-039",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Postscript",
+      "category": "advertising",
+      "title": "Postscript set an advertising cookie \"__ps_slu\" under gpc consent",
+      "detail": "Postscript wrote \"__ps_slu\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__ps_slu",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Block Postscript until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-037",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Postscript",
+      "category": "advertising",
+      "title": "Postscript set an advertising cookie \"__ps_sr\" under gpc consent",
+      "detail": "Postscript wrote \"__ps_sr\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__ps_sr",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Block Postscript until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-045",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id-v2\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id-v2\" on tags.srv.stackadapt.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id-v2",
+        "domain": "tags.srv.stackadapt.com",
+        "firstParty": false,
+        "expires": 1821566458.361835
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-046",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id-v2\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id-v2\" on .srv.stackadapt.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id-v2",
+        "domain": ".srv.stackadapt.com",
+        "firstParty": false,
+        "expires": 1821566458.361842
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-056",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id-v2\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id-v2\" on www.mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id-v2",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-057",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id-v3\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id-v3\" on www.mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id-v3",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-043",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id\" on tags.srv.stackadapt.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id",
+        "domain": "tags.srv.stackadapt.com",
+        "firstParty": false,
+        "expires": 1821566458.361806
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-044",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id\" on .srv.stackadapt.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id",
+        "domain": ".srv.stackadapt.com",
+        "firstParty": false,
+        "expires": 1821566458.361825
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-055",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "StackAdapt",
+      "category": "advertising",
+      "title": "StackAdapt set an advertising cookie \"sa-user-id\" under gpc consent",
+      "detail": "StackAdapt wrote \"sa-user-id\" on www.mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sa-user-id",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Block StackAdapt until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "The Trade Desk",
+      "category": "advertising",
+      "title": "The Trade Desk fires under gpc consent",
+      "detail": "The Trade Desk (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://js.adsrvr.org/up_loader.1.1.0.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate The Trade Desk behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-069",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "The Trade Desk",
+      "category": "advertising",
+      "title": "The Trade Desk set an advertising cookie \"TDCPM\" under gpc consent",
+      "detail": "The Trade Desk wrote \"TDCPM\" on .adsrvr.org before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "TDCPM",
+        "domain": ".adsrvr.org",
+        "firstParty": false,
+        "expires": 1821566458.60599
+      },
+      "compliance": [],
+      "remediation": "Block The Trade Desk until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-054",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "The Trade Desk",
+      "category": "advertising",
+      "title": "The Trade Desk set an advertising cookie \"TDID\" under gpc consent",
+      "detail": "The Trade Desk wrote \"TDID\" on .adsrvr.org before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "TDID",
+        "domain": ".adsrvr.org",
+        "firstParty": false,
+        "expires": 1821566458.605956
+      },
+      "compliance": [],
+      "remediation": "Block The Trade Desk until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "X (Twitter) Pixel",
+      "category": "advertising",
+      "title": "X (Twitter) Pixel fires under gpc consent",
+      "detail": "X (Twitter) Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.ads-twitter.com/uwt.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate X (Twitter) Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-012",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Xandr (AppNexus)",
+      "category": "advertising",
+      "title": "Xandr (AppNexus) fires under gpc consent",
+      "detail": "Xandr (AppNexus) (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://acdn.adnxs.com/dmp/up/pixie.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Xandr (AppNexus) behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-059",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__pp_pid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__pp_pid\" set under gpc consent",
+      "detail": "Cookie \"__pp_pid\" (domain .www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__pp_pid",
+        "domain": ".www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1824590458.438619
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-058",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__pp_sid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__pp_sid\" set under gpc consent",
+      "detail": "Cookie \"__pp_sid\" (domain .www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__pp_sid",
+        "domain": ".www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_br_uid_2",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_br_uid_2\" set under gpc consent",
+      "detail": "Cookie \"_br_uid_2\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_br_uid_2",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1824590457.397838
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-077",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_dd_s",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_dd_s\" set under gpc consent",
+      "detail": "Cookie \"_dd_s\" (domain www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_dd_s",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-029",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_Elevar-apex",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_Elevar-apex\" set under gpc consent",
+      "detail": "Cookie \"_Elevar-apex\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_Elevar-apex",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-070",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_nb_sp_cookie",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_nb_sp_cookie\" set under gpc consent",
+      "detail": "Cookie \"_nb_sp_cookie\" (domain i.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_nb_sp_cookie",
+        "domain": "i.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1821566458.696404
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-063",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_nb_sp_id.66bd",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_nb_sp_id.66bd\" set under gpc consent",
+      "detail": "Cookie \"_nb_sp_id.66bd\" (domain www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_nb_sp_id.66bd",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1824590458.487612
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-062",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_nb_sp_ses.66bd",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_nb_sp_ses.66bd\" set under gpc consent",
+      "detail": "Cookie \"_nb_sp_ses.66bd\" (domain www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_nb_sp_ses.66bd",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1790032258
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-072",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_shd_y",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_shd_y\" set under gpc consent",
+      "detail": "Cookie \"_shd_y\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shd_y",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821134458.718551
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-073",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_shdfp",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_shdfp\" set under gpc consent",
+      "detail": "Cookie \"_shdfp\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shdfp",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821566458.723566
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-035",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_twpid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_twpid\" set under gpc consent",
+      "detail": "Cookie \"_twpid\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_twpid",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726468.27084
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-079",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_twsid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_twsid\" set under gpc consent",
+      "detail": "Cookie \"_twsid\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_twsid",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1823726468.268842
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-030",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_vb",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_vb\" set under gpc consent",
+      "detail": "Cookie \"_vb\" (domain www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_vb",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1792622458.174562
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-076",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "acs",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"acs\" set under gpc consent",
+      "detail": "Cookie \"acs\" (domain .media6degrees.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "acs",
+        "domain": ".media6degrees.com",
+        "firstParty": false,
+        "expires": 1805582458.739357
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "bito",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"bito\" set under gpc consent",
+      "detail": "Cookie \"bito\" (domain .bidr.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "bito",
+        "domain": ".bidr.io",
+        "firstParty": false,
+        "expires": 1824144058.488649
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "bitoIsSecure",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"bitoIsSecure\" set under gpc consent",
+      "detail": "Cookie \"bitoIsSecure\" (domain .bidr.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "bitoIsSecure",
+        "domain": ".bidr.io",
+        "firstParty": false,
+        "expires": 1824144057.437995
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-074",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "clid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"clid\" set under gpc consent",
+      "detail": "Cookie \"clid\" (domain .media6degrees.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "clid",
+        "domain": ".media6degrees.com",
+        "firstParty": false,
+        "expires": 1805582458.739307
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-016",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Datadog RUM",
+      "category": "analytics",
+      "title": "Datadog RUM fires under gpc consent",
+      "detail": "Datadog RUM (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.datadoghq-browser-agent.com/datadog-logs.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Datadog RUM behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-067",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "dpm",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"dpm\" set under gpc consent",
+      "detail": "Cookie \"dpm\" (domain .dpm.demdex.net) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "dpm",
+        "domain": ".dpm.demdex.net",
+        "firstParty": false,
+        "expires": 1805582458.565019
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-049",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_2BCYJD649H\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_2BCYJD649H\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_2BCYJD649H",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1824590458.377874
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-047",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1824590458.373028
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-014",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics 4",
+      "category": "analytics",
+      "title": "Google Analytics 4 fires under gpc consent",
+      "detail": "Google Analytics 4 (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.google.com/g/collect?v=2&tid=G-2BCYJD649H&gtm=45je69i2v871337841z8894775473za20gzb894775473zd894775473xf1&_p=1790030457106&_gaz=1&gcs=G111&gcd=13v3v3v3vdl1&npa=1&dma=0&gdid=dYWJhMj.dMjE2OD&ecid=1036265908&_eu=EAAACGAC&are=1&cid=1664842746.1790030458&ec_mode=a&frm=0&ir=1&pscdl=noapi&rcb=0&sr=1280x720&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uam=&uamb=0&uap=macOS&uapv=26.4.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115616986~115938466~115938468~118897920~118897930~120213116~120385423~120469145~120469153~120591196&uid=9WK_klGi1KwpCJ1sXVJiw&sid=1790030458&sct=1&seg=0&dl=https%3A%2F%2Fwww.mizzenandmain.com%2F&dt=Classic%20Style.%20Modern%20Performance.%20%7C%20Mizzen%2BMain&en=page_view&_fv=1&_nsi=1&_ss=1&ep.visitor_type=guest&tfd=1812",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Analytics 4 behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z",
+      "consentSignal": {
+        "gcs": "G111",
+        "state": "granted"
+      }
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=G-2BCYJD649H&cx=c&gtm=4e69i2",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "preconsent-001",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-5X9R4XR",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-050",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "muc_ads",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"muc_ads\" set under gpc consent",
+      "detail": "Cookie \"muc_ads\" (domain .t.co) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "muc_ads",
+        "domain": ".t.co",
+        "firstParty": false,
+        "expires": 1824590458.377931
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-051",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "osid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"osid\" set under gpc consent",
+      "detail": "Cookie \"osid\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "osid",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821566458
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-048",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "personalization_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"personalization_id\" set under gpc consent",
+      "detail": "Cookie \"personalization_id\" (domain .twitter.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "personalization_id",
+        "domain": ".twitter.com",
+        "firstParty": false,
+        "expires": 1824590458.377738
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-075",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "sglst",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"sglst\" set under gpc consent",
+      "detail": "Cookie \"sglst\" (domain .media6degrees.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "sglst",
+        "domain": ".media6degrees.com",
+        "firstParty": false,
+        "expires": 1805582458.739331
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-071",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "shd_s",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"shd_s\" set under gpc consent",
+      "detail": "Cookie \"shd_s\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "shd_s",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258.718526
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-042",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_s\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_s\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_s",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1790032258.708302
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-041",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_y\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_y\" on .mizzenandmain.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_y",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1821588058.70826
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-052",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tatari-cookie-test",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tatari-cookie-test\" set under gpc consent",
+      "detail": "Cookie \"tatari-cookie-test\" (domain www.mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tatari-cookie-test",
+        "domain": "www.mizzenandmain.com",
+        "firstParty": false,
+        "expires": 1824590458.386664
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-053",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tatari-session-cookie",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tatari-session-cookie\" set under gpc consent",
+      "detail": "Cookie \"tatari-session-cookie\" (domain .mizzenandmain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tatari-session-cookie",
+        "domain": ".mizzenandmain.com",
+        "firstParty": true,
+        "expires": 1824590458.388268
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "xnpe_fa405772-1e2b-11f1-8499-8e536ad69d23",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"xnpe_fa405772-1e2b-11f1-8499-8e536ad69d23\" set under gpc consent",
+      "detail": "Cookie \"xnpe_fa405772-1e2b-11f1-8499-8e536ad69d23\" (domain us2-api.eng.bloomreach.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "xnpe_fa405772-1e2b-11f1-8499-8e536ad69d23",
+        "domain": "us2-api.eng.bloomreach.com",
+        "firstParty": false,
+        "expires": 1824590457.900635
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:41:39.781Z"
+    }
+  ],
+  "correctlyGated": [],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": true,
+    "noRejectOffered": true
+  }
+}

@@ -1,0 +1,647 @@
+{
+  "scanId": "b744128d-c4bf-4dff-81ac-63f8bfabac57",
+  "url": "https://www.allbirds.com",
+  "scannedAt": "2026-09-21T22:37:37.805Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "onetrust",
+      "name": "OneTrust",
+      "confidence": "high"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "7 trackers firing before consent",
+  "counts": {
+    "critical": 18,
+    "warning": 10,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "OneTrust",
+      "category": "unknown",
+      "title": "OneTrust is installed but no consent banner was shown",
+      "detail": "OneTrust loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your OneTrust geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "OneTrust",
+        "bannerShown": false,
+        "detail": "OneTrust SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z",
+      "compliance": []
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive fires under gpc consent",
+      "detail": "Attentive (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.attn.tv/allbirds/dtag.js",
+        "method": "HEAD",
+        "resourceType": "xhr"
+      },
+      "compliance": [],
+      "remediation": "Gate Attentive behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_cco\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_cco\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_cco",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1823726231
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_dv\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_dv\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_dv",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1790116631
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_id\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_id",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1823726231
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_pv\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_pv\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_pv",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1790032031
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_session_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_session_id\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_session_id",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1790032031
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_ss_referrer\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_ss_referrer\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_ss_referrer",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1790032031
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-013",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attn_eat_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attn_eat_id\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attn_eat_id",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1823726231.398262
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"_attn_\" under gpc consent",
+      "detail": "Attentive wrote \"_attn_\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_attn_",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1823726231
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"_attn_bopd_\" under gpc consent",
+      "detail": "Attentive wrote \"_attn_bopd_\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_attn_bopd_",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1823726231
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-029",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads set an advertising cookie \"_gcl_au\" under gpc consent",
+      "detail": "Google Ads wrote \"_gcl_au\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_gcl_au",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1797806233
+      },
+      "compliance": [],
+      "remediation": "Block Google Ads until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://stats.g.doubleclick.net/g/collect?v=2&ngs=1&ibt=1&tid=G-KB1068K0E6&cid=1106334572.1790030233&gtm=45je69i2v884695022z89239844807za20gzb9239844807zd9239844807xf1&rcb=8&aip=1&uid=71449b1d-08f5-4973-ab47-5dac6907a72a&dma=0&gcs=G111&gcd=13t3t3t3tdl1&npa=1&frm=0&tag_exp=115938466~115938468~118897920~118897930~120213116~120385422~120469145~120469153",
+        "method": "POST",
+        "resourceType": "ping"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z",
+      "consentSignal": {
+        "gcs": "G111",
+        "state": "granted"
+      }
+    },
+    {
+      "id": "cookie-026",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Impact",
+      "category": "advertising",
+      "title": "Impact set an advertising cookie \"IR_13831\" under gpc consent",
+      "detail": "Impact wrote \"IR_13831\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "IR_13831",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Block Impact until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-025",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Impact",
+      "category": "advertising",
+      "title": "Impact set an advertising cookie \"IR_gbd\" under gpc consent",
+      "detail": "Impact wrote \"IR_gbd\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "IR_gbd",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Block Impact until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta",
+      "category": "advertising",
+      "title": "Meta set an advertising cookie \"_fbp\" under gpc consent",
+      "detail": "Meta wrote \"_fbp\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fbp",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1797806232
+      },
+      "compliance": [],
+      "remediation": "Block Meta until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Reddit",
+      "category": "advertising",
+      "title": "Reddit set an advertising cookie \"_rdt_uuid\" under gpc consent",
+      "detail": "Reddit wrote \"_rdt_uuid\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_rdt_uuid",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1797806231
+      },
+      "compliance": [],
+      "remediation": "Block Reddit until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-012",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Shopify",
+      "category": "advertising",
+      "title": "Shopify set an advertising cookie \"_shopify_marketing\" under gpc consent",
+      "detail": "Shopify wrote \"_shopify_marketing\" on www.allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_marketing",
+        "domain": "www.allbirds.com",
+        "firstParty": false,
+        "expires": 1821566231.050268
+      },
+      "compliance": [],
+      "remediation": "Block Shopify until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "allbirds-inferred-user-country",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"allbirds-inferred-user-country\" set under gpc consent",
+      "detail": "Cookie \"allbirds-inferred-user-country\" (domain www.allbirds.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "allbirds-inferred-user-country",
+        "domain": "www.allbirds.com",
+        "firstParty": false,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Datadog RUM",
+      "category": "analytics",
+      "title": "Datadog RUM fires under gpc consent",
+      "detail": "Datadog RUM (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.datadoghq-browser-agent.com/datadog-logs.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Datadog RUM behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-027",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_KB1068K0E6\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_KB1068K0E6\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_KB1068K0E6",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1824590232.691743
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-028",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1824590232.691897
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics 4",
+      "category": "analytics",
+      "title": "Google Analytics 4 fires under gpc consent",
+      "detail": "Google Analytics 4 (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.google.com/g/collect?v=2&tid=G-KB1068K0E6&gtm=45je69i2v884695022z89239844807za20gzb9239844807zd9239844807xf1&_p=1790030231105&_gaz=1&gcs=G111&gcd=13t3t3t3tdl1&npa=1&dma=0&gdid=dYWJhMj.dN2ZkMj.dMjE2OD&_eu=EAAAACAC&are=1&cid=1106334572.1790030233&frm=0&ibt=1&ir=1&ngs=1&pscdl=noapi&rcb=8&sr=1280x720&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uam=&uamb=0&uap=macOS&uapv=26.4.0&uaw=0&ul=en-us&_s=1&tag_exp=115938466~115938468~118897920~118897930~120213116~120385422~120469145~120469153&uid=71449b1d-08f5-4973-ab47-5dac6907a72a&sid=1790030232&sct=1&seg=0&dl=https%3A%2F%2Fwww.allbirds.com%2F&dt=Allbirds%3A%20Comfortable%2C%20Sustainable%20Shoes%20%26%20Apparel&en=page_view&_fv=1&_nsi=1&_ss=1&ep.visitor_type=guest&tfd=1906",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Analytics 4 behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z",
+      "consentSignal": {
+        "gcs": "G111",
+        "state": "granted"
+      }
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=AW-786649265&cx=c&gtm=4e69i2h1",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-TH8KRSBJ",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-011",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_analytics\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_analytics\" on www.allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_analytics",
+        "domain": "www.allbirds.com",
+        "firstParty": false,
+        "expires": 1821566231.050163
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-010",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_s\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_s\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_s",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1790032031.974741
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    },
+    {
+      "id": "cookie-009",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_y\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_y\" on .allbirds.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_y",
+        "domain": ".allbirds.com",
+        "firstParty": true,
+        "expires": 1821587831.974702
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:37.805Z"
+    }
+  ],
+  "correctlyGated": [
+    {
+      "vendor": "Google Ads",
+      "category": "advertising"
+    }
+  ],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

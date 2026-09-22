@@ -1,0 +1,940 @@
+{
+  "scanId": "ef292eff-1d68-4d54-ae28-8428dfa170e5",
+  "url": "https://rothys.com",
+  "scannedAt": "2026-09-21T22:37:06.714Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "onetrust",
+      "name": "OneTrust",
+      "confidence": "high"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "12 trackers firing before consent",
+  "counts": {
+    "critical": 13,
+    "warning": 29,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "OneTrust",
+      "category": "unknown",
+      "title": "OneTrust is installed but no consent banner was shown",
+      "detail": "OneTrust loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your OneTrust geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "OneTrust",
+        "bannerShown": false,
+        "detail": "OneTrust SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z",
+      "compliance": []
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive fires under gpc consent",
+      "detail": "Attentive (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.attn.tv/attentive/dtag.js",
+        "method": "HEAD",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Attentive behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-027",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads set an advertising cookie \"_gcl_au\" under gpc consent",
+      "detail": "Google Ads wrote \"_gcl_au\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_gcl_au",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1797806179
+      },
+      "compliance": [],
+      "remediation": "Block Google Ads until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-012",
+      "schemaVersion": "1.0.0",
+      "type": "consent-signal-ignored",
+      "severity": "critical",
+      "vendor": "Google Analytics 4",
+      "category": "analytics",
+      "title": "Google Analytics 4 ignored a denied consent signal",
+      "detail": "Google Analytics 4 sent data carrying gcs=G100 (denied) and fired anyway.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-H7273PJ5GF&gtm=45je69i2v879822898z8830720060za20kzb830720060zd830720060xf3&_p=1790030179226&gcs=G100&gcd=13q3u3q3q5l1&npa=1&dma_cps=-&dma=0&_eu=EAAAACAC&are=1&cid=1752068055.1790030180&frm=0&ibt=1&ir=1&ngs=1&pscdl=denied&rcb=14&sr=1280x720&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uam=&uamb=0&uap=macOS&uapv=26.4.0&uaw=0&ul=en-us&_s=1&tag_exp=115938466~115938469~118897920~118897930~120213116~120385422~120469145~120469153&sid=1790030180&sct=1&seg=0&dl=https%3A%2F%2Frothys.com%2F&dt=Rothy%27s%20%7C%20Washable%20Shoes%20%26%20Bags%20For%20Women%2C%20Men%20%26%20Kids&_tu=CA&en=page_view&_fv=1&_ss=1&tfd=1912",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Analytics 4 behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z",
+      "consentSignal": {
+        "gcs": "G100",
+        "state": "denied"
+      }
+    },
+    {
+      "id": "preconsent-011",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ad.doubleclick.net/ccm/s/collect?auid=1922539739.1790030180&gtm=45be69i2v9116165354za200zb9262467199zd9262467199xecxf1&fmt=8",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Impact",
+      "category": "advertising",
+      "title": "Impact fires under gpc consent",
+      "detail": "Impact (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://trkapi.impact.com/PageLoad",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Impact behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-030",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Pinterest",
+      "category": "advertising",
+      "title": "Pinterest set an advertising cookie \"_pin_unauth\" under gpc consent",
+      "detail": "Pinterest wrote \"_pin_unauth\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_pin_unauth",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566180
+      },
+      "compliance": [],
+      "remediation": "Block Pinterest until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Pinterest Tag",
+      "category": "advertising",
+      "title": "Pinterest Tag fires under gpc consent",
+      "detail": "Pinterest Tag (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://s.pinimg.com/ct/core.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Pinterest Tag behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-028",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_tt_enable_cookie\" under gpc consent",
+      "detail": "TikTok wrote \"_tt_enable_cookie\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_tt_enable_cookie",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1823726180
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-026",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_ttp\" under gpc consent",
+      "detail": "TikTok wrote \"_ttp\" on .tiktok.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ttp",
+        "domain": ".tiktok.com",
+        "firstParty": false,
+        "expires": 1823726179.866243
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-029",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_ttp\" under gpc consent",
+      "detail": "TikTok wrote \"_ttp\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ttp",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1823726180
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-043",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"ttcsid\" under gpc consent",
+      "detail": "TikTok wrote \"ttcsid\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ttcsid",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1823726202
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok Pixel",
+      "category": "advertising",
+      "title": "TikTok Pixel fires under gpc consent",
+      "detail": "TikTok Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=CAUVUTRC77U5NQUHGVVG&lib=ttq",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate TikTok Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-041",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"\" set under gpc consent",
+      "detail": "Cookie \"\" (domain rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "",
+        "domain": "rothys.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-025",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__apex_test__",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__apex_test__\" set under gpc consent",
+      "detail": "Cookie \"__apex_test__\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__apex_test__",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_ld_ss",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_ld_ss\" set under gpc consent",
+      "detail": "Cookie \"_ld_ss\" (domain rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ld_ss",
+        "domain": "rothys.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-034",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ajs_anonymous_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ajs_anonymous_id\" set under gpc consent",
+      "detail": "Cookie \"ajs_anonymous_id\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ajs_anonymous_id",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566185
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-038",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "AMP_1fce28d127",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"AMP_1fce28d127\" set under gpc consent",
+      "detail": "Cookie \"AMP_1fce28d127\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "AMP_1fce28d127",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566180
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Amplitude",
+      "category": "analytics",
+      "title": "Amplitude fires under gpc consent",
+      "detail": "Amplitude (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.amplitude.com/libs/analytics-browser-2.36.5-min.js.gz",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Amplitude behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-035",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "analytics_session_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"analytics_session_id\" set under gpc consent",
+      "detail": "Cookie \"analytics_session_id\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "analytics_session_id",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566185
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-042",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "analytics_session_id.last_access",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"analytics_session_id.last_access\" set under gpc consent",
+      "detail": "Cookie \"analytics_session_id.last_access\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "analytics_session_id.last_access",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566185
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ConstructorioID_client_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ConstructorioID_client_id\" set under gpc consent",
+      "detail": "Cookie \"ConstructorioID_client_id\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ConstructorioID_client_id",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "first_pla_call",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"first_pla_call\" set under gpc consent",
+      "detail": "Cookie \"first_pla_call\" (domain rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "first_pla_call",
+        "domain": "rothys.com",
+        "firstParty": true,
+        "expires": 1792622179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-039",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "GLBE_SESS_ID",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"GLBE_SESS_ID\" set under gpc consent",
+      "detail": "Cookie \"GLBE_SESS_ID\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "GLBE_SESS_ID",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1824590180.722583
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-037",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_H7273PJ5GF\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_H7273PJ5GF\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_H7273PJ5GF",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1824590180.338831
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-036",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_JHPJVTQNV6\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_JHPJVTQNV6\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_JHPJVTQNV6",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1824590180.33542
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga\" on .rothys.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1824590179.748883
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=GT-TQSS5284",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-fv",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-fv\" set under gpc consent",
+      "detail": "Cookie \"ig-fv\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-fv",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-id\" set under gpc consent",
+      "detail": "Cookie \"ig-id\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-id",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-location",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-location\" set under gpc consent",
+      "detail": "Cookie \"ig-location\" (domain rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-location",
+        "domain": "rothys.com",
+        "firstParty": true,
+        "expires": 1790033779.068993
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-pv",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-pv\" set under gpc consent",
+      "detail": "Cookie \"ig-pv\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-pv",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-vars",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-vars\" set under gpc consent",
+      "detail": "Cookie \"ig-vars\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-vars",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-013",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "New Relic",
+      "category": "analytics",
+      "title": "New Relic fires under gpc consent",
+      "detail": "New Relic (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://js-agent.newrelic.com/nr-spa-1.314.0.min.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate New Relic behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Segment",
+      "category": "tag-manager",
+      "title": "Segment fires under gpc consent",
+      "detail": "Segment (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.segment.com/analytics.js/v1/0hEkUoWA5Kle5PxXDoewLBXqxMxarEV0/analytics.min.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Segment behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "preconsent-010",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics fires under gpc consent",
+      "detail": "Shopify Analytics (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://monorail-edge.shopifysvc.com/v1/produce",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Shopify Analytics behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-033",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-email",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-email\" set under gpc consent",
+      "detail": "Cookie \"swym-email\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-email",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566180
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-pid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-pid\" set under gpc consent",
+      "detail": "Cookie \"swym-pid\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-pid",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566179
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-session-id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-session-id\" set under gpc consent",
+      "detail": "Cookie \"swym-session-id\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-session-id",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1790031999
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-032",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-swymRegid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-swymRegid\" set under gpc consent",
+      "detail": "Cookie \"swym-swymRegid\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-swymRegid",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1821566180
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-031",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-v-ckd",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-v-ckd\" set under gpc consent",
+      "detail": "Cookie \"swym-v-ckd\" (domain .rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-v-ckd",
+        "domain": ".rothys.com",
+        "firstParty": true,
+        "expires": 1790031980
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    },
+    {
+      "id": "cookie-040",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "test",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"test\" set under gpc consent",
+      "detail": "Cookie \"test\" (domain rothys.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "test",
+        "domain": "rothys.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:37:06.714Z"
+    }
+  ],
+  "correctlyGated": [
+    {
+      "vendor": "Microsoft Advertising UET",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Google Ads",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Google Ads (gtag destination)",
+      "category": "advertising"
+    }
+  ],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

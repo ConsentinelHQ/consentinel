@@ -1,0 +1,1486 @@
+{
+  "scanId": "6eca5186-c818-45f5-92f7-69debd94e1bd",
+  "url": "https://iliabeauty.com",
+  "scannedAt": "2026-09-21T22:34:25.660Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "pandectes",
+      "name": "Pandectes",
+      "confidence": "medium"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "12 trackers firing before consent",
+  "counts": {
+    "critical": 31,
+    "warning": 37,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "Pandectes",
+      "category": "unknown",
+      "title": "Pandectes is installed but no consent banner was shown",
+      "detail": "Pandectes loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your Pandectes geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "Pandectes",
+        "bannerShown": false,
+        "detail": "Pandectes SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z",
+      "compliance": []
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive fires under gpc consent",
+      "detail": "Attentive (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.attn.tv/iliabeauty/dtag.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Attentive behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_cco\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_cco\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_cco",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-029",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_dv\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_dv\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_dv",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116414
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_id\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_id",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-025",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_pv\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_pv\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_pv",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790031814
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_session_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_session_id\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_session_id",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790031814
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-026",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attentive_ss_referrer\" under gpc consent",
+      "detail": "Attentive wrote \"__attentive_ss_referrer\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attentive_ss_referrer",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790031814
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"__attn_eat_id\" under gpc consent",
+      "detail": "Attentive wrote \"__attn_eat_id\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__attn_eat_id",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726013.823408
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"_attn_\" under gpc consent",
+      "detail": "Attentive wrote \"_attn_\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_attn_",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-028",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive set an advertising cookie \"_attn_bopd_\" under gpc consent",
+      "detail": "Attentive wrote \"_attn_bopd_\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_attn_bopd_",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block Attentive until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-036",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads",
+      "category": "advertising",
+      "title": "Google Ads set an advertising cookie \"_gcl_au\" under gpc consent",
+      "detail": "Google Ads wrote \"_gcl_au\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_gcl_au",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1797806015
+      },
+      "compliance": [],
+      "remediation": "Block Google Ads until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ad.doubleclick.net/ccm/s/collect?auid=465685911.1790030015&gtm=45be69i2v9196069840za20ozb812086447zd812086447xecxf1&fmt=8",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-054",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick set an advertising cookie \"IDE\" under gpc consent",
+      "detail": "Google DoubleClick wrote \"IDE\" on .doubleclick.net before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "IDE",
+        "domain": ".doubleclick.net",
+        "firstParty": false,
+        "expires": 1824590015.034626
+      },
+      "compliance": [],
+      "remediation": "Block Google DoubleClick until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Klaviyo",
+      "category": "advertising",
+      "title": "Klaviyo fires under gpc consent",
+      "detail": "Klaviyo (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.klaviyo.com/onsite/js/SguDsz/klaviyo.js?company_id=SguDsz",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Klaviyo behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-050",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta",
+      "category": "advertising",
+      "title": "Meta set an advertising cookie \"_fbp\" under gpc consent",
+      "detail": "Meta wrote \"_fbp\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fbp",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1797806015
+      },
+      "compliance": [],
+      "remediation": "Block Meta until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-011",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-045",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft",
+      "category": "advertising",
+      "title": "Microsoft set an advertising cookie \"MUID\" under gpc consent",
+      "detail": "Microsoft wrote \"MUID\" on .bing.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "MUID",
+        "domain": ".bing.com",
+        "firstParty": false,
+        "expires": 1823726014.623055
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-039",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"_uetsid\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"_uetsid\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_uetsid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116414
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-040",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"_uetvid\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"_uetvid\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_uetvid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-046",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising",
+      "category": "advertising",
+      "title": "Microsoft Advertising set an advertising cookie \"MR\" under gpc consent",
+      "detail": "Microsoft Advertising wrote \"MR\" on .bat.bing.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "MR",
+        "domain": ".bat.bing.com",
+        "firstParty": false,
+        "expires": 1790634814.623101
+      },
+      "compliance": [],
+      "remediation": "Block Microsoft Advertising until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Advertising UET",
+      "category": "advertising",
+      "title": "Microsoft Advertising UET fires under gpc consent",
+      "detail": "Microsoft Advertising UET (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://bat.bing.com/bat.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Advertising UET behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Clarity",
+      "category": "session-recording",
+      "title": "Microsoft Clarity fires under gpc consent",
+      "detail": "Microsoft Clarity (session-recording) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.clarity.ms/tag/p8dkzshuv0?ref=gtm2",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Clarity behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-051",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Reddit",
+      "category": "advertising",
+      "title": "Reddit set an advertising cookie \"_rdt_uuid\" under gpc consent",
+      "detail": "Reddit wrote \"_rdt_uuid\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_rdt_uuid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1797806014
+      },
+      "compliance": [],
+      "remediation": "Block Reddit until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-010",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Reddit Pixel",
+      "category": "advertising",
+      "title": "Reddit Pixel fires under gpc consent",
+      "detail": "Reddit Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.redditstatic.com/ads/pixel.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Reddit Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-048",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_tt_enable_cookie\" under gpc consent",
+      "detail": "TikTok wrote \"_tt_enable_cookie\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_tt_enable_cookie",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-044",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_ttp\" under gpc consent",
+      "detail": "TikTok wrote \"_ttp\" on .tiktok.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ttp",
+        "domain": ".tiktok.com",
+        "firstParty": false,
+        "expires": 1823726014.607337
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-049",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"_ttp\" under gpc consent",
+      "detail": "TikTok wrote \"_ttp\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ttp",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726014
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-064",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"ttcsid_C1UVPVPLRI5O97LIN57G\" under gpc consent",
+      "detail": "TikTok wrote \"ttcsid_C1UVPVPLRI5O97LIN57G\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ttcsid_C1UVPVPLRI5O97LIN57G",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726024
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-069",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok",
+      "category": "advertising",
+      "title": "TikTok set an advertising cookie \"ttcsid\" under gpc consent",
+      "detail": "TikTok wrote \"ttcsid\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ttcsid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1823726031
+      },
+      "compliance": [],
+      "remediation": "Block TikTok until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "TikTok Pixel",
+      "category": "advertising",
+      "title": "TikTok Pixel fires under gpc consent",
+      "detail": "TikTok Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=C1UVPVPLRI5O97LIN57G&lib=ttq",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate TikTok Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-012",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Xandr (AppNexus)",
+      "category": "advertising",
+      "title": "Xandr (AppNexus) fires under gpc consent",
+      "detail": "Xandr (AppNexus) (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://acdn.adnxs.com/dmp/up/pixie.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Xandr (AppNexus) behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-062",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__mmapiwsid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__mmapiwsid\" set under gpc consent",
+      "detail": "Cookie \"__mmapiwsid\" (domain d-ipv6.mmapiws.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__mmapiwsid",
+        "domain": "d-ipv6.mmapiws.com",
+        "firstParty": false,
+        "expires": 1824590017.257395
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-063",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__mmapiwsid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__mmapiwsid\" set under gpc consent",
+      "detail": "Cookie \"__mmapiwsid\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__mmapiwsid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1824590017.258229
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-038",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__pp_pid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__pp_pid\" set under gpc consent",
+      "detail": "Cookie \"__pp_pid\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__pp_pid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1824590014.587038
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-037",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__pp_sid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__pp_sid\" set under gpc consent",
+      "detail": "Cookie \"__pp_sid\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__pp_sid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790031814
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-034",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_axwrt",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_axwrt\" set under gpc consent",
+      "detail": "Cookie \"_axwrt\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_axwrt",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566014
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-033",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_axwrt_ts",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_axwrt_ts\" set under gpc consent",
+      "detail": "Cookie \"_axwrt_ts\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_axwrt_ts",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566014
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-061",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_Elevar-apex",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_Elevar-apex\" set under gpc consent",
+      "detail": "Cookie \"_Elevar-apex\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_Elevar-apex",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566017
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-032",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_fermat_identify",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_fermat_identify\" set under gpc consent",
+      "detail": "Cookie \"_fermat_identify\" (domain iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fermat_identify",
+        "domain": "iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116414.528457
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-030",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_fermat_s",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_fermat_s\" set under gpc consent",
+      "detail": "Cookie \"_fermat_s\" (domain iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_fermat_s",
+        "domain": "iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790031814.451231
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-042",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_heatIdvUpdated_2963",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_heatIdvUpdated_2963\" set under gpc consent",
+      "detail": "Cookie \"_heatIdvUpdated_2963\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_heatIdvUpdated_2963",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116414
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-041",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_heatVid_2963",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_heatVid_2963\" set under gpc consent",
+      "detail": "Cookie \"_heatVid_2963\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_heatVid_2963",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116414
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-055",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_pk_id.2963.aWxpYWJl",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_pk_id.2963.aWxpYWJl\" set under gpc consent",
+      "detail": "Cookie \"_pk_id.2963.aWxpYWJl\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_pk_id.2963.aWxpYWJl",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790159615
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-035",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ax_visitor",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ax_visitor\" set under gpc consent",
+      "detail": "Cookie \"ax_visitor\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ax_visitor",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566014
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-047",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "axcrt",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"axcrt\" set under gpc consent",
+      "detail": "Cookie \"axcrt\" (domain .applovin.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "axcrt",
+        "domain": ".applovin.com",
+        "firstParty": false,
+        "expires": 1821566014.638103
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-057",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "bito",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"bito\" set under gpc consent",
+      "detail": "Cookie \"bito\" (domain .bidr.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "bito",
+        "domain": ".bidr.io",
+        "firstParty": false,
+        "expires": 1824143615.125318
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-058",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "bitoIsSecure",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"bitoIsSecure\" set under gpc consent",
+      "detail": "Cookie \"bitoIsSecure\" (domain .bidr.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "bitoIsSecure",
+        "domain": ".bidr.io",
+        "firstParty": false,
+        "expires": 1824143615.125418
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-031",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "fermat_session",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"fermat_session\" set under gpc consent",
+      "detail": "Cookie \"fermat_session\" (domain iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "fermat_session",
+        "domain": "iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790031814.450718
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-027",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "first_pla_call",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"first_pla_call\" set under gpc consent",
+      "detail": "Cookie \"first_pla_call\" (domain iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "first_pla_call",
+        "domain": "iliabeauty.com",
+        "firstParty": true,
+        "expires": 1792622014
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-060",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "globalId",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"globalId\" set under gpc consent",
+      "detail": "Cookie \"globalId\" (domain .fbot.me) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "globalId",
+        "domain": ".fbot.me",
+        "firstParty": false,
+        "expires": 1824590015.391341
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-065",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga_HK5VFRR0G0\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga_HK5VFRR0G0\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga_HK5VFRR0G0",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1824590031.02537
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-059",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics",
+      "category": "analytics",
+      "title": "Google Analytics set an analytics cookie \"_ga\" under gpc consent",
+      "detail": "Google Analytics wrote \"_ga\" on .iliabeauty.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ga",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1824590015.159212
+      },
+      "compliance": [],
+      "remediation": "Block Google Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-013",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics 4",
+      "category": "analytics",
+      "title": "Google Analytics 4 fires under gpc consent",
+      "detail": "Google Analytics 4 (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://analytics.google.com/g/collect?v=2&tid=G-HK5VFRR0G0&gtm=45je69i2v882772598z8812086447za20gzb812086447zd812086447xf1&_p=1790030014259&_gaz=1&gcs=G111&gcd=13v3v3v3vdl1&npa=1&dma=0&_eu=EAAACGAC&are=1&cid=714801681.1790030015&frm=0&ir=1&pscdl=noapi&rcb=11&sr=1280x720&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uam=&uamb=0&uap=macOS&uapv=26.4.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115616986~115938465~115938468~118012007~118897920~118897930~120213116~120385422~120469145~120469153&uid=28612251-5daf-46a6-8633-34a5f8837493&sid=1790030015&sct=1&seg=0&dl=https%3A%2F%2Filiabeauty.com%2F&dt=ILIA%20Beauty%20%7C%20Clean%20Makeup%2C%20Cosmetics%2C%20%26%20Skincare&_tu=CA&en=page_view&_fv=1&_nsi=1&_ss=1&ep.visitor_type=guest&up.user_shopify_market=us&tfd=2466",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Analytics 4 behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z",
+      "consentSignal": {
+        "gcs": "G111",
+        "state": "granted"
+      }
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=AW-748753047&cx=c&gtm=4e69i2",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-5ZDDZGB",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-043",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "hm_source",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"hm_source\" set under gpc consent",
+      "detail": "Cookie \"hm_source\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "hm_source",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116414
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-fv",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-fv\" set under gpc consent",
+      "detail": "Cookie \"ig-fv\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-fv",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566013
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-id\" set under gpc consent",
+      "detail": "Cookie \"ig-id\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-id",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566013
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-location",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-location\" set under gpc consent",
+      "detail": "Cookie \"ig-location\" (domain iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-location",
+        "domain": "iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790033613.45105
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-pv",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-pv\" set under gpc consent",
+      "detail": "Cookie \"ig-pv\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-pv",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566013
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ig-vars",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ig-vars\" set under gpc consent",
+      "detail": "Cookie \"ig-vars\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ig-vars",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1821566013
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-068",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "REEVIEW_SESSION",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"REEVIEW_SESSION\" set under gpc consent",
+      "detail": "Cookie \"REEVIEW_SESSION\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "REEVIEW_SESSION",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790037231
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-067",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "reeview_tracks_views",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"reeview_tracks_views\" set under gpc consent",
+      "detail": "Cookie \"reeview_tracks_views\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "reeview_tracks_views",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116431
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "reeview_uid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"reeview_uid\" set under gpc consent",
+      "detail": "Cookie \"reeview_uid\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "reeview_uid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1791239613
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-066",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "reeview_unique_uid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"reeview_unique_uid\" set under gpc consent",
+      "detail": "Cookie \"reeview_unique_uid\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "reeview_unique_uid",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116431
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-052",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tatari-cookie-test",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tatari-cookie-test\" set under gpc consent",
+      "detail": "Cookie \"tatari-cookie-test\" (domain iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tatari-cookie-test",
+        "domain": "iliabeauty.com",
+        "firstParty": true,
+        "expires": 1824590015.008465
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-053",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tatari-session-cookie",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tatari-session-cookie\" set under gpc consent",
+      "detail": "Cookie \"tatari-session-cookie\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tatari-session-cookie",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1824590015.012445
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    },
+    {
+      "id": "cookie-056",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "vUUID_2963",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"vUUID_2963\" set under gpc consent",
+      "detail": "Cookie \"vUUID_2963\" (domain .iliabeauty.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "vUUID_2963",
+        "domain": ".iliabeauty.com",
+        "firstParty": true,
+        "expires": 1790116415
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:34:25.660Z"
+    }
+  ],
+  "correctlyGated": [
+    {
+      "vendor": "Google Ads",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Snap Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Pinterest Tag",
+      "category": "advertising"
+    }
+  ],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

@@ -1,0 +1,544 @@
+{
+  "scanId": "b363acec-c289-44b1-b1d0-887750f36212",
+  "url": "https://www.untuckit.com",
+  "scannedAt": "2026-09-21T22:40:09.137Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "shopify-native",
+      "name": "Shopify Consent",
+      "confidence": "medium"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "9 trackers firing before consent",
+  "counts": {
+    "critical": 5,
+    "warning": 18,
+    "info": 1
+  },
+  "findings": [
+    {
+      "id": "nobanner-001",
+      "schemaVersion": "1.0.0",
+      "type": "consent-banner-absent",
+      "severity": "info",
+      "vendor": "Shopify Consent",
+      "category": "unknown",
+      "title": "Shopify Consent is installed but no consent banner was shown",
+      "detail": "Shopify Consent loaded on this page but never presented a consent banner, so visitors in the scanned region are not asked before tracking begins. This is commonly a geo-targeting rule that exempts visitors in some regions. Every finding below was observed with no choice available.",
+      "remediation": "Check your Shopify Consent geolocation rules. If the banner is intentionally limited to certain regions, confirm that matches your legal obligations - several US states now require an opt-out mechanism regardless of EU rules.",
+      "evidence": {
+        "kind": "cmp",
+        "platform": "Shopify Consent",
+        "bannerShown": false,
+        "detail": "Shopify Consent SDK loaded; no banner element became visible"
+      },
+      "observedUnder": "default",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z",
+      "compliance": []
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Attentive",
+      "category": "advertising",
+      "title": "Attentive fires under gpc consent",
+      "detail": "Attentive (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cdn.attn.tv/attentive/dtag.js",
+        "method": "HEAD",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Attentive behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Contentsquare",
+      "category": "session-recording",
+      "title": "Contentsquare fires under gpc consent",
+      "detail": "Contentsquare (session-recording) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://t.contentsquare.net/settings/0edb96381698a.json",
+        "method": "GET",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Contentsquare behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google Ads (gtag destination)",
+      "category": "advertising",
+      "title": "Google Ads (gtag destination) fires under gpc consent",
+      "detail": "Google Ads (gtag destination) (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/destination?id=AW-946162192&cx=c&gtm=4e69i2",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Ads (gtag destination) behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ad.doubleclick.net/ccm/s/collect?auid=1723369425.1790030363&gtm=45be69i2za200xecxf1&fmt=8",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Meta Pixel",
+      "category": "advertising",
+      "title": "Meta Pixel fires under gpc consent",
+      "detail": "Meta Pixel (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://connect.facebook.net/en_US/fbevents.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Meta Pixel behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"\" set under gpc consent",
+      "detail": "Cookie \"\" (domain www.untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "",
+        "domain": "www.untuckit.com",
+        "firstParty": false,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-012",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__apex_test__",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__apex_test__\" set under gpc consent",
+      "detail": "Cookie \"__apex_test__\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__apex_test__",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-011",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__eventn_id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__eventn_id\" set under gpc consent",
+      "detail": "Cookie \"__eventn_id\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__eventn_id",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": 1824590362.187467
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_mpxl_guid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_mpxl_guid\" set under gpc consent",
+      "detail": "Cookie \"_mpxl_guid\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_mpxl_guid",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": 1821566363.53094
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "consentAdvanceSetting",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"consentAdvanceSetting\" set under gpc consent",
+      "detail": "Cookie \"consentAdvanceSetting\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "consentAdvanceSetting",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": 1821566364.215441
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "consentGiven",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"consentGiven\" set under gpc consent",
+      "detail": "Cookie \"consentGiven\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "consentGiven",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": 1821566364.215407
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Analytics 4",
+      "category": "analytics",
+      "title": "Google Analytics 4 fires under gpc consent",
+      "detail": "Google Analytics 4 (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-BH3Y71MVDZ&gtm=45je69i2v9248687098za200zb72511941zd72511941xf1&_p=1790030362697&gcs=G111&gcd=13v3v3v3vdl1&npa=1&dma=0&gdid=dN2ZkMj.dNTU0Yz.dYmNjMT&are=1&cid=915753628.1790030363&excid=shp.a37c15fb-37b7-4f7d-8c81-7fe27aa34e3b&frm=0&ngs=1&pscdl=noapi&rcb=11&sr=1280x720&uaa=arm&uab=64&uafvl=HeadlessChrome%3B141.0.7390.37%7CNot%253FA_Brand%3B8.0.0.0%7CChromium%3B141.0.7390.37&uam=&uamb=0&uap=macOS&uapv=26.4.0&uaw=0&ul=en-us&_s=1&tag_exp=115616985~115938466~115938469~118897920~118897930~120213116~120385423~120469145~120469153&dp=%2F&dt=UNTUCKit%20%7C%20Casual%20Shirts%20%26%20More%20with%20the%20Perfect%20Fit&dl=https%3A%2F%2Fwww.untuckit.com%2F&sid=1790030363&sct=1&seg=0&_tu=CAI&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&edid=dNzYwYj&ep.shopify_event_name=page_viewed&evnid=sh-c61fb949-791B-4152-5AA8-BC0FFA52FD28&tfd=1169",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Analytics 4 behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z",
+      "consentSignal": {
+        "gcs": "G111",
+        "state": "granted"
+      }
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google gtag.js",
+      "category": "tag-manager",
+      "title": "Google gtag.js fires under gpc consent",
+      "detail": "Google gtag.js (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtag/js?id=G-BH3Y71MVDZ",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google gtag.js behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-PTGGHF",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "guid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"guid\" set under gpc consent",
+      "detail": "Cookie \"guid\" (domain .mountain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "guid",
+        "domain": ".mountain.com",
+        "firstParty": false,
+        "expires": 1821566363.450712
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "pieeye_sf_consent",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"pieeye_sf_consent\" set under gpc consent",
+      "detail": "Cookie \"pieeye_sf_consent\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "pieeye_sf_consent",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": 1821566364.212304
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "PieEyeConsent",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"PieEyeConsent\" set under gpc consent",
+      "detail": "Cookie \"PieEyeConsent\" (domain .untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "PieEyeConsent",
+        "domain": ".untuckit.com",
+        "firstParty": true,
+        "expires": 1821566364.21243
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "rt",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"rt\" set under gpc consent",
+      "detail": "Cookie \"rt\" (domain .mountain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "rt",
+        "domain": ".mountain.com",
+        "firstParty": false,
+        "expires": 1821566363.450704
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "preconsent-010",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics fires under gpc consent",
+      "detail": "Shopify Analytics (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://monorail-edge.shopifysvc.com/v1/produce",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Shopify Analytics behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-013",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-session-id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-session-id\" set under gpc consent",
+      "detail": "Cookie \"swym-session-id\" (domain .www.untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-session-id",
+        "domain": ".www.untuckit.com",
+        "firstParty": false,
+        "expires": 1790032182
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "swym-v-ckd",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"swym-v-ckd\" set under gpc consent",
+      "detail": "Cookie \"swym-v-ckd\" (domain .www.untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "swym-v-ckd",
+        "domain": ".www.untuckit.com",
+        "firstParty": false,
+        "expires": 1790032163
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "test",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"test\" set under gpc consent",
+      "detail": "Cookie \"test\" (domain www.untuckit.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "test",
+        "domain": "www.untuckit.com",
+        "firstParty": false,
+        "expires": -1
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tt",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tt\" set under gpc consent",
+      "detail": "Cookie \"tt\" (domain .px.mountain.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tt",
+        "domain": ".px.mountain.com",
+        "firstParty": false,
+        "expires": 1821566363.450686
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:09.137Z"
+    }
+  ],
+  "correctlyGated": [
+    {
+      "vendor": "TikTok Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Pinterest Tag",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Google Ads",
+      "category": "advertising"
+    }
+  ],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": false,
+    "noRejectOffered": false
+  }
+}

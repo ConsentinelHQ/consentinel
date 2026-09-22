@@ -1,0 +1,818 @@
+{
+  "scanId": "7372f05f-bd48-4cb3-80b0-85db76f44d4b",
+  "url": "https://drinkolipop.com",
+  "scannedAt": "2026-09-21T22:40:53.355Z",
+  "engineVersion": "0.1.0",
+  "signatureLibraryVersion": "0.2.0",
+  "cmpRegistryVersion": "0.2.0",
+  "cmp": {
+    "detected": {
+      "id": "cookieyes",
+      "name": "CookieYes",
+      "confidence": "high"
+    },
+    "consentMode": {
+      "present": true,
+      "defaultState": null
+    }
+  },
+  "headline": "9 trackers firing before consent",
+  "counts": {
+    "critical": 10,
+    "warning": 27,
+    "info": 0
+  },
+  "findings": [
+    {
+      "id": "cookie-027",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Adobe Audience Manager",
+      "category": "advertising",
+      "title": "Adobe Audience Manager set an advertising cookie \"demdex\" under gpc consent",
+      "detail": "Adobe Audience Manager wrote \"demdex\" on .demdex.net before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "demdex",
+        "domain": ".demdex.net",
+        "firstParty": false,
+        "expires": 1805582416.13386
+      },
+      "compliance": [],
+      "remediation": "Block Adobe Audience Manager until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-003",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Amazon Advertising",
+      "category": "advertising",
+      "title": "Amazon Advertising fires under gpc consent",
+      "detail": "Amazon Advertising (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://s.amazon-adsystem.com/iu3?d=generic&ex-fargs=%3Fid%3D73a3b955-2b94-711c-f24b-424e40d6695a%26type%3D55%26m%3D1&ex-fch=416613&ex-src=https://drinkolipop.com/&ex-hargs=v%3D1.0%3Bc%3D7410518920601%3Bp%3D73A3B955-2B94-711C-F24B-424E40D6695A&cb=790270925336940900",
+        "method": "GET",
+        "resourceType": "document"
+      },
+      "compliance": [],
+      "remediation": "Gate Amazon Advertising behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-004",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick fires under gpc consent",
+      "detail": "Google DoubleClick (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://cm.g.doubleclick.net/pixel?google_nid=a9&google_cm&ex=doubleclick.net&gdpr=0",
+        "method": "GET",
+        "resourceType": "image"
+      },
+      "compliance": [],
+      "remediation": "Gate Google DoubleClick behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-021",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Google DoubleClick",
+      "category": "advertising",
+      "title": "Google DoubleClick set an advertising cookie \"IDE\" under gpc consent",
+      "detail": "Google DoubleClick wrote \"IDE\" on .doubleclick.net before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "IDE",
+        "domain": ".doubleclick.net",
+        "firstParty": false,
+        "expires": 1824590416.010143
+      },
+      "compliance": [],
+      "remediation": "Block Google DoubleClick until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-008",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Impact",
+      "category": "advertising",
+      "title": "Impact fires under gpc consent",
+      "detail": "Impact (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://trkapi.impact.com/PageLoad",
+        "method": "POST",
+        "resourceType": "fetch"
+      },
+      "compliance": [],
+      "remediation": "Gate Impact behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-001",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Klaviyo",
+      "category": "advertising",
+      "title": "Klaviyo fires under gpc consent",
+      "detail": "Klaviyo (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://static.klaviyo.com/onsite/js/PbvgDc/klaviyo.js",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Klaviyo behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-002",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Microsoft Clarity",
+      "category": "session-recording",
+      "title": "Microsoft Clarity fires under gpc consent",
+      "detail": "Microsoft Clarity (session-recording) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.clarity.ms/tag/m5uhteaodo",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Microsoft Clarity behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-011",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "critical",
+      "vendor": "Shopify",
+      "category": "advertising",
+      "title": "Shopify set an advertising cookie \"_shopify_marketing\" under gpc consent",
+      "detail": "Shopify wrote \"_shopify_marketing\" on drinkolipop.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_marketing",
+        "domain": "drinkolipop.com",
+        "firstParty": true,
+        "expires": 1821566415.274974
+      },
+      "compliance": [],
+      "remediation": "Block Shopify until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-007",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Taboola",
+      "category": "advertising",
+      "title": "Taboola fires under gpc consent",
+      "detail": "Taboola (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://sync.taboola.com/sg/amazon-a9-network/1/rtb",
+        "method": "GET",
+        "resourceType": "image"
+      },
+      "compliance": [],
+      "remediation": "Gate Taboola behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-006",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "critical",
+      "vendor": "Xandr (AppNexus)",
+      "category": "advertising",
+      "title": "Xandr (AppNexus) fires under gpc consent",
+      "detail": "Xandr (AppNexus) (advertising) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://ib.adnxs.com/getuid?https%3A%2F%2Fs.amazon-adsystem.com%2Fecm3%3Fid=%24UID&ex=appnexus.com&gdpr=0",
+        "method": "GET",
+        "resourceType": "image"
+      },
+      "compliance": [],
+      "remediation": "Gate Xandr (AppNexus) behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-035",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__mmapiwsid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__mmapiwsid\" set under gpc consent",
+      "detail": "Cookie \"__mmapiwsid\" (domain d-ipv6.mmapiws.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__mmapiwsid",
+        "domain": "d-ipv6.mmapiws.com",
+        "firstParty": false,
+        "expires": 1824590417.361974
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-036",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "__mmapiwsid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"__mmapiwsid\" set under gpc consent",
+      "detail": "Cookie \"__mmapiwsid\" (domain .drinkolipop.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "__mmapiwsid",
+        "domain": ".drinkolipop.com",
+        "firstParty": true,
+        "expires": 1824590417.394307
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-028",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_rsession",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_rsession\" set under gpc consent",
+      "detail": "Cookie \"_rsession\" (domain drinkolipop.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_rsession",
+        "domain": "drinkolipop.com",
+        "firstParty": true,
+        "expires": 1790032216
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-029",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "_ruid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"_ruid\" set under gpc consent",
+      "detail": "Cookie \"_ruid\" (domain drinkolipop.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_ruid",
+        "domain": "drinkolipop.com",
+        "firstParty": true,
+        "expires": 1824590416.101594
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-017",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "aa",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"aa\" set under gpc consent",
+      "detail": "Cookie \"aa\" (domain .agkn.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "aa",
+        "domain": ".agkn.com",
+        "firstParty": false,
+        "expires": 1824590415.835681
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-012",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ad-id",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ad-id\" set under gpc consent",
+      "detail": "Cookie \"ad-id\" (domain .amazon-adsystem.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ad-id",
+        "domain": ".amazon-adsystem.com",
+        "firstParty": false,
+        "expires": 1806619215.653193
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-013",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ad-privacy",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ad-privacy\" set under gpc consent",
+      "detail": "Cookie \"ad-privacy\" (domain .amazon-adsystem.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ad-privacy",
+        "domain": ".amazon-adsystem.com",
+        "firstParty": false,
+        "expires": 1824590415.653222
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-032",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "beam_promo_codes",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"beam_promo_codes\" set under gpc consent",
+      "detail": "Cookie \"beam_promo_codes\" (domain drinkolipop.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "beam_promo_codes",
+        "domain": "drinkolipop.com",
+        "firstParty": true,
+        "expires": 1797806417
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-025",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "brwsr",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"brwsr\" set under gpc consent",
+      "detail": "Cookie \"brwsr\" (domain .pxf.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "brwsr",
+        "domain": ".pxf.io",
+        "firstParty": false,
+        "expires": 1821566416.080109
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-031",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "brwsr",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"brwsr\" set under gpc consent",
+      "detail": "Cookie \"brwsr\" (domain .ojrq.net) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "brwsr",
+        "domain": ".ojrq.net",
+        "firstParty": false,
+        "expires": 1821566416.166857
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-019",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "c",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"c\" set under gpc consent",
+      "detail": "Cookie \"c\" (domain .bidswitch.net) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "c",
+        "domain": ".bidswitch.net",
+        "firstParty": false,
+        "expires": 1821566415.884159
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-005",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Comscore",
+      "category": "analytics",
+      "title": "Comscore fires under gpc consent",
+      "detail": "Comscore (analytics) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://sb.scorecardresearch.com/p?c1=9&c2=27552257&r=https%3A%2F%2Fs.amazon-adsystem.com%2Fecm3%3Fex%3Dcomscore.com%26id%3D%25AX_UUID%25",
+        "method": "GET",
+        "resourceType": "image"
+      },
+      "compliance": [],
+      "remediation": "Gate Comscore behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-016",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "digitalAudience",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"digitalAudience\" set under gpc consent",
+      "detail": "Cookie \"digitalAudience\" (domain .target.digitalaudience.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "digitalAudience",
+        "domain": ".target.digitalaudience.io",
+        "firstParty": false,
+        "expires": 1821564000.835545
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-030",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "dpm",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"dpm\" set under gpc consent",
+      "detail": "Cookie \"dpm\" (domain .dpm.demdex.net) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "dpm",
+        "domain": ".dpm.demdex.net",
+        "firstParty": false,
+        "expires": 1805582416.133899
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "preconsent-009",
+      "schemaVersion": "1.0.0",
+      "type": "tracker-fires-pre-consent",
+      "severity": "warning",
+      "vendor": "Google Tag Manager",
+      "category": "tag-manager",
+      "title": "Google Tag Manager fires under gpc consent",
+      "detail": "Google Tag Manager (tag-manager) loaded and sent data while consent was gpc.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "request",
+        "url": "https://www.googletagmanager.com/gtm.js?id=GTM-THWRVT4",
+        "method": "GET",
+        "resourceType": "script"
+      },
+      "compliance": [],
+      "remediation": "Gate Google Tag Manager behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-020",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "hsk_7993",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"hsk_7993\" set under gpc consent",
+      "detail": "Cookie \"hsk_7993\" (domain .exelator.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "hsk_7993",
+        "domain": ".exelator.com",
+        "firstParty": false,
+        "expires": 1800398415.995024
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-026",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "irtps",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"irtps\" set under gpc consent",
+      "detail": "Cookie \"irtps\" (domain .pxf.io) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "irtps",
+        "domain": ".pxf.io",
+        "firstParty": false,
+        "expires": 1790116816.080129
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-024",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "ndat",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"ndat\" set under gpc consent",
+      "detail": "Cookie \"ndat\" (domain .ninthdecimal.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "ndat",
+        "domain": ".ninthdecimal.com",
+        "firstParty": false,
+        "expires": 1821566416.060314
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-023",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "pt",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"pt\" set under gpc consent",
+      "detail": "Cookie \"pt\" (domain .ispot.tv) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "pt",
+        "domain": ".ispot.tv",
+        "firstParty": false,
+        "expires": 1824590416.060049
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-010",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_analytics\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_analytics\" on drinkolipop.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_analytics",
+        "domain": "drinkolipop.com",
+        "firstParty": true,
+        "expires": 1821566415.274958
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-034",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_s\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_s\" on .drinkolipop.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_s",
+        "domain": ".drinkolipop.com",
+        "firstParty": true,
+        "expires": 1790032218.329699
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-033",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "Shopify Analytics",
+      "category": "analytics",
+      "title": "Shopify Analytics set an analytics cookie \"_shopify_y\" under gpc consent",
+      "detail": "Shopify Analytics wrote \"_shopify_y\" on .drinkolipop.com before consent was granted.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "_shopify_y",
+        "domain": ".drinkolipop.com",
+        "firstParty": true,
+        "expires": 1821588018.329625
+      },
+      "compliance": [],
+      "remediation": "Block Shopify Analytics until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-018",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tuuid",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tuuid\" set under gpc consent",
+      "detail": "Cookie \"tuuid\" (domain .bidswitch.net) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tuuid",
+        "domain": ".bidswitch.net",
+        "firstParty": false,
+        "expires": 1821566416.010526
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-022",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "tuuid_lu",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"tuuid_lu\" set under gpc consent",
+      "detail": "Cookie \"tuuid_lu\" (domain .bidswitch.net) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "tuuid_lu",
+        "domain": ".bidswitch.net",
+        "firstParty": false,
+        "expires": 1821566416.010549
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-014",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "UID",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"UID\" set under gpc consent",
+      "detail": "Cookie \"UID\" (domain .scorecardresearch.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "UID",
+        "domain": ".scorecardresearch.com",
+        "firstParty": false,
+        "expires": 1823726415.835389
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-037",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "usi_return_visitor",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"usi_return_visitor\" set under gpc consent",
+      "detail": "Cookie \"usi_return_visitor\" (domain .drinkolipop.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "usi_return_visitor",
+        "domain": ".drinkolipop.com",
+        "firstParty": true,
+        "expires": 1824590418.281863
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    },
+    {
+      "id": "cookie-015",
+      "schemaVersion": "1.0.0",
+      "type": "cookie-set-pre-consent",
+      "severity": "warning",
+      "vendor": "XID",
+      "category": "unknown",
+      "title": "Unrecognised cookie \"XID\" set under gpc consent",
+      "detail": "Cookie \"XID\" (domain .scorecardresearch.com) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.",
+      "observedUnder": "gpc",
+      "evidence": {
+        "kind": "cookie",
+        "name": "XID",
+        "domain": ".scorecardresearch.com",
+        "firstParty": false,
+        "expires": 1823726415.835407
+      },
+      "compliance": [],
+      "remediation": "Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.",
+      "firstSeenAt": "2026-09-21T22:40:53.355Z"
+    }
+  ],
+  "correctlyGated": [
+    {
+      "vendor": "Meta Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Reddit Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "TikTok Pixel",
+      "category": "advertising"
+    },
+    {
+      "vendor": "Pinterest Tag",
+      "category": "advertising"
+    }
+  ],
+  "consentAttempt": {
+    "performed": false,
+    "bannerPresent": true,
+    "noRejectOffered": true
+  }
+}
