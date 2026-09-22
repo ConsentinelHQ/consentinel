@@ -70,6 +70,12 @@ const base = repoRoot();
 const outCsv = resolve(base, "prospects.csv");
 const doneFile = resolve(base, "prospects.done");
 const cacheFile = resolve(base, "prospects.contacts.json");
+/** A scan-only pass is the expensive part; the real run reuses it within this window. */
+const EVIDENCE_TTL_MS = 48 * 60 * 60 * 1000;
+const evidenceFile = resolve(base, "prospects.evidence.json");
+const evidence: Record<string, { at: number; ev: Evidence }> = existsSync(evidenceFile)
+  ? (JSON.parse(readFileSync(evidenceFile, "utf8")) as Record<string, { at: number; ev: Evidence }>)
+  : {};
 const cache: Record<string, Contact | string> = existsSync(cacheFile)
   ? (JSON.parse(readFileSync(cacheFile, "utf8")) as Record<string, Contact | string>)
   : {};
@@ -312,7 +318,18 @@ async function main(): Promise<void> {
     };
 
     console.log(`scan   ${domain}`);
-    const ev = await gather(`https://${host}`);
+    const cached = evidence[domain];
+    let ev: Evidence | string;
+    if (cached && Date.now() - cached.at < EVIDENCE_TTL_MS) {
+      ev = cached.ev;
+      console.log(`       reusing scan from ${new Date(cached.at).toLocaleString()}`);
+    } else {
+      ev = await gather(`https://${host}`);
+      if (typeof ev !== "string") {
+        evidence[domain] = { at: Date.now(), ev };
+        writeFileSync(evidenceFile, JSON.stringify(evidence, null, 2));
+      }
+    }
     if (typeof ev === "string") {
       // Not marked done: a crashed browser is transient and worth retrying.
       writeRow({ domain, status: ev });
