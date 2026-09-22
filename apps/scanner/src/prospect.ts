@@ -197,6 +197,29 @@ async function findContact(domain: string): Promise<Contact | string> {
   };
 }
 
+/**
+ * Names a marketing lead recognises instantly go first. Finding count is a
+ * poor proxy for alarm: 3 Attentive findings land softer than 1 Meta Pixel.
+ */
+const PROMINENT = [
+  "Meta",
+  "Google Ads",
+  "TikTok",
+  "Amazon Advertising",
+  "Pinterest",
+  "Snap",
+  "Reddit",
+];
+
+function byProminence(vendors: string[]): string[] {
+  const rank = (v: string): number => {
+    const i = PROMINENT.indexOf(v);
+    return i === -1 ? PROMINENT.length : i;
+  };
+  // Stable sort keeps finding-count order among the rest.
+  return [...vendors].sort((a, b) => rank(a) - rank(b));
+}
+
 function joinNames(names: string[]): string {
   if (names.length <= 1) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1] ?? ""}`;
@@ -204,7 +227,7 @@ function joinNames(names: string[]): string {
 
 function draft(domain: string, ev: Evidence, firstName: string): { subject: string; body: string } {
   const n = ev.firing.length;
-  const named = joinNames(ev.firing.slice(0, 3));
+  const named = joinNames(byProminence(ev.firing).slice(0, 3));
   const vendors =
     n <= 3
       ? `${String(n)} ad vendors still fire: ${named}`
@@ -214,13 +237,13 @@ function draft(domain: string, ev: Evidence, firstName: string): { subject: stri
       ? [
           `After declining cookies, ${vendors}`,
           ev.gated > 0
-            ? `${String(ev.gated)} other vendors correctly wait for consent, so the banner is working - these just aren't connected to it`
+            ? `${String(ev.gated)} other ${ev.gated === 1 ? "vendor correctly waits for consent" : "vendors correctly wait for consent"}, so the banner is working - these just aren't connected to it`
             : "None of the tags we saw changed behavior after the reject click",
         ]
       : [
           `With Global Privacy Control turned on, ${vendors}`,
           ev.gated > 0
-            ? `${String(ev.gated)} other vendors correctly stop, so the signal is being read - these just aren't connected to it`
+            ? `${String(ev.gated)} other ${ev.gated === 1 ? "vendor correctly stops" : "vendors correctly stop"}, so the signal is being read - these just aren't connected to it`
             : "None of them stopped when the signal was on",
           "California treats GPC as an opt-out of sale and sharing, and it's what Sephora was fined $1.2M for in 2022",
         ];
