@@ -58,6 +58,15 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
           scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS }),
           config.SCAN_TIMEOUT_MS,
         );
+        // No reject control to click, usually a US visitor on a CCPA-model site.
+        // Test the opt-out that actually applies to them rather than reporting
+        // an unchallenged default state.
+        if (!result.consentAttempt?.performed) {
+          result = await withTimeout(
+            scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS, gpc: true }),
+            config.SCAN_TIMEOUT_MS,
+          );
+        }
       } catch (error) {
         // Bot protection does not relent on attempt two. Fail once, clearly,
         // rather than burning three worker slots on the same wall.
@@ -93,7 +102,8 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       connection,
       concurrency: config.SCAN_CONCURRENCY,
       // A wedged page must not hold a slot forever.
-      lockDuration: config.SCAN_TIMEOUT_MS + 30_000,
+      // Two scans on the GPC path, so the lock must cover both.
+      lockDuration: 2 * config.SCAN_TIMEOUT_MS + 30_000,
     },
   );
 

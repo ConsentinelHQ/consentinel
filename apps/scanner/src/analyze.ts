@@ -59,6 +59,13 @@ export function analyze(raw: RawScan): ScanResult {
       : raw.deniedPass.gpc
         ? "gpc"
         : "default";
+  // GPC is an opt-out signal, not a consent state, so it needs its own wording.
+  const gpc = observedUnder === "gpc";
+  const firesPhrase = gpc
+    ? "fires with Global Privacy Control on"
+    : `fires under ${observedUnder} consent`;
+  const when = gpc ? "with Global Privacy Control on" : "before consent";
+  const cookieWhen = gpc ? "while Global Privacy Control was on" : "before consent was granted";
 
   const findings: Finding[] = [];
   let seq = 0;
@@ -141,7 +148,7 @@ export function analyze(raw: RawScan): ScanResult {
       category: h.sig.category,
       title: ignoredDenied
         ? `${h.sig.vendor} ignored a denied consent signal`
-        : `${h.sig.vendor} fires under ${observedUnder} consent`,
+        : `${h.sig.vendor} ${firesPhrase}`,
       detail: ignoredDenied
         ? `${h.sig.vendor} sent data carrying gcs=${h.consentSignal?.gcs} (denied) and fired anyway.`
         : `${h.sig.vendor} (${h.sig.category}) loaded and sent data while consent was ${observedUnder}.`,
@@ -235,8 +242,8 @@ export function analyze(raw: RawScan): ScanResult {
         ? `${sig.vendor} set ${describe(sig.category)} cookie "${c.name}" under ${observedUnder} consent`
         : `Unrecognised cookie "${c.name}" set under ${observedUnder} consent`,
       detail: known
-        ? `${sig.vendor} wrote "${c.name}" on ${c.domain} before consent was granted.`
-        : `Cookie "${c.name}" (domain ${c.domain}) was written before consent was granted. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.`,
+        ? `${sig.vendor} wrote "${c.name}" on ${c.domain} ${cookieWhen}.`
+        : `Cookie "${c.name}" (domain ${c.domain}) was written ${cookieWhen}. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.`,
       observedUnder,
       evidence,
       compliance: [],
@@ -280,8 +287,8 @@ export function analyze(raw: RawScan): ScanResult {
     cmp,
     headline:
       headlineCount === 0
-        ? "No trackers fired before consent"
-        : `${headlineCount} tracker${headlineCount === 1 ? "" : "s"} firing before consent`,
+        ? `No trackers fired ${when}`
+        : `${headlineCount} tracker${headlineCount === 1 ? "" : "s"} firing ${when}`,
     counts,
     findings: sorted,
     correctlyGated,
