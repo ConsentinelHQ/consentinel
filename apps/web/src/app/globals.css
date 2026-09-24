@@ -541,7 +541,7 @@ footer {
 
 /* Below 640px the three text links crowd the mark. Keep the action, drop the rest. */
 @media (max-width: 640px) {
-  .nav-links a:not(.nav-cta) {
+  .nav-links a:not(.nav-cta):not(.nav-signin) {
     display: none;
   }
 }
@@ -1003,12 +1003,6 @@ footer {
   color: var(--ink);
 }
 
-@media (max-width: 640px) {
-  .nav-signin {
-    display: none;
-  }
-}
-
 /* Billing reuses the ruled-list language, but as a dl rather than links. */
 .billing-rows {
   display: grid;
@@ -1247,4 +1241,27 @@ body > footer {
   .pane *,
   .scanstatus-step { animation: none !important; }
   .pane.is-active .pane-dot { opacity: 1; transform: none; }
+}
+
+/* Specimen sits outside .wrap, so it needs its own gutter on mobile. */
+@media (max-width: 640px) {
+  .specimen {
+    margin-left: 1.5rem;
+    margin-right: 1.5rem;
+  }
+  .specimen-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+/* Keep nav labels on one line; tighten spacing on small screens. */
+.nav-links a {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .nav-links {
+    gap: 1rem;
+  }
 }
