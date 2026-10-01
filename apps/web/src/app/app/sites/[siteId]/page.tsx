@@ -6,6 +6,7 @@ import { ScheduleControl } from "@/components/schedule-control";
 import { ScanNowButton } from "@/components/scan-now-button";
 import { ScanProgress } from "@/components/scan-progress";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { LocalTime } from "@/components/local-time";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 
@@ -65,7 +66,10 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
               <Link className="site-row" href={`/app/scans/${scan.id}`}>
                 <span className="site-url">
                   {/* A queued scan has no finish time yet; show when it started. */}
-                  {(scan.finishedAt ?? scan.startedAt)?.toLocaleString() ?? "just now"}
+                  {(() => {
+                    const d = scan.finishedAt ?? scan.startedAt;
+                    return d ? <LocalTime iso={d.toISOString()} /> : "just now";
+                  })()}
                 </span>
                 <span className="site-meta">
                   {scan.status === "complete"
