@@ -11,6 +11,14 @@ import { db } from "@/lib/server";
 export const metadata: Metadata = { title: "Site" };
 export const dynamic = "force-dynamic";
 
+function displayHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 export default async function SitePage({ params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
   const session = await requireSession();
@@ -28,7 +36,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
       </p>
 
       <div className="app-head">
-        <h1>{site.label ?? site.url}</h1>
+        <h1>{site.label ?? displayHost(site.url)}</h1>
         <p className="quiet">{site.url}</p>
       </div>
 
@@ -62,7 +70,9 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
                     : scan.status}
                 </span>
                 <span className="site-schedule">{scan.trigger}</span>
-                <ScanProgress status={scan.status} />
+                {(scan.status === "queued" || scan.status === "running") && (
+                  <ScanProgress status={scan.status} />
+                )}
               </Link>
             </li>
           ))}
