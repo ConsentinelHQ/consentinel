@@ -5,6 +5,7 @@ import { getBillingState, getSiteForOrg, isEntitled, listScansForSite } from "@c
 import { ScheduleControl } from "@/components/schedule-control";
 import { ScanNowButton } from "@/components/scan-now-button";
 import { ScanProgress } from "@/components/scan-progress";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 
@@ -45,6 +46,8 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
       </div>
 
+      <AutoRefresh active={scans.some((s) => s.status === "queued" || s.status === "running")} />
+
       <h2 className="section-label">Scan history</h2>
 
       {scans.length === 0 ? (
@@ -67,7 +70,9 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
                 <span className="site-meta">
                   {scan.status === "complete"
                     ? `${String(scan.criticalCount ?? 0)} critical`
-                    : scan.status}
+                    : scan.status === "failed" && scan.blockedBy
+                      ? `Blocked by ${scan.blockedBy.charAt(0).toUpperCase()}${scan.blockedBy.slice(1)}`
+                      : scan.status}
                 </span>
                 <span className="site-schedule">{scan.trigger}</span>
                 {(scan.status === "queued" || scan.status === "running") && (
