@@ -23,7 +23,7 @@ export function startScheduler(
   queue: ScanQueue,
   opts: { intervalMs?: number } = {},
 ): RunningScheduler {
-  const intervalMs = opts.intervalMs ?? 5 * 60 * 1000;
+  const intervalMs = opts.intervalMs ?? 60 * 60 * 1000;
 
   const tick = async (): Promise<void> => {
     try {
