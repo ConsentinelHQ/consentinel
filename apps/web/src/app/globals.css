@@ -185,7 +185,7 @@ button {
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
-button:hover:not(:disabled) {
+button:hover:not(:disabled):not([class*="cl-"]) {
   background: var(--accent-hover);
 }
 button:disabled {

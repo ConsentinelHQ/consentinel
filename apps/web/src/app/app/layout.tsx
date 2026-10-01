@@ -18,6 +18,37 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               afterCreateOrganizationUrl="/app"
               afterSelectOrganizationUrl="/app"
               hidePersonal={false}
+              appearance={{
+                variables: {
+                  colorBackground: "#ffffff",
+                  colorForeground: "#18181b",
+                  colorMutedForeground: "#71717a",
+                  colorNeutral: "#18181b",
+                  colorPrimary: "#18181b",
+                },
+                elements: {
+                  organizationSwitcherTrigger: {
+                    color: "#18181b",
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    "&:hover": { backgroundColor: "#f4f4f5", color: "#18181b" },
+                    "&:focus": { boxShadow: "none" },
+                  },
+                  organizationSwitcherPopoverCard: {
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #e4e4e7",
+                  },
+                  organizationSwitcherPreviewButton: {
+                    "&:hover": { backgroundColor: "#f4f4f5" },
+                  },
+                  organizationSwitcherPopoverActionButton: {
+                    color: "#3f3f46",
+                    "&:hover": { backgroundColor: "#f4f4f5", color: "#18181b" },
+                  },
+                  organizationPreviewMainIdentifier: { color: "#18181b" },
+                  organizationPreviewSecondaryIdentifier: { color: "#71717a" },
+                },
+              }}
             />
             <UserButton />
           </div>
