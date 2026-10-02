@@ -422,3 +422,14 @@ export async function listAlertRecipients(db: Database, siteId: string): Promise
     .innerJoin(users, eq(users.id, orgMembers.userId))
     .where(eq(sites.id, siteId));
 }
+
+/** The site's allowlist token for a scan, or null for ad-hoc scans with no site. */
+export async function getScanTokenForScan(db: Database, scanId: string): Promise<string | null> {
+  const rows = await db
+    .select({ token: sites.scanToken })
+    .from(scans)
+    .innerJoin(sites, eq(sites.id, scans.siteId))
+    .where(eq(scans.id, scanId))
+    .limit(1);
+  return rows[0]?.token ?? null;
+}

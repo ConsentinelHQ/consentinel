@@ -4,6 +4,7 @@ import {
   createDbWithConnection,
   markScanBlocked,
   markScanFailed,
+  getScanTokenForScan,
   markScanRunning,
   type Database,
 } from "@consentinel/db";
@@ -52,10 +53,13 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       }
 
       await markScanRunning(db, scanId);
+      // Customer allowlist token, if their Cloudflare rule expects one.
+      const scanToken = await getScanTokenForScan(db, scanId);
+      const tokenOpts = scanToken ? { scanToken } : {};
       let result;
       try {
         result = await withTimeout(
-          scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS }),
+          scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS, ...tokenOpts }),
           config.SCAN_TIMEOUT_MS,
         );
         // No reject control to click, usually a US visitor on a CCPA-model site.
@@ -63,7 +67,7 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         // an unchallenged default state.
         if (!result.consentAttempt?.performed) {
           result = await withTimeout(
-            scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS, gpc: true }),
+            scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS, gpc: true, ...tokenOpts }),
             config.SCAN_TIMEOUT_MS,
           );
         }

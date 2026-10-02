@@ -29,6 +29,11 @@ export interface ScanOptions {
    */
   blockThirdParty?: boolean;
   /**
+   * Customer allowlist secret, sent as X-Consentinel-Token on first-party
+   * requests only so their Cloudflare skip rule lets the scan through.
+   */
+  scanToken?: string;
+  /**
    * Minimum requests before a scan is considered credible. Fixtures are tiny by
    * design and set this low; real scans use the shared default.
    */
@@ -162,19 +167,21 @@ async function newCapturedContext(
       tMs: Date.now() - startedAt,
     });
 
-    if (!opts.blockThirdParty) {
-      await route.continue();
-      return;
-    }
-
-    // Hermetic mode: first-party still loads, third-party is recorded but never sent.
     const host = registrableHost(url);
     const firstParty =
       host !== null &&
       targetHost !== null &&
       (host === targetHost || host.endsWith("." + targetHost));
-    if (firstParty) {
-      await route.continue();
+
+    // Allowlist token goes to the customer's own hosts only, never to trackers.
+    const overrides =
+      firstParty && opts.scanToken
+        ? { headers: { ...req.headers(), "x-consentinel-token": opts.scanToken } }
+        : undefined;
+
+    // Hermetic mode: first-party still loads, third-party is recorded but never sent.
+    if (!opts.blockThirdParty || firstParty) {
+      await route.continue(overrides);
       return;
     }
     await route.abort();

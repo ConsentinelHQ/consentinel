@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -116,6 +117,13 @@ export const sites = pgTable(
     lastScheduledAt: timestamp("last_scheduled_at", { withTimezone: true }),
     // Baseline for regression alerting (Epic 4.3). Nullable until one is approved.
     baselineScanId: uuid("baseline_scan_id"),
+    /**
+     * Secret the scanner sends as X-Consentinel-Token on first-party requests only.
+     * Customers match it in a Cloudflare skip rule so bot protection lets us through.
+     */
+    scanToken: text("scan_token")
+      .notNull()
+      .default(sql`replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')`),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

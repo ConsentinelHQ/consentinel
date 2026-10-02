@@ -43,6 +43,13 @@
       "when": 1789550900025,
       "tag": "0005_awesome_baron_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790882079492,
+      "tag": "0006_high_luke_cage",
+      "breakpoints": true
     }
   ]
 }
