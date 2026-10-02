@@ -119,6 +119,11 @@ export interface Finding {
    */
   compliance: ComplianceMapping[];
   remediation: string;
+  /**
+   * Another flagged vendor that triggered this one, e.g. a cookie sync fired from
+   * Amazon's iframe. Fixing the parent removes the child.
+   */
+  causedBy?: string;
   firstSeenAt: string; // ISO 8601
 }
 

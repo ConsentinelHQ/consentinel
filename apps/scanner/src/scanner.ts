@@ -58,6 +58,12 @@ export interface CapturedRequest {
   method: string;
   resourceType: string;
   tMs: number;
+  /**
+   * What caused this request: the redirect source, else the non-main frame it
+   * came from, else the referer. Lets the report trace cookie-sync chains back
+   * to the one tag that started them.
+   */
+  initiator?: string;
 }
 
 export interface CapturedCookie {
@@ -160,11 +166,22 @@ async function newCapturedContext(
   await context.route("**/*", async (route) => {
     const req = route.request();
     const url = req.url();
+    let initiator: string | undefined = req.redirectedFrom()?.url();
+    if (initiator === undefined) {
+      try {
+        const frame = req.frame();
+        if (frame !== page.mainFrame()) initiator = frame.url();
+      } catch {
+        // Service worker or detached frame: no frame to attribute.
+      }
+    }
+    initiator ??= req.headers()["referer"];
     requests.push({
       url,
       method: req.method(),
       resourceType: req.resourceType(),
       tMs: Date.now() - startedAt,
+      ...(initiator ? { initiator } : {}),
     });
 
     const host = registrableHost(url);

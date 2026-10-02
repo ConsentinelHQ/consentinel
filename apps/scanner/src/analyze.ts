@@ -158,7 +158,13 @@ export function analyze(raw: RawScan): ScanResult {
       remediation: remediationFor(h.sig.vendor),
       firstSeenAt: now,
     };
-    findings.push(h.consentSignal ? { ...base, consentSignal: h.consentSignal } : base);
+    // Chain attribution: a tracker loaded by another tracker gets traced to its parent.
+    const parentSig = h.request.initiator ? classify(h.request.initiator) : null;
+    const withParent: Finding =
+      parentSig && parentSig.vendor !== h.sig.vendor
+        ? { ...base, causedBy: parentSig.vendor }
+        : base;
+    findings.push(h.consentSignal ? { ...withParent, consentSignal: h.consentSignal } : withParent);
   }
 
   // 2) PII leakage to trackers (scan the denied pass).
