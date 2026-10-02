@@ -7,6 +7,7 @@ import { ScanNowButton } from "@/components/scan-now-button";
 import { ScanProgress } from "@/components/scan-progress";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { LocalTime } from "@/components/local-time";
+import { AllowlistPanel } from "@/components/allowlist-panel";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 
@@ -46,6 +47,8 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         <ScanNowButton siteId={site.id} />
         <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
       </div>
+
+      <AllowlistPanel open={scans[0]?.blockedBy != null} token={site.scanToken} />
 
       <AutoRefresh active={scans.some((s) => s.status === "queued" || s.status === "running")} />
 
