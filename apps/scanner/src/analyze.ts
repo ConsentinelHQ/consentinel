@@ -21,6 +21,7 @@ import {
 import { classifyCookie } from "./cookies.js";
 import { CMP_REGISTRY_VERSION } from "./cmp/registry.js";
 import type { RawScan, CapturedRequest } from "./scanner.js";
+import { remediationFor } from "./remediation.js";
 
 export const ENGINE_VERSION = "0.1.0";
 
@@ -154,7 +155,7 @@ export function analyze(raw: RawScan): ScanResult {
       observedUnder,
       evidence,
       compliance: [],
-      remediation: `Gate ${h.sig.vendor} behind consent (Consent Mode default-denied or CMP blocking) so it does not fire until the visitor opts in.`,
+      remediation: remediationFor(h.sig.vendor),
       firstSeenAt: now,
     };
     findings.push(h.consentSignal ? { ...base, consentSignal: h.consentSignal } : base);
@@ -247,7 +248,7 @@ export function analyze(raw: RawScan): ScanResult {
       evidence,
       compliance: [],
       remediation: known
-        ? `Block ${sig.vendor} until consent is granted. If it comes from an embed, use the privacy-enhanced or consent-gated variant.`
+        ? remediationFor(sig.vendor)
         : `Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.`,
       firstSeenAt: now,
     });
