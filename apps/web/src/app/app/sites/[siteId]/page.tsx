@@ -8,19 +8,13 @@ import { ScanProgress } from "@/components/scan-progress";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { LocalTime } from "@/components/local-time";
 import { AllowlistPanel } from "@/components/allowlist-panel";
+import { ArchiveSiteButton } from "@/components/archive-site-button";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
+import { blockedLabel, displayHost } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Site" };
 export const dynamic = "force-dynamic";
-
-function displayHost(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-}
 
 export default async function SitePage({ params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
@@ -42,6 +36,15 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         <h1>{site.label ?? displayHost(site.url)}</h1>
         <p className="quiet">{site.url}</p>
       </div>
+
+      {site.archivedAt !== null && (
+        <div className="archived-banner">
+          <span>
+            This site is archived. Scheduled scans are off and it is hidden from your list.
+          </span>
+          <ArchiveSiteButton archived host={displayHost(site.url)} siteId={site.id} />
+        </div>
+      )}
 
       <div className="site-actions">
         <ScanNowButton siteId={site.id} />
@@ -78,7 +81,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
                   {scan.status === "complete"
                     ? `${String(scan.criticalCount ?? 0)} critical`
                     : scan.status === "failed" && scan.blockedBy
-                      ? `Blocked by ${scan.blockedBy.charAt(0).toUpperCase()}${scan.blockedBy.slice(1)}`
+                      ? blockedLabel(scan.blockedBy)
                       : scan.status}
                 </span>
                 <span className="site-schedule">{scan.trigger}</span>
@@ -89,6 +92,16 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
             </li>
           ))}
         </ul>
+      )}
+
+      {site.archivedAt === null && (
+        <div className="site-archive">
+          <p className="quiet">
+            Archiving stops scans and removes the site from your list. Reports and shared links keep
+            working. Add the URL again any time to restore it with its history.
+          </p>
+          <ArchiveSiteButton archived={false} host={displayHost(site.url)} siteId={site.id} />
+        </div>
       )}
     </div>
   );

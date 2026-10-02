@@ -50,6 +50,13 @@
       "when": 1790882079492,
       "tag": "0006_high_luke_cage",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790962496532,
+      "tag": "0007_dapper_lester",
+      "breakpoints": true
     }
   ]
 }

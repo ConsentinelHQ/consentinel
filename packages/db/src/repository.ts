@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, lt, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
 import type { ScanResult, Severity } from "@consentinel/shared";
 import type { Database } from "./client.js";
 import {
@@ -244,11 +244,15 @@ export async function addSite(
     .returning({ id: sites.id });
   if (row) return row.id;
   const [existing] = await db
-    .select({ id: sites.id })
+    .select({ id: sites.id, archivedAt: sites.archivedAt })
     .from(sites)
     .where(and(eq(sites.orgId, orgId), eq(sites.url, url)))
     .limit(1);
   if (!existing) throw new Error("failed to add site");
+  // Re-adding an archived site restores it, history and baseline included.
+  if (existing.archivedAt !== null) {
+    await db.update(sites).set({ archivedAt: null }).where(eq(sites.id, existing.id));
+  }
   return existing.id;
 }
 
@@ -260,6 +264,7 @@ export interface SiteSummary {
   lastScanAt: Date | null;
   lastCritical: number | null;
   lastStatus: string | null;
+  lastBlockedBy: string | null;
 }
 
 /**
@@ -276,6 +281,7 @@ export async function listSitesForOrg(db: Database, orgId: string): Promise<Site
       lastScanAt: scans.finishedAt,
       lastCritical: scans.criticalCount,
       lastStatus: scans.status,
+      lastBlockedBy: scans.blockedBy,
     })
     .from(sites)
     .leftJoin(
@@ -286,7 +292,7 @@ export async function listSitesForOrg(db: Database, orgId: string): Promise<Site
         sql`${scans.startedAt} = (select max(started_at) from scans s2 where s2.site_id = ${sites.id})`,
       ),
     )
-    .where(eq(sites.orgId, orgId))
+    .where(and(eq(sites.orgId, orgId), isNull(sites.archivedAt)))
     .orderBy(desc(sites.createdAt));
 
   return rows.map((r) => ({
@@ -362,7 +368,7 @@ export async function listDueSites(db: Database, now = new Date()): Promise<DueS
     })
     .from(sites)
     .innerJoin(orgs, eq(orgs.id, sites.orgId))
-    .where(and(ne(sites.schedule, "off"), eq(orgs.plan, "monitoring")));
+    .where(and(ne(sites.schedule, "off"), eq(orgs.plan, "monitoring"), isNull(sites.archivedAt)));
 
   return rows
     .filter((r) => {
@@ -432,4 +438,36 @@ export async function getScanTokenForScan(db: Database, scanId: string): Promise
     .where(eq(scans.id, scanId))
     .limit(1);
   return rows[0]?.token ?? null;
+}
+
+/** Soft delete or restore. Scans, reports, and share links are never touched. */
+export async function setSiteArchived(
+  db: Database,
+  siteId: string,
+  orgId: string,
+  archived: boolean,
+): Promise<void> {
+  await db
+    .update(sites)
+    .set({ archivedAt: archived ? new Date() : null })
+    .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
+}
+
+export interface ArchivedSite {
+  id: string;
+  url: string;
+  label: string | null;
+  archivedAt: Date | null;
+}
+
+/** Archived sites for an org, newest archive first. */
+export async function listArchivedSitesForOrg(
+  db: Database,
+  orgId: string,
+): Promise<ArchivedSite[]> {
+  return db
+    .select({ id: sites.id, url: sites.url, label: sites.label, archivedAt: sites.archivedAt })
+    .from(sites)
+    .where(and(eq(sites.orgId, orgId), isNotNull(sites.archivedAt)))
+    .orderBy(desc(sites.archivedAt));
 }

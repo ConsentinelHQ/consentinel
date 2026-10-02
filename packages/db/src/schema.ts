@@ -124,6 +124,8 @@ export const sites = pgTable(
     scanToken: text("scan_token")
       .notNull()
       .default(sql`replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')`),
+    /** Soft delete. Hidden from lists and the scheduler; reports and share links keep working. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
