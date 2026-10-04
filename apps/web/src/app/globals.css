@@ -723,13 +723,14 @@ footer {
 
 /* Flat grey reads as a box. A faint radial makes the section feel lit. */
 .tinted {
-  background:
-    radial-gradient(120% 80% at 50% 0%, #ffffff 0%, var(--paper-alt) 60%);
+  background: radial-gradient(120% 80% at 50% 0%, #ffffff 0%, var(--paper-alt) 60%);
 }
 
 /* Cards lift rather than outline. Matches the specimen's existing treatment. */
 .tier {
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -18px rgb(0 0 0 / 0.18);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 12px 32px -18px rgb(0 0 0 / 0.18);
 }
 
 /* Sections settle into place on entry. Driven by an IntersectionObserver so the
@@ -938,16 +939,7 @@ footer {
   position: absolute;
   inset: 0 auto 0 0;
   width: 40%;
-  background: linear-gradient(
-    90deg,
-    #ff3b30,
-    #ff9500,
-    #ffcc00,
-    #34c759,
-    #007aff,
-    #af52de,
-    #ff3b30
-  );
+  background: linear-gradient(90deg, #ff3b30, #ff9500, #ffcc00, #34c759, #007aff, #af52de, #ff3b30);
   background-size: 200% 100%;
   animation:
     sweep 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite,
@@ -1121,8 +1113,12 @@ body > footer {
     0 1px 2px rgba(0, 0, 0, 0.04),
     0 8px 24px rgba(0, 0, 0, 0.05);
 }
-.pane.is-denied { color: #d4553d; }
-.pane.is-granted { color: #2f9e62; }
+.pane.is-denied {
+  color: #d4553d;
+}
+.pane.is-granted {
+  color: #2f9e62;
+}
 .pane-bar {
   display: flex;
   align-items: center;
@@ -1189,12 +1185,16 @@ body > footer {
   transform: scale(0.4);
 }
 /* Motion only once a scanner has the job. Queued stays calm. */
-.pane.is-active .pane-scan { animation: pane-sweep 2.4s ease-in-out infinite; }
+.pane.is-active .pane-scan {
+  animation: pane-sweep 2.4s ease-in-out infinite;
+}
 .pane.is-active .pane-dot {
   animation: pane-pop 3.6s ease-out infinite;
   animation-delay: calc(var(--i) * 0.35s);
 }
-.pane.is-granted.is-active .pane-scan { animation-delay: 1.2s; }
+.pane.is-granted.is-active .pane-scan {
+  animation-delay: 1.2s;
+}
 
 .scanstatus {
   display: flex;
@@ -1205,7 +1205,9 @@ body > footer {
   font-size: 0.95rem;
   color: rgba(0, 0, 0, 0.6);
 }
-.scanstatus-step { animation: step-in 0.4s ease both; }
+.scanstatus-step {
+  animation: step-in 0.4s ease both;
+}
 .scanstatus-time {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.8rem;
@@ -1214,33 +1216,73 @@ body > footer {
 }
 
 @keyframes pane-shimmer {
-  from { background-position: 100% 0; }
-  to { background-position: 0 0; }
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
 }
 @keyframes pane-sweep {
-  0% { top: 0; opacity: 0; }
-  15%, 85% { opacity: 0.55; }
-  100% { top: 100%; opacity: 0; }
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 0.55;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 @keyframes pane-pop {
-  0% { opacity: 0; transform: scale(0.4); }
-  12% { opacity: 1; transform: scale(1); }
-  70% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
 }
 @keyframes step-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 560px) {
-  .scanviz { grid-template-columns: 1fr; }
-  .pane-body { height: 96px; }
+  .scanviz {
+    grid-template-columns: 1fr;
+  }
+  .pane-body {
+    height: 96px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .pane *,
-  .scanstatus-step { animation: none !important; }
-  .pane.is-active .pane-dot { opacity: 1; transform: none; }
+  .scanstatus-step {
+    animation: none !important;
+  }
+  .pane.is-active .pane-dot {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Specimen sits outside .wrap, so it needs its own gutter on mobile. */

@@ -12,7 +12,9 @@ const crit = [...new Set(known.filter((x) => x.severity === "critical").map((x) 
 
 console.log(`  ${r.url}`);
 console.log(`  counts: ${JSON.stringify(r.counts)}`);
-console.log(`  CMP: ${r.cmp?.detected?.name ?? "NONE DETECTED"} (${r.cmp?.detected?.confidence ?? "-"}) | observed: ${states.join(",") || "?"} | gatedCorrectly: ${(r.correctlyGated ?? []).length}`);
+console.log(
+  `  CMP: ${r.cmp?.detected?.name ?? "NONE DETECTED"} (${r.cmp?.detected?.confidence ?? "-"}) | observed: ${states.join(",") || "?"} | gatedCorrectly: ${(r.correctlyGated ?? []).length}`,
+);
 console.log(`  critical vendors (${crit.length}): ${crit.sort().join(", ")}`);
 console.log(`  headline: ${r.headline}`);
 console.log(`  all vendors (${vendors.length})`);
