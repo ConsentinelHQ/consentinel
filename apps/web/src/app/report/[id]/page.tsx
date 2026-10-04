@@ -23,6 +23,16 @@ export default async function SharedReport({
       <section className="hero">
         <div className="wrap">
           <ScanResultView scanId={id} shareToken={t} />
+          <div className="report-cta">
+            <h3>Know the moment this changes.</h3>
+            <p className="quiet">
+              Consentinel rescans your site on a schedule and emails you when a new tag fires before
+              consent - before a regulator or a plaintiff finds it.
+            </p>
+            <a className="nav-cta" href="/pricing">
+              Start monitoring
+            </a>
+          </div>
         </div>
       </section>
       <footer>

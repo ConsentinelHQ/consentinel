@@ -181,6 +181,15 @@ function Report({
           : `No consent banner was found on ${hostOf(report.url)}, so everything below runs ungated.`}
       </p>
 
+      {/* Why it matters. GPC-specific, so only on reports observed under GPC. */}
+      {report.counts.critical > 0 && report.headline.includes("Global Privacy Control") && (
+        <p className="stakes">
+          Twelve US states, including California and New Jersey, legally require sites to honor
+          Global Privacy Control. California has settled with Sephora ($1.2M) and Healthline
+          ($1.55M) over opt-outs that did not work.
+        </p>
+      )}
+
       {actions}
 
       {(() => {
