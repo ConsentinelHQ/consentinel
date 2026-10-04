@@ -3,6 +3,7 @@
 import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
+import { joinList } from "@/lib/free-report";
 
 type State =
   | { kind: "loading"; status: string }
@@ -182,6 +183,19 @@ function Report({
 
       {actions}
 
+      {(() => {
+        const top = report.findings
+          .filter((f) => !f.locked && (f.triggers?.length ?? 0) >= 2)
+          .sort((a, b) => (b.triggers?.length ?? 0) - (a.triggers?.length ?? 0))[0];
+        if (!top?.triggers) return null;
+        return (
+          <p className="chain-callout">
+            <strong>One tag, {top.triggers.length + 1} findings.</strong> {top.vendor} also loads{" "}
+            {joinList(top.triggers)}. Fix it first and all of them stop.
+          </p>
+        );
+      })()}
+
       <div className="specimen" style={{ marginTop: "3rem" }}>
         <div className="specimen-head">
           <span className="specimen-url">{report.url}</span>
@@ -196,9 +210,9 @@ function Report({
           </span>
         </div>
         <ul className="ledger">
-          {report.findings.map((finding) => (
+          {orderByChain(report.findings).map((finding) => (
             <li
-              className={`row${finding.locked ? " locked" : ""}`}
+              className={`row${finding.locked ? " locked" : ""}${finding.causedBy ? " is-child" : ""}`}
               data-severity={finding.severity}
               key={finding.id}
             >
@@ -208,6 +222,12 @@ function Report({
                 {finding.title}
                 {finding.detail && finding.detail.length > 0 && (
                   <span className="row-detail">{finding.detail.join(", ")}</span>
+                )}
+                {finding.causedBy && (
+                  <span className="row-detail">Loaded by {finding.causedBy}</span>
+                )}
+                {finding.triggers && finding.triggers.length > 0 && (
+                  <span className="row-detail">Also loads {joinList(finding.triggers)}</span>
                 )}
               </span>
               <span className="row-vendor">{finding.severity}</span>
@@ -423,4 +443,21 @@ function labelFor(vendor: string): string {
     imperva: "Imperva",
   };
   return labels[vendor] ?? "Bot protection";
+}
+
+/** Each parent followed directly by the trackers it loaded. */
+function orderByChain<T extends { vendor: string; causedBy?: string }>(rows: readonly T[]): T[] {
+  const present = new Set(rows.map((r) => r.vendor));
+  const childrenOf = new Map<string, T[]>();
+  for (const r of rows) {
+    if (r.causedBy && present.has(r.causedBy)) {
+      childrenOf.set(r.causedBy, [...(childrenOf.get(r.causedBy) ?? []), r]);
+    }
+  }
+  const out: T[] = [];
+  for (const r of rows) {
+    if (r.causedBy && present.has(r.causedBy)) continue;
+    out.push(r, ...(childrenOf.get(r.vendor) ?? []));
+  }
+  return out;
 }

@@ -35,10 +35,12 @@ export function remediationFor(vendor: string): string {
     );
   }
 
+  const how = v.startsWith("google")
+    ? "Set Google Consent Mode defaults to denied so it waits for an opt-in."
+    : "Use your consent app's script blocking so it only loads after an opt-in.";
   const base =
     `Gate ${vendor} behind consent so it cannot load, send data, or set cookies until the ` +
-    `visitor opts in - Consent Mode default-denied for Google tags, your consent app's ` +
-    `script blocking for everything else.`;
+    `visitor opts in. ${how}`;
   return EMBEDS.some((e) => v.includes(e))
     ? `${base} If it comes from an embed, use the privacy-enhanced or click-to-load variant.`
     : base;

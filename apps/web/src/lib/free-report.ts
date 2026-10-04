@@ -15,6 +15,10 @@ import {
  * would mean the gate is a formality anyone can bypass in devtools.
  */
 export interface FreeFinding {
+  /** Flagged vendor that loaded this one, e.g. an ad network's cookie sync. */
+  causedBy?: string;
+  /** Vendors this one loads. Fixing it removes them too. */
+  triggers?: string[];
   id: string;
   type: string;
   severity: Severity;
@@ -223,6 +227,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     otherTitles: string[];
     evidence: string[];
     remediation: string[];
+    causedBy: string | null;
   }
 
   const groups = new Map<string, Group>();
@@ -241,12 +246,14 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
         otherTitles: [],
         evidence: [],
         remediation: [],
+        causedBy: null,
       };
       groups.set(vendor, g);
     }
 
     // Worst severity wins, so the gutter never understates the group.
     if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[g.severity]) g.severity = f.severity;
+    if (f.causedBy) g.causedBy = canonicalVendor(f.causedBy);
 
     const line = evidenceLine(f);
     if (line && !g.evidence.includes(line)) g.evidence.push(line);
@@ -261,6 +268,14 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
       if (f.type === "consent-signal-ignored") g.type = f.type;
     } else {
       g.otherTitles.push(f.title);
+    }
+  }
+
+  // Parent -> children, only where the parent is itself a finding on this page.
+  const triggersOf = new Map<string, string[]>();
+  for (const g of groups.values()) {
+    if (g.causedBy && g.causedBy !== g.vendor && groups.has(g.causedBy)) {
+      triggersOf.set(g.causedBy, [...(triggersOf.get(g.causedBy) ?? []), g.vendor]);
     }
   }
 
@@ -283,7 +298,9 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
       detail: [...g.cookies, ...g.otherTitles],
       evidence: g.evidence,
       // One vendor's findings usually share a fix. Keep them distinct if not.
-      remediation: g.remediation.join(" "),
+      remediation: remediationWithChain(g.vendor, g.remediation.join(" "), g.causedBy, triggersOf),
+      ...(g.causedBy && groups.has(g.causedBy) ? { causedBy: g.causedBy } : {}),
+      ...(triggersOf.has(g.vendor) ? { triggers: triggersOf.get(g.vendor) ?? [] } : {}),
       locked: false,
       lockedCount: 0,
     };
@@ -326,4 +343,27 @@ export function toFreeReport(result: ScanResult): FreeReport {
 
 export function toFullReport(result: ScanResult): FreeReport {
   return { ...toFullReportBase(result), gpc: observedUnderGpc(result) };
+}
+
+/** Children point at the parent; parents list what fixing them also clears. */
+function remediationWithChain(
+  vendor: string,
+  own: string,
+  causedBy: string | null,
+  triggersOf: Map<string, string[]>,
+): string {
+  if (causedBy && triggersOf.get(causedBy)?.includes(vendor)) {
+    return (
+      `${vendor} was loaded by ${causedBy}, not by your site directly. ` +
+      `Gate ${causedBy} behind consent and this stops with it.`
+    );
+  }
+  const kids = triggersOf.get(vendor);
+  if (kids && kids.length > 0) return `${own} Fixing it also stops ${joinList(kids)}.`;
+  return own;
+}
+
+export function joinList(items: readonly string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1] ?? ""}`;
 }

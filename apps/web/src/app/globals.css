@@ -1398,3 +1398,15 @@ dialog.confirm .confirm-body {
   color: #71717a;
   margin-bottom: 12px;
 }
+
+/* Tracker chains */
+.chain-callout {
+  margin-top: 2rem;
+  padding: 14px 18px;
+  border-left: 3px solid #b91c1c;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+.ledger .row.is-child {
+  margin-left: 28px;
+}
