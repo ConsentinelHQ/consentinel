@@ -2129,3 +2129,312 @@ dialog.confirm .confirm-body {
     padding-bottom: 0.75rem;
   }
 }
+
+/* Homepage badge is now a link */
+a.hero-badge {
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+a.hero-badge:hover {
+  background: rgba(112, 56, 255, 0.12);
+  border-color: rgba(112, 56, 255, 0.4);
+}
+
+/* GPC reference table */
+.law-table-wrap {
+  margin-top: 1.5rem;
+  overflow-x: auto;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  background: #fff;
+}
+.law-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.law-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6e6e73;
+  background: #fafafa;
+  border-bottom: 1px solid #e4e4e7;
+}
+.law-table td {
+  padding: 14px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid #f0f0f2;
+}
+.law-table tr:last-child td {
+  border-bottom: none;
+}
+.law-state {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.law-date {
+  white-space: nowrap;
+}
+.law-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #6e6e73;
+}
+
+/* GPC page: gradient wash hero with live stats */
+.gpc-hero {
+  position: relative;
+  overflow: hidden;
+}
+.gpc-hero-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    #7038ff 0%,
+    #6ec3f4 25%,
+    #ffffff 45%,
+    #ef008f 62%,
+    #ffba27 80%,
+    #00d68f 100%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 90%);
+}
+.gpc-hero .wrap {
+  position: relative;
+  z-index: 1;
+}
+.gpc-stats {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+@media (min-width: 720px) {
+  .gpc-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.gpc-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 1.25rem 1.25rem 1.1rem;
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(50, 20, 120, 0.08);
+}
+.gpc-stat-num {
+  font-size: clamp(2.5rem, 5vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.gpc-stat-label {
+  font-size: 14px;
+  color: #52525b;
+}
+
+/* GPC page: live browser check */
+.gpc-check {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-top: 1.75rem;
+  padding: 1.1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  text-align: left;
+}
+.gpc-check-dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #c4c4c8;
+}
+.gpc-check[data-state="on"] {
+  border-color: rgba(0, 168, 107, 0.35);
+  background: #f3fdf8;
+}
+.gpc-check[data-state="on"] .gpc-check-dot {
+  background: #00a86b;
+  animation: gpc-pulse 2s ease-out infinite;
+}
+.gpc-check-title {
+  margin: 0;
+  font-weight: 600;
+}
+.gpc-check-body {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #52525b;
+}
+@keyframes gpc-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 168, 107, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(0, 168, 107, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gpc-check-dot {
+    animation: none !important;
+  }
+}
+
+.gpc-stat-num {
+  color: #1d1d1f;
+}
+
+/* GPC stats: clickable cards */
+.gpc-stats button.gpc-stat {
+  width: 100%;
+  align-items: center;
+  text-align: center;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.72);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gpc-stats button.gpc-stat:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
+  color: inherit;
+  transform: translateY(-3px);
+  box-shadow: 0 26px 60px rgba(50, 20, 120, 0.14);
+}
+.gpc-stat-more {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5b2ee0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+.gpc-stats button.gpc-stat:hover .gpc-stat-more {
+  opacity: 1;
+}
+#states {
+  scroll-margin-top: 90px;
+}
+
+/* Stat detail modal */
+dialog.stat-dialog {
+  width: calc(100% - 32px);
+  max-width: 560px;
+  padding: 0;
+  border: none;
+  border-radius: 18px;
+  box-shadow: 0 30px 90px rgba(30, 10, 80, 0.25);
+}
+dialog.stat-dialog::backdrop {
+  background: rgba(24, 24, 27, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+dialog.stat-dialog[open] {
+  animation: stat-dialog-in 0.22s ease;
+}
+@keyframes stat-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stat-dialog-panel {
+  position: relative;
+  padding: 2rem 2rem 1.75rem;
+  text-align: left;
+}
+.stat-dialog-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7038ff, #6ec3f4, #ef008f, #ffba27, #00d68f);
+}
+dialog.stat-dialog button.stat-dialog-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  color: #52525b;
+  background: #f4f4f5;
+}
+dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
+  background: #e4e4e7;
+  color: #18181b;
+}
+.stat-dialog-value {
+  margin: 0 0 0.25rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.stat-dialog-panel h2 {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+}
+.stat-dialog-body p {
+  margin: 0 0 0.85rem;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #3f3f46;
+}
+.stat-dialog-jump {
+  display: inline-block;
+  margin: 0.25rem 0 0.5rem;
+  font-weight: 600;
+}
+.stat-dialog-sources-label {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8e8e93;
+}
+.stat-dialog-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.stat-dialog[open] {
+    animation: none;
+  }
+}

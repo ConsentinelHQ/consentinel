@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
 import { StripeGradient } from "@/components/stripe-gradient";
@@ -33,7 +34,9 @@ export default function Home() {
 
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <span className="hero-badge">12 states now require Global Privacy Control</span>
+            <Link className="hero-badge" href="/gpc">
+              12 states now require Global Privacy Control <span aria-hidden="true">&rarr;</span>
+            </Link>
             <h1>
               Your tags are firing before <span className="gradient-text">anyone said yes.</span>
             </h1>
