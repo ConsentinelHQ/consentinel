@@ -17,8 +17,12 @@ const STEPS = [
 ];
 const STEP_MS = 12_000;
 
-export function ScanProgress({ status }: { status: string }) {
-  const [startedAt] = useState(() => Date.now());
+export function ScanProgress({ status, since }: { status: string; since?: string }) {
+  // Count from when the scan really started, so a reload does not reset the clock.
+  const [startedAt] = useState(() => {
+    const t = since ? Date.parse(since) : NaN;
+    return Number.isNaN(t) ? Date.now() : Math.min(t, Date.now());
+  });
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
