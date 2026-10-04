@@ -47,7 +47,10 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
       )}
 
       <div className="site-actions">
-        <ScanNowButton siteId={site.id} />
+        <ScanNowButton
+          inFlight={scans.some((s) => s.status === "queued" || s.status === "running")}
+          siteId={site.id}
+        />
         <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
       </div>
 

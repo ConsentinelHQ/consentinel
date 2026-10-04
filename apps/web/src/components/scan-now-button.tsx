@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-export function ScanNowButton({ siteId }: { siteId: string }) {
+export function ScanNowButton({
+  siteId,
+  inFlight = false,
+}: {
+  siteId: string;
+  inFlight?: boolean;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +21,13 @@ export function ScanNowButton({ siteId }: { siteId: string }) {
     try {
       const response = await fetch(`/api/sites/${siteId}/scan`, { method: "POST" });
       if (!response.ok) {
-        const data = (await response.json()) as { error?: string };
+        const data = (await response.json()) as { error?: string; scanId?: string };
+        // Lost a race with another tab or a double click: the scan exists, just show it.
+        if (response.status === 409 && data.scanId) {
+          setBusy(false);
+          router.refresh();
+          return;
+        }
         setError(data.error ?? "Could not start that scan.");
         setBusy(false);
         return;
@@ -31,8 +43,8 @@ export function ScanNowButton({ siteId }: { siteId: string }) {
 
   return (
     <>
-      <button disabled={busy} onClick={() => void run()} type="button">
-        {busy ? "Starting" : "Scan now"}
+      <button disabled={busy || inFlight} onClick={() => void run()} type="button">
+        {inFlight ? "Scanning..." : busy ? "Starting..." : "Scan now"}
       </button>
       {error !== null && <p className="form-error">{error}</p>}
     </>

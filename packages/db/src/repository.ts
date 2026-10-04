@@ -480,3 +480,22 @@ export async function countMonitoredSites(db: Database, orgId: string): Promise<
     .where(and(eq(sites.orgId, orgId), ne(sites.schedule, "off"), isNull(sites.archivedAt)));
   return row?.n ?? 0;
 }
+
+/**
+ * A scan already queued or running for this site, if any. Ignores anything older
+ * than 30 minutes so one stuck row can never block a site forever.
+ */
+export async function getInFlightScanForSite(db: Database, siteId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ id: scans.id })
+    .from(scans)
+    .where(
+      and(
+        eq(scans.siteId, siteId),
+        sql`${scans.status} in ('queued', 'running')`,
+        gte(scans.queuedAt, new Date(Date.now() - 30 * 60 * 1000)),
+      ),
+    )
+    .limit(1);
+  return row?.id ?? null;
+}
