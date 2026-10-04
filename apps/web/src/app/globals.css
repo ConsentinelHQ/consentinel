@@ -1473,3 +1473,14 @@ dialog.confirm .confirm-body {
   display: inline-block;
   margin-top: 16px;
 }
+
+/* Secondary action inside setup panels */
+.allowlist button.btn-quiet {
+  background: transparent;
+  color: #3f3f46;
+  border: 1px solid #e4e4e7;
+}
+.allowlist button.btn-quiet:hover:not(:disabled) {
+  background: #f4f4f5;
+  color: #18181b;
+}

@@ -22,7 +22,8 @@ export async function alertOnRegression(
 ): Promise<void> {
   const scan = await getScan(db, scanId);
   if (!scan?.siteId) return; // anonymous public scan, nobody to tell
-  if (scan.trigger !== "scheduled") return;
+  // Scheduled and deploy-triggered scans alert; manual ones are the user looking already.
+  if (scan.trigger !== "scheduled" && scan.trigger !== "deploy") return;
 
   // Compare against the last 3 scans, not just the last one. Ad-tech syncs flicker:
   // a vendor missing from one scan and back in the next is not a regression, and

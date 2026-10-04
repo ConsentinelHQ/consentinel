@@ -554,3 +554,32 @@ export async function findPreviousScans(
     .orderBy(desc(scans.finishedAt))
     .limit(limit);
 }
+
+/** Site for a deploy hook token. Archived sites never match. */
+export async function getSiteByDeployHookToken(
+  db: Database,
+  token: string,
+): Promise<typeof sites.$inferSelect | undefined> {
+  const [site] = await db
+    .select()
+    .from(sites)
+    .where(and(eq(sites.deployHookToken, token), isNull(sites.archivedAt)))
+    .limit(1);
+  return site;
+}
+
+/** Issue a new deploy hook token. The old URL stops working immediately. */
+export async function rotateDeployHookToken(
+  db: Database,
+  siteId: string,
+  orgId: string,
+): Promise<string | null> {
+  const [row] = await db
+    .update(sites)
+    .set({
+      deployHookToken: sql`replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')`,
+    })
+    .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)))
+    .returning({ token: sites.deployHookToken });
+  return row?.token ?? null;
+}

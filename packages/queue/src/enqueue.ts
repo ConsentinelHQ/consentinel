@@ -4,7 +4,7 @@ import { assertScannableUrl } from "./safety.js";
 
 export interface EnqueueOptions {
   siteId?: string;
-  trigger?: "public" | "manual" | "scheduled";
+  trigger?: "public" | "manual" | "scheduled" | "deploy";
   /** Serve a recent identical scan instead of burning a worker slot. 0 disables. */
   cacheMaxAgeMs?: number;
   allowPrivate?: boolean;

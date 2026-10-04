@@ -1,0 +1,1 @@
+ALTER TABLE "sites" ADD COLUMN "deploy_hook_token" text DEFAULT replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '') NOT NULL;

@@ -8,6 +8,7 @@ import { ScanProgress } from "@/components/scan-progress";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { LocalTime } from "@/components/local-time";
 import { AllowlistPanel } from "@/components/allowlist-panel";
+import { DeployHookPanel } from "@/components/deploy-hook-panel";
 import { ArchiveSiteButton } from "@/components/archive-site-button";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
@@ -57,6 +58,8 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         <ScanNowButton inFlight={scans.some(isActive)} siteId={site.id} />
         <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
       </div>
+
+      <DeployHookPanel entitled={entitled} siteId={site.id} token={site.deployHookToken} />
 
       <AllowlistPanel open={scans[0]?.blockedBy != null} token={site.scanToken} />
 

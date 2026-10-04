@@ -126,6 +126,13 @@ export const sites = pgTable(
       .default(sql`replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')`),
     /** Soft delete. Hidden from lists and the scheduler; reports and share links keep working. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /**
+     * Secret in the "scan after deploy" URL. Separate from scanToken, which lives in
+     * the customer's Cloudflare config: this one can trigger work, so it rotates alone.
+     */
+    deployHookToken: text("deploy_hook_token")
+      .notNull()
+      .default(sql`replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')`),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -152,7 +159,7 @@ export type PlanStatus =
 export type ScanSchedule = "off" | "daily" | "weekly" | "monthly";
 
 export type ScanStatus = "queued" | "running" | "complete" | "failed";
-export type ScanTrigger = "public" | "manual" | "scheduled";
+export type ScanTrigger = "public" | "manual" | "scheduled" | "deploy";
 
 export const scans = pgTable(
   "scans",
