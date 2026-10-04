@@ -2438,3 +2438,16 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
     animation: none;
   }
 }
+
+/* Nav CTA: 1px brand-gradient border on the pill */
+.nav-cta {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    linear-gradient(90deg, #7038ff, #6ec3f4, #ef008f, #ffba27, #00d68f) border-box;
+}
+.nav-cta:hover {
+  background:
+    linear-gradient(var(--paper-alt), var(--paper-alt)) padding-box,
+    linear-gradient(90deg, #7038ff, #6ec3f4, #ef008f, #ffba27, #00d68f) border-box;
+}
