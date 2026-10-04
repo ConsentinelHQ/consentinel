@@ -95,6 +95,9 @@ importers:
       '@consentinel/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@consentinel/notify':
+        specifier: workspace:^
+        version: link:../../packages/notify
       '@consentinel/queue':
         specifier: workspace:*
         version: link:../../packages/queue
