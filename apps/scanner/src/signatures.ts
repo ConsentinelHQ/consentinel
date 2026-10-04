@@ -9,7 +9,7 @@ import type { VendorCategory } from "@consentinel/shared";
  * consentRequired=false means "recognised, never flagged". That is a deliberate
  * anti-false-positive tool, not an oversight - see the allowlist notes below.
  */
-export const SIGNATURE_LIBRARY_VERSION = "0.2.0";
+export const SIGNATURE_LIBRARY_VERSION = "0.3.0";
 
 export interface Signature {
   id: string;

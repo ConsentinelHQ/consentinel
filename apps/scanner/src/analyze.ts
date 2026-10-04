@@ -24,7 +24,7 @@ import type { RawScan, CapturedRequest } from "./scanner.js";
 import { remediationFor } from "./remediation.js";
 import { canonicalVendor } from "@consentinel/shared";
 
-export const ENGINE_VERSION = "0.1.0";
+export const ENGINE_VERSION = "0.2.0";
 
 const EMAIL_RE = /[A-Za-z0-9._%+-]+(?:@|%40)[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 

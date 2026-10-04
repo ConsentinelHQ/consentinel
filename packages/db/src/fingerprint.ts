@@ -14,8 +14,10 @@ export function fingerprintFinding(finding: Finding): string {
 
   switch (finding.evidence.kind) {
     case "request": {
-      // Host + path only. Query strings carry session and cache-busting noise.
-      parts.push(stableRequestKey(finding.evidence.url));
+      // Host only. Ad-tech puts random IDs in the PATH, not just the query
+      // (Adobe: /ibs:dpid=...&dpuuid=<random>), so host + path changed every scan.
+      // "This vendor fires pre-consent from this host" is the finding either way.
+      parts.push(hostKey(finding.evidence.url));
       break;
     }
     case "cookie":
@@ -36,6 +38,14 @@ function stableRequestKey(url: string): string {
   try {
     const u = new URL(url);
     return `${u.hostname.replace(/^www\./, "")}${u.pathname}`;
+  } catch {
+    return url;
+  }
+}
+
+function hostKey(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
   } catch {
     return url;
   }
