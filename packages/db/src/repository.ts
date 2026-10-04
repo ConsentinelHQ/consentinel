@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
 import type { ScanResult, Severity } from "@consentinel/shared";
 import type { Database } from "./client.js";
 import {
@@ -181,9 +181,17 @@ export async function countRecentScansForUrl(
   return row?.n ?? 0;
 }
 
+export interface DiffItem {
+  fingerprint: string;
+  vendor: string;
+  title: string;
+  severity: Severity;
+  remediation: string;
+}
+
 export interface ScanDiff {
-  added: Array<{ fingerprint: string; title: string; severity: Severity }>;
-  fixed: Array<{ fingerprint: string; title: string; severity: Severity }>;
+  added: DiffItem[];
+  fixed: DiffItem[];
   unchanged: number;
 }
 
@@ -193,29 +201,29 @@ export interface ScanDiff {
  */
 export async function diffScans(
   db: Database,
-  baseScanId: string,
+  /** One scan, or several: findings in ANY base count as already known. */
+  baseScanIds: string | string[],
   headScanId: string,
 ): Promise<ScanDiff> {
+  const bases = Array.isArray(baseScanIds) ? baseScanIds : [baseScanIds];
   const rows = await db
     .select({
       scanId: findings.scanId,
       fingerprint: findings.fingerprint,
+      vendor: findings.vendor,
       title: findings.title,
       severity: findings.severity,
+      remediation: findings.remediation,
     })
     .from(findings)
-    .where(sql`${findings.scanId} in (${baseScanId}::uuid, ${headScanId}::uuid)`);
+    .where(inArray(findings.scanId, [...bases, headScanId]));
 
   const base = new Map<string, (typeof rows)[number]>();
   const head = new Map<string, (typeof rows)[number]>();
-  for (const r of rows) (r.scanId === baseScanId ? base : head).set(r.fingerprint, r);
+  for (const r of rows) (r.scanId === headScanId ? head : base).set(r.fingerprint, r);
 
-  const added = [...head.values()]
-    .filter((r) => !base.has(r.fingerprint))
-    .map((r) => ({ fingerprint: r.fingerprint, title: r.title, severity: r.severity }));
-  const fixed = [...base.values()]
-    .filter((r) => !head.has(r.fingerprint))
-    .map((r) => ({ fingerprint: r.fingerprint, title: r.title, severity: r.severity }));
+  const added = [...head.values()].filter((r) => !base.has(r.fingerprint)).map(toItem);
+  const fixed = [...base.values()].filter((r) => !head.has(r.fingerprint)).map(toItem);
   const unchanged = [...head.keys()].filter((f) => base.has(f)).length;
 
   return { added, fixed, unchanged };
@@ -502,4 +510,47 @@ export async function getInFlightScanForSite(db: Database, siteId: string): Prom
     )
     .limit(1);
   return row?.id ?? null;
+}
+
+function toItem(r: {
+  fingerprint: string;
+  vendor: string;
+  title: string;
+  severity: Severity;
+  remediation: string;
+}): DiffItem {
+  return {
+    fingerprint: r.fingerprint,
+    vendor: r.vendor,
+    title: r.title,
+    severity: r.severity,
+    remediation: r.remediation,
+  };
+}
+
+/** The last few completed scans before this one, newest first. */
+export async function findPreviousScans(
+  db: Database,
+  siteId: string,
+  beforeScanId: string,
+  limit: number,
+): Promise<ScanRow[]> {
+  const [current] = await db
+    .select({ finishedAt: scans.finishedAt })
+    .from(scans)
+    .where(eq(scans.id, beforeScanId))
+    .limit(1);
+  if (!current?.finishedAt) return [];
+  return db
+    .select()
+    .from(scans)
+    .where(
+      and(
+        eq(scans.siteId, siteId),
+        eq(scans.status, "complete"),
+        lt(scans.finishedAt, current.finishedAt),
+      ),
+    )
+    .orderBy(desc(scans.finishedAt))
+    .limit(limit);
 }

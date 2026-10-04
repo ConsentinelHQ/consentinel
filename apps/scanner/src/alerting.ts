@@ -1,6 +1,6 @@
 import {
   diffScans,
-  findPreviousScan,
+  findPreviousScans,
   getScan,
   listAlertRecipients,
   type Database,
@@ -24,11 +24,18 @@ export async function alertOnRegression(
   if (!scan?.siteId) return; // anonymous public scan, nobody to tell
   if (scan.trigger !== "scheduled") return;
 
-  const previous = await findPreviousScan(db, scan.siteId, scanId);
+  // Compare against the last 3 scans, not just the last one. Ad-tech syncs flicker:
+  // a vendor missing from one scan and back in the next is not a regression, and
+  // two false alarms teach a customer to ignore the real one.
+  const previous = await findPreviousScans(db, scan.siteId, scanId, 3);
   // First scan for a site is the baseline, not a regression.
-  if (!previous) return;
+  if (previous.length === 0) return;
 
-  const diff = await diffScans(db, previous.id, scanId);
+  const diff = await diffScans(
+    db,
+    previous.map((p) => p.id),
+    scanId,
+  );
   const added = diff.added.filter((f) => f.severity === "critical");
   if (added.length === 0) return;
 
@@ -39,7 +46,12 @@ export async function alertOnRegression(
   const result = await sendRegressionAlert({
     to,
     siteUrl: scan.url,
-    added: added.map((f) => ({ title: f.title, severity: f.severity })),
+    added: added.map((f) => ({
+      vendor: f.vendor,
+      title: f.title,
+      severity: f.severity,
+      remediation: f.remediation,
+    })),
     reportUrl: `${config.APP_URL}/app/scans/${scanId}`,
   });
 
