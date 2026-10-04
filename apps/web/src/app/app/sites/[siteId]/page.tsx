@@ -26,6 +26,13 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
   const scans = await listScansForSite(db(), siteId, 20);
   const entitled = isEntitled(await getBillingState(db(), session.orgId));
 
+  // Matches the API's 30-minute window: a scan stuck longer than that is stalled,
+  // not in flight, so it can never lock the Scan now button forever.
+  const STALL_MS = 30 * 60 * 1000;
+  const isActive = (scan: (typeof scans)[number]): boolean =>
+    (scan.status === "queued" || scan.status === "running") &&
+    Date.now() - (scan.queuedAt ?? scan.startedAt ?? new Date()).getTime() < STALL_MS;
+
   return (
     <div className="wrap app-content">
       <p className="quiet">
@@ -47,16 +54,13 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
       )}
 
       <div className="site-actions">
-        <ScanNowButton
-          inFlight={scans.some((s) => s.status === "queued" || s.status === "running")}
-          siteId={site.id}
-        />
+        <ScanNowButton inFlight={scans.some(isActive)} siteId={site.id} />
         <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
       </div>
 
       <AllowlistPanel open={scans[0]?.blockedBy != null} token={site.scanToken} />
 
-      <AutoRefresh active={scans.some((s) => s.status === "queued" || s.status === "running")} />
+      <AutoRefresh active={scans.some(isActive)} />
 
       <h2 className="section-label">Scan history</h2>
 
@@ -76,7 +80,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
                 <span className="site-url">
                   {/* A queued scan has no finish time yet; show when it started. */}
                   {(() => {
-                    const d = scan.finishedAt ?? scan.startedAt;
+                    const d = scan.finishedAt ?? scan.startedAt ?? scan.queuedAt;
                     return d ? <LocalTime iso={d.toISOString()} /> : "just now";
                   })()}
                 </span>
@@ -85,11 +89,19 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
                     ? `${String(scan.criticalCount ?? 0)} critical`
                     : scan.status === "failed" && scan.blockedBy
                       ? blockedLabel(scan.blockedBy)
-                      : scan.status}
+                      : (scan.status === "queued" || scan.status === "running") && !isActive(scan)
+                        ? "stalled"
+                        : scan.status}
                 </span>
                 <span className="site-schedule">{scan.trigger}</span>
-                {(scan.status === "queued" || scan.status === "running") && (
-                  <ScanProgress status={scan.status} />
+                {isActive(scan) && (
+                  <ScanProgress
+                    key={scan.status}
+                    since={(
+                      (scan.status === "running" ? scan.startedAt : scan.queuedAt) ?? new Date()
+                    ).toISOString()}
+                    status={scan.status}
+                  />
                 )}
               </Link>
             </li>

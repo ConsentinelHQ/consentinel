@@ -128,12 +128,16 @@ export async function listScansForSite(
   siteId: string,
   limit = 50,
 ): Promise<ScanRow[]> {
-  return db
-    .select()
-    .from(scans)
-    .where(eq(scans.siteId, siteId))
-    .orderBy(desc(scans.finishedAt))
-    .limit(limit);
+  return (
+    db
+      .select()
+      .from(scans)
+      .where(eq(scans.siteId, siteId))
+      // Queue time exists on every scan; finish time is null until done, which sorted
+      // every unfinished scan to the top in arbitrary order.
+      .orderBy(desc(scans.queuedAt))
+      .limit(limit)
+  );
 }
 
 /**
