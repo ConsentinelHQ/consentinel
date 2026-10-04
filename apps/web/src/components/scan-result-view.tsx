@@ -472,8 +472,11 @@ function orderByChain<T extends { vendor: string; causedBy?: string }>(rows: rea
       childrenOf.set(r.causedBy, [...(childrenOf.get(r.causedBy) ?? []), r]);
     }
   }
+  // Biggest chain first: the one tag that explains the most findings leads the report.
+  const kids = (r: T): number => childrenOf.get(r.vendor)?.length ?? 0;
+  const ordered = [...rows].sort((a, b) => kids(b) - kids(a));
   const out: T[] = [];
-  for (const r of rows) {
+  for (const r of ordered) {
     if (r.causedBy && present.has(r.causedBy)) continue;
     out.push(r, ...(childrenOf.get(r.vendor) ?? []));
   }
