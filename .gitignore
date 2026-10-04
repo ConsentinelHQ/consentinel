@@ -61,3 +61,4 @@ Thumbs.db
 
 prospects*
 domains*.txt
+.env.production
