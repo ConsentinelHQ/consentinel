@@ -51,6 +51,10 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
       - run: pnpm format:check
+      # Type-aware lint resolves @consentinel/* through their compiled .d.ts files.
+      # On a clean checkout those do not exist yet, and every import reads as `any`.
+      - name: Build workspace packages for lint
+        run: pnpm turbo run build --filter="./packages/*"
       - run: pnpm lint
       # A generated migration that drifts from schema.ts is a silent prod failure.
       - name: Check migrations are in sync with schema
