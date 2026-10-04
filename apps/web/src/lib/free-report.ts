@@ -323,11 +323,11 @@ function observedUnderGpc(result: ScanResult): boolean {
 }
 
 export function toFreeReport(result: ScanResult): FreeReport {
-  return { ...toFreeReportBase(result), gpc: observedUnderGpc(result) };
+  return withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) });
 }
 
 export function toFullReport(result: ScanResult): FreeReport {
-  return { ...toFullReportBase(result), gpc: observedUnderGpc(result) };
+  return withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) });
 }
 
 /** Children point at the parent; parents list what fixing them also clears. */
@@ -358,4 +358,20 @@ function cookieLabel(f: Finding): string {
   return f.evidence.kind === "cookie"
     ? `${f.evidence.domain.replace(/^\./, "")} · ${f.vendor}`
     : f.vendor;
+}
+
+/**
+ * The scanner's headline counts trackers that fired; the report also lists cookie-only
+ * rows (Shopify, for example). Restate the number from the rows shown, so the headline
+ * and the list below it never disagree.
+ */
+function withRowCount(report: FreeReport): FreeReport {
+  const n = report.counts.critical + report.counts.warning + report.counts.info;
+  return {
+    ...report,
+    headline: report.headline.replace(
+      /^\d+ trackers?\b/,
+      `${String(n)} tracker${n === 1 ? "" : "s"}`,
+    ),
+  };
 }

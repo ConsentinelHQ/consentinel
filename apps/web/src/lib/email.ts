@@ -24,7 +24,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
   const top = rows
     .filter((f) => (f.triggers?.length ?? 0) >= 2)
     .sort((a, b) => (b.triggers?.length ?? 0) - (a.triggers?.length ?? 0))[0];
-  const gpc = report.headline.includes("Global Privacy Control") && report.counts.critical > 0;
+  const gpc = report.gpc && report.counts.critical > 0;
 
   const verdict =
     report.counts.critical > 0
@@ -99,7 +99,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
   return sendEmail({
     from: process.env["REPORT_FROM_EMAIL"] ?? "Consentinel <reports@consentinelhq.com>",
     to: [to],
-    subject: `${report.headline} on ${host}`,
+    subject: `${host}: ${report.headline}`,
     html,
     text,
   });

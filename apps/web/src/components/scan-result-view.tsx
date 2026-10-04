@@ -182,7 +182,7 @@ function Report({
       </p>
 
       {/* Why it matters. GPC-specific, so only on reports observed under GPC. */}
-      {report.counts.critical > 0 && report.headline.includes("Global Privacy Control") && (
+      {report.counts.critical > 0 && report.gpc && (
         <p className="stakes">
           Twelve US states, including California and New Jersey, legally require sites to honor
           Global Privacy Control. California has settled with Sephora ($1.2M) and Healthline
