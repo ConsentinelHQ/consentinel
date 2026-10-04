@@ -1,6 +1,5 @@
 import {
   canonicalVendor,
-  countBySeverity,
   type Finding,
   isUnattributed,
   SEVERITY_RANK,
@@ -73,80 +72,38 @@ function toFreeReportBase(result: ScanResult): FreeReport {
     ...new Set(result.findings.filter(isUnattributed).map((f) => f.vendor)),
   ];
 
-  const seenVendors = new Set<string>();
-  const previewIds = new Set<string>();
-  for (const f of attributed) {
-    if (previewIds.size >= PREVIEW_LIMIT) break;
-    if (seenVendors.has(f.vendor)) continue;
-    seenVendors.add(f.vendor);
-    previewIds.add(f.id);
-  }
-  for (const f of attributed) {
-    if (previewIds.size >= PREVIEW_LIMIT) break;
-    previewIds.add(f.id);
-  }
-
   /**
-   * Locked findings collapse to one row per vendor. Six YouTube cookies rendering as
-   * six identical "YouTube - locked" rows reads as repetition, not as six problems,
-   * and it tells the reader nothing about what the gate is withholding.
+   * Built from the same per-vendor rows as the full report, so a vendor appears
+   * once - previewed or locked, never both - and the counts match the full report.
    */
-  const findings: FreeFinding[] = [];
-  const lockedByVendor = new Map<string, { severity: Severity; count: number; id: string }>();
-
-  for (const f of attributed) {
-    if (previewIds.has(f.id)) {
-      findings.push({
-        id: f.id,
-        type: f.type,
-        severity: f.severity,
-        vendor: f.vendor,
-        title: f.title,
-        locked: false,
-        lockedCount: 0,
-      });
-      continue;
-    }
-    const vendorKey = canonicalVendor(f.vendor);
-    const existing = lockedByVendor.get(vendorKey);
-    if (existing) {
-      existing.count += 1;
-      // Keep the worst severity so the gutter does not understate the group.
-      if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[existing.severity]) {
-        existing.severity = f.severity;
-      }
-    } else {
-      lockedByVendor.set(vendorKey, { severity: f.severity, count: 1, id: f.id });
-    }
-  }
-
-  /**
-   * Show the worst handful of locked vendors, not all 35. A wall of "N findings
-   * locked" is not a stronger gate than a short one - it just buries the three
-   * real findings above it and reads as a paywall rather than a preview.
-   */
+  const grouped = [...groupByVendor(attributed)].sort(
+    (a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity],
+  );
+  const findings: FreeFinding[] = grouped.slice(0, PREVIEW_LIMIT).map((g) => ({
+    id: g.id,
+    type: g.type,
+    severity: g.severity,
+    vendor: g.vendor,
+    title: g.title,
+    ...(g.detail ? { detail: g.detail } : {}),
+    locked: false,
+    lockedCount: 0,
+  }));
+  const hidden = grouped.slice(PREVIEW_LIMIT);
+  // A short list of what is withheld reads as a preview; a wall of it reads as a paywall.
   const LOCKED_ROW_LIMIT = 6;
-  const ranked = [...lockedByVendor.entries()]
-    .sort(
-      (a, b) =>
-        SEVERITY_RANK[a[1].severity] - SEVERITY_RANK[b[1].severity] || b[1].count - a[1].count,
-    )
-    .slice(0, LOCKED_ROW_LIMIT);
-
-  for (const [vendor, group] of ranked) {
+  for (const g of hidden.slice(0, LOCKED_ROW_LIMIT)) {
     findings.push({
-      id: group.id,
+      id: g.id,
       type: "locked-group",
-      severity: group.severity,
-      vendor,
-      title:
-        group.count === 1
-          ? `${vendor} - 1 finding locked`
-          : `${vendor} - ${String(group.count)} findings locked`,
+      severity: g.severity,
+      vendor: g.vendor,
+      title: `${g.vendor} - details locked`,
       locked: true,
-      lockedCount: group.count,
+      lockedCount: 1,
     });
   }
+  const lockedTotal = hidden.length;
 
   return {
     scanId: result.scanId,
@@ -154,13 +111,13 @@ function toFreeReportBase(result: ScanResult): FreeReport {
     scannedAt: result.scannedAt,
     headline: result.headline,
     // Recounted: the header must match the list, or the numbers look made up.
-    counts: countBySeverity(attributed),
+    counts: countRows(grouped),
     cmpName: result.cmp.detected?.name ?? null,
     consentModePresent: result.cmp.consentMode.present,
     findings,
     correctlyGated: result.correctlyGated.map((g) => g.vendor),
     // Counts every hidden finding, including vendors not shown as rows.
-    lockedCount: [...lockedByVendor.values()].reduce((n, g) => n + g.count, 0),
+    lockedCount: lockedTotal,
     unattributedCookies,
   };
 }
