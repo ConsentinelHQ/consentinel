@@ -8,7 +8,7 @@ export interface RateLimitResult {
 }
 
 /**
- * Fixed-window counter in Redis. Scanning is the cost centre - a browser launch per
+ * Fixed-window counter in Redis. Scanning is the cost center - a browser launch per
  * request - so the free tier has to be defended or a single script drains the worker
  * pool and the bill. Cheap and good enough; a sliding window is a later refinement.
  */

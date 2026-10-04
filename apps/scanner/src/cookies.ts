@@ -227,7 +227,7 @@ export const COOKIE_SIGNATURES: CookieSignature[] = [
   /**
    * Vendors surfaced by a 20-site batch run, ranked by how often they appeared.
    * These were all landing in the unattributed pile, which is where credibility
-   * goes to die: the buyer sees noise instead of a vendor they recognise.
+   * goes to die: the buyer sees noise instead of a vendor they recognize.
    */
   {
     match: "_shopify_s",
@@ -670,7 +670,7 @@ export const COOKIE_SIGNATURES: CookieSignature[] = [
     consentRequired: false,
   },
 
-  // Fraud prevention and bot defence. Strictly necessary, same as payments.
+  // Fraud prevention and bot defense. Strictly necessary, same as payments.
   {
     match: "forterToken",
     matchType: "exact",

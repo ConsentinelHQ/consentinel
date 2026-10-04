@@ -258,7 +258,7 @@ export function analyze(raw: RawScan): ScanResult {
       category: sig?.category ?? "unknown",
       title: known
         ? `${sig.vendor} set ${describe(sig.category)} cookie "${c.name}" ${underPhrase}`
-        : `Unrecognised cookie "${c.name}" set ${underPhrase}`,
+        : `Unrecognized cookie "${c.name}" set ${underPhrase}`,
       detail: known
         ? `${sig.vendor} wrote "${c.name}" on ${c.domain} ${cookieWhen}.`
         : `Cookie "${c.name}" (domain ${c.domain}) was written ${cookieWhen}. We could not attribute it to a known vendor, so confirm whether it is strictly necessary.`,

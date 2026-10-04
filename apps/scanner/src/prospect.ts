@@ -204,7 +204,7 @@ async function findContact(domain: string): Promise<Contact | string> {
 }
 
 /**
- * Names a marketing lead recognises instantly go first. Finding count is a
+ * Names a marketing lead recognizes instantly go first. Finding count is a
  * poor proxy for alarm: 3 Attentive findings land softer than 1 Meta Pixel.
  */
 const PROMINENT = [

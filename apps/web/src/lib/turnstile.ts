@@ -4,7 +4,7 @@ import "server-only";
  * Cloudflare Turnstile verification.
  *
  * IP rate limiting stops a careless script, not a determined one - rotating IPs is
- * trivial and each scan costs us a browser launch. This is the actual cost defence
+ * trivial and each scan costs us a browser launch. This is the actual cost defense
  * on a public form.
  *
  * When no secret is configured we skip verification so local development works

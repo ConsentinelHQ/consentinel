@@ -110,7 +110,7 @@ export default function Home() {
 
       <footer>
         <div data-reveal className="wrap center">
-          Consentinel. Scan only sites you are authorised to test.
+          Consentinel. Scan only sites you are authorized to test.
         </div>
       </footer>
     </main>

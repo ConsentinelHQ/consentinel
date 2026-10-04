@@ -49,7 +49,7 @@ export const users = pgTable(
 );
 
 /**
- * An organisation owns sites and carries the subscription. Sites belong to orgs
+ * An organization owns sites and carries the subscription. Sites belong to orgs
  * rather than users from day one: an agency managing ten client stores is the
  * customer worth having when pricing is per site, and retrofitting orgs later
  * means a data migration plus an auth rewrite.

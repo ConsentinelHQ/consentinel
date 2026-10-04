@@ -400,7 +400,7 @@ function hostOf(url: string): string {
 
 /**
  * Where the rule lives, per vendor. Deliberately no match condition: cold scans do
- * not announce themselves, because CMPs that recognise a bot serve a reduced banner
+ * not announce themselves, because CMPs that recognize a bot serve a reduced banner
  * and corrupt the measurement. Ask first, then we scan from a known address.
  */
 const ALLOWLIST_STEPS: Record<string, string[]> = {

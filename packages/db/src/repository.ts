@@ -142,7 +142,7 @@ export async function listScansForSite(
 
 /**
  * Recent completed anonymous scan for a URL. Backs the free-tier cache so the
- * same domain is not re-scanned on every visit - scanning is the cost centre,
+ * same domain is not re-scanned on every visit - scanning is the cost center,
  * and protecting it is what lets the free tier stay free (Epic 2.4).
  */
 export async function findCachedScan(
@@ -318,7 +318,7 @@ export async function listSitesForOrg(db: Database, orgId: string): Promise<Site
 
 /**
  * Fetch a site only if it belongs to the given org. Scoping the read this way
- * means an authorisation bug cannot leak another org's data through a guessed
+ * means an authorization bug cannot leak another org's data through a guessed
  * UUID - the query simply returns nothing.
  */
 export async function getSiteForOrg(

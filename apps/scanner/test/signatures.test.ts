@@ -73,7 +73,7 @@ const neverFlagged = [
 for (const name of neverFlagged) {
   const sig = classifyCookie(name);
   checks.push([
-    `${name} recognised and never flagged`,
+    `${name} recognized and never flagged`,
     sig !== null && sig.consentRequired === false,
   ]);
 }
@@ -104,7 +104,7 @@ for (const [name, vendor] of attributed) {
 
 // Allowlist entries are the anti-false-positive tool. Losing one is a regression.
 checks.push([
-  "payment and bot-defence vendors stay unflagged",
+  "payment and bot-defense vendors stay unflagged",
   ["stripe", "paypal", "recaptcha", "turnstile", "klarna"].every(
     (id) => SIGNATURES.find((s) => s.id === id)?.consentRequired === false,
   ),

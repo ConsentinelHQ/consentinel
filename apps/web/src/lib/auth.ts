@@ -12,8 +12,8 @@ export interface Session {
  * Maps a Clerk session onto local rows, creating them on first sight.
  *
  * Clerk is the source of truth for identity; the local tables exist so sites and
- * scans can carry foreign keys. A user with no Clerk organisation gets a personal
- * one - a solo merchant should never have to think about "organisations" to use
+ * scans can carry foreign keys. A user with no Clerk organization gets a personal
+ * one - a solo merchant should never have to think about "organizations" to use
  * the product, but the schema stays uniform underneath.
  */
 export async function requireSession(): Promise<Session> {
@@ -36,7 +36,7 @@ export async function requireSession(): Promise<Session> {
 
   // Personal org fallback: keyed on the Clerk user id so it is stable and unique.
   const effectiveOrgKey = clerkOrgId ?? `personal:${clerkUserId}`;
-  const orgName = clerkOrgId ? (user?.username ?? "Organisation") : email || "Personal";
+  const orgName = clerkOrgId ? (user?.username ?? "Organization") : email || "Personal";
 
   let [localOrg] = await database
     .select()

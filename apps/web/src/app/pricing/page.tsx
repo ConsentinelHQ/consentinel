@@ -28,7 +28,7 @@ export default function Pricing() {
             <p className="tier-price">$0</p>
             <p className="tier-note">No account needed</p>
             <ul className="tier-list">
-              <li>Any single page, any site you are authorised to test</li>
+              <li>Any single page, any site you are authorized to test</li>
               <li>Two-pass scan: once refusing consent, once accepting</li>
               <li>Every tracker firing before consent, graded by risk</li>
               <li>Full findings by email</li>

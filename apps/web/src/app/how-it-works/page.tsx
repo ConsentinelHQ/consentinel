@@ -33,7 +33,7 @@ export default function HowItWorks() {
         <div className="wrap">
           <h1>We do not ask your site. We watch it.</h1>
           <p className="lede">
-            A consent banner records a choice. It does not prove anything was honoured. Consentinel
+            A consent banner records a choice. It does not prove anything was honored. Consentinel
             loads your site twice, under two different answers, and reports every difference between
             what you promised and what actually happened.
           </p>
@@ -144,7 +144,7 @@ export default function HowItWorks() {
               <h3>Never flagged</h3>
               <p>
                 Payment processors, bot protection, and strictly necessary cookies. These are lawful
-                before consent. Flagging them would be crying wolf, so we recognise them and stay
+                before consent. Flagging them would be crying wolf, so we recognize them and stay
                 quiet.
               </p>
             </div>
@@ -174,7 +174,7 @@ export default function HowItWorks() {
             </li>
             <li>
               <strong>We cannot attribute every cookie.</strong> Real sites set cookies we do not
-              recognise. We list them separately as evidence rather than counting them as findings,
+              recognize. We list them separately as evidence rather than counting them as findings,
               because we cannot prove they are non-essential and guessing would waste your time.
             </li>
             <li>

@@ -1,49 +1,15 @@
 import "server-only";
-import {
-  countBySeverity,
-  isUnattributed,
-  type Finding,
-  type ScanResult,
-  type Severity,
-} from "@consentinel/shared";
+import { appUrl, esc, hostOf, renderEmail, sendEmail, type SendResult } from "@consentinel/notify";
+import type { ScanResult, Severity } from "@consentinel/shared";
+import { joinList, toFullReport, type FreeFinding } from "@/lib/free-report";
 
 /**
- * Report delivery via Resend's REST API. No SDK: one fetch call, one fewer
- * dependency in a bundle we ship to a serverless runtime.
- *
- * Delivery must never block the unlock. If mail fails, the person still sees their
- * report in the page - losing the lead AND the report because an API was down is
- * the worst of both outcomes.
+ * The full report, emailed to a lead who unlocked it. Built from the same grouped
+ * report the web page renders, so the email and the page can never disagree.
+ * Delivery must never block the unlock: if mail fails, the page still shows it.
  */
 
-const ENDPOINT = "https://api.resend.com/emails";
-
-export type SendResult = { sent: true } | { sent: false; reason: string };
-
-export async function sendReportEmail(to: string, result: ScanResult): Promise<SendResult> {
-  const apiKey = process.env["RESEND_API_KEY"];
-  if (!apiKey) return { sent: false, reason: "RESEND_API_KEY not configured" };
-
-  const from = process.env["REPORT_FROM_EMAIL"] ?? "Consentinel <reports@consentinel.dev>";
-
-  try {
-    const response = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject: `${result.headline} on ${hostOf(result.url)}`,
-        html: renderReportHtml(result),
-        text: renderReportText(result),
-      }),
-    });
-    if (!response.ok) return { sent: false, reason: `Resend returned ${response.status}` };
-    return { sent: true };
-  } catch (error) {
-    return { sent: false, reason: error instanceof Error ? error.message : "send failed" };
-  }
-}
+export type { SendResult };
 
 const COLOR: Record<Severity, string> = {
   critical: "#d70015",
@@ -51,111 +17,121 @@ const COLOR: Record<Severity, string> = {
   info: "#6e6e73",
 };
 
-function renderReportHtml(result: ScanResult): string {
-  // Same split as the web report: unattributed cookies are evidence, not findings.
-  const attributed = result.findings.filter((f) => !isUnattributed(f));
-  const unattributed = result.findings.filter(isUnattributed).map((f) => esc(f.vendor));
-  const rows = attributed.map(renderFinding).join("");
-  const gated = result.correctlyGated.map((g) => esc(g.vendor)).join(", ");
-  // Recounted from attributed findings so the email matches the page.
-  const counts = countBySeverity(attributed);
+export async function sendReportEmail(to: string, result: ScanResult): Promise<SendResult> {
+  const report = toFullReport(result);
+  const host = hostOf(report.url);
+  const rows = orderByChain(report.findings.filter((f) => !f.locked));
+  const top = rows
+    .filter((f) => (f.triggers?.length ?? 0) >= 2)
+    .sort((a, b) => (b.triggers?.length ?? 0) - (a.triggers?.length ?? 0))[0];
+  const gpc = report.headline.includes("Global Privacy Control") && report.counts.critical > 0;
 
-  return `<!doctype html>
-<html><body style="margin:0;background:#f5f5f7;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:#1d1d1f">
-  <div style="max-width:640px;margin:0 auto;padding:32px 20px">
-    <h1 style="font-size:28px;line-height:1.15;letter-spacing:-0.03em;margin:0 0 8px">${esc(result.headline)}</h1>
-    <p style="margin:0 0 4px;color:#6e6e73;font-size:15px">${esc(result.url)}</p>
-    <p style="margin:0 0 28px;color:#6e6e73;font-size:15px">
-      ${counts.critical} critical, ${counts.warning} to clean up.
-      ${result.cmp.detected ? `Consent platform: ${esc(result.cmp.detected.name)}.` : "No consent platform detected."}
-    </p>
-    ${rows}
-    ${gated ? `<p style="margin:28px 0 0;color:#00795c;font-size:14px">Correctly gated: ${gated}</p>` : ""}
+  const verdict =
+    report.counts.critical > 0
+      ? `${String(report.counts.critical)} critical, ${String(report.counts.warning)} to clean up`
+      : report.counts.warning > 0
+        ? `${String(report.counts.warning)} to clean up, nothing critical`
+        : "Nothing firing before consent";
+
+  const lede = report.cmpName
+    ? `${report.cmpName} is installed on ${host}, and these trackers ran anyway.`
+    : `No consent banner was found on ${host}, so everything below runs ungated.`;
+
+  const stakes =
+    "Twelve US states, including California and New Jersey, legally require sites to honor " +
+    "Global Privacy Control. California has settled with Sephora ($1.2M) and Healthline ($1.55M) " +
+    "over opt-outs that did not work.";
+
+  const callout = top?.triggers
+    ? `One tag, ${String(top.triggers.length + 1)} findings. ${top.vendor} also loads ${joinList(top.triggers)}. Fix it first and all of them stop.`
+    : null;
+
+  const bodyHtml = `
+    <h1 style="font-size:24px;line-height:1.2;letter-spacing:-0.02em;margin:0 0 10px">${esc(report.headline)}</h1>
+    <p style="margin:0 0 12px;color:#3f3f46;font-size:15px;line-height:1.5">${esc(lede)}</p>
+    ${gpc ? `<p style="margin:0 0 16px;color:#3f3f46;font-size:14px;line-height:1.5">${esc(stakes)}</p>` : ""}
+    ${callout ? `<p style="margin:0 0 20px;padding:12px 14px;background:#fef2f2;border-left:3px solid #b91c1c;border-radius:6px;font-size:14px;line-height:1.5">${esc(callout)}</p>` : ""}
+    <p style="margin:0 0 14px;font-size:13px;color:#6e6e73">${esc(report.url)} &middot; <strong style="color:#1d1d1f">${esc(verdict)}</strong></p>
+    ${rows.map(renderRow).join("")}
     ${
-      unattributed.length
-        ? `<p style="margin:28px 0 0;color:#6e6e73;font-size:13px;line-height:1.6">
-             ${unattributed.length} more cookies were set before consent that we could not
-             attribute to a known vendor. Confirm whether each is strictly necessary:
-             <br><span style="font-family:ui-monospace,monospace;font-size:12px">${unattributed.join(", ")}</span>
-           </p>`
+      report.correctlyGated.length > 0
+        ? `<p style="margin:20px 0 0;color:#00795c;font-size:14px">Stopped correctly: ${esc(report.correctlyGated.join(", "))}</p>`
         : ""
     }
-    <p style="margin:32px 0 0;color:#6e6e73;font-size:12px;line-height:1.5">
-      Scanned ${esc(result.scannedAt)} with engine ${esc(result.engineVersion)},
-      signatures ${esc(result.signatureLibraryVersion)}.
-      Every finding above includes the request or cookie that proves it.
-    </p>
-  </div>
-</body></html>`;
-}
+    ${
+      report.unattributedCookies.length > 0
+        ? `<p style="margin:16px 0 0;color:#6e6e73;font-size:13px;line-height:1.6">${String(report.unattributedCookies.length)} more cookies we could not attribute to a known vendor. Confirm whether each is strictly necessary:<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px">${esc(report.unattributedCookies.join(", "))}</span></p>`
+        : ""
+    }
+    <div style="margin:28px 0 0;padding:20px;border:1px solid #e4e4e7;border-radius:12px">
+      <p style="margin:0 0 6px;font-size:16px;font-weight:600">Know the moment this changes.</p>
+      <p style="margin:0 0 14px;color:#6e6e73;font-size:14px;line-height:1.5">Consentinel rescans your site on a schedule and emails you when a new tag fires before consent, before a regulator or a plaintiff finds it.</p>
+      <a href="${esc(appUrl())}/pricing" style="display:inline-block;padding:11px 18px;background:#1d1d1f;color:#ffffff;text-decoration:none;border-radius:10px;font-size:14px">Start monitoring</a>
+    </div>`;
 
-function renderFinding(finding: Finding): string {
-  return `<div style="background:#fff;border-left:3px solid ${COLOR[finding.severity]};border-radius:6px;padding:16px 18px;margin-bottom:10px">
-  <p style="margin:0 0 6px;font-size:16px;font-weight:600;letter-spacing:-0.01em">${esc(finding.title)}</p>
-  <p style="margin:0 0 10px;font-size:14px;color:#6e6e73;line-height:1.45">${esc(finding.detail)}</p>
-  <p style="margin:0 0 10px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#1d1d1f;background:#f5f5f7;padding:8px 10px;border-radius:4px;word-break:break-all">${esc(evidenceLine(finding))}</p>
-  <p style="margin:0;font-size:14px;line-height:1.45"><strong>Fix:</strong> ${esc(finding.remediation)}</p>
-</div>`;
-}
-
-/** The evidence line is the product. Without it this is just an opinion. */
-function evidenceLine(finding: Finding): string {
-  const e = finding.evidence;
-  switch (e.kind) {
-    case "request":
-      return `${e.method} ${e.url}${e.matched ? `  (matched: ${e.matched})` : ""}`;
-    case "cookie":
-      return `Cookie ${e.name} on ${e.domain} (${e.firstParty ? "first" : "third"}-party)`;
-    case "script":
-      return `Script ${e.src}${e.documented ? "" : " (undocumented)"}`;
-    case "credential":
-      return `Credential in ${e.location}: ${e.tokenPreview}`;
-    case "cmp":
-      return e.detail;
-  }
-}
-
-function renderReportText(result: ScanResult): string {
-  const attributed = result.findings.filter((f) => !isUnattributed(f));
-  const unattributed = result.findings.filter(isUnattributed).map((f) => f.vendor);
-  const counts = countBySeverity(attributed);
-  const lines = [
-    result.headline,
-    result.url,
-    `${counts.critical} critical, ${counts.warning} to clean up`,
+  const bodyText = [
+    report.headline,
+    lede,
+    ...(gpc ? ["", stakes] : []),
+    ...(callout ? ["", callout] : []),
     "",
-  ];
-  for (const f of attributed) {
-    lines.push(
-      `[${f.severity.toUpperCase()}] ${f.title}`,
-      `  ${evidenceLine(f)}`,
-      `  Fix: ${f.remediation}`,
+    `${report.url} - ${verdict}`,
+    "",
+    ...rows.flatMap((f) => [
+      `[${f.severity.toUpperCase()}] ${f.title}${f.causedBy ? ` (loaded by ${f.causedBy})` : ""}`,
+      ...(f.evidence ?? []).slice(0, 3).map((e) => `  ${e}`),
+      ...(f.remediation ? [`  Fix: ${f.remediation}`] : []),
       "",
-    );
-  }
-  if (unattributed.length > 0) {
-    lines.push(
-      `${unattributed.length} cookies set before consent that we could not attribute.`,
-      "Confirm whether each is strictly necessary:",
-      `  ${unattributed.join(", ")}`,
-      "",
-    );
-  }
-  return lines.join("\n");
+    ]),
+    ...(report.correctlyGated.length > 0
+      ? [`Stopped correctly: ${report.correctlyGated.join(", ")}`, ""]
+      : []),
+    `Start monitoring: ${appUrl()}/pricing`,
+  ].join("\n");
+
+  const { html, text } = renderEmail({
+    preheader: callout ?? verdict,
+    bodyHtml,
+    bodyText,
+    reason: `You are receiving this because you requested a Consentinel report for ${host}.`,
+  });
+
+  return sendEmail({
+    from: process.env["REPORT_FROM_EMAIL"] ?? "Consentinel <reports@consentinelhq.com>",
+    to: [to],
+    subject: `${report.headline} on ${host}`,
+    html,
+    text,
+  });
 }
 
-function hostOf(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
+function renderRow(f: FreeFinding): string {
+  const evidence = (f.evidence ?? [])
+    .slice(0, 3)
+    .map((e) => (e.length > 140 ? `${e.slice(0, 140)}...` : e));
+  return `<div style="margin:0 0 10px${f.causedBy ? ";margin-left:20px" : ""};padding:14px 16px;background:#fafafa;border-left:3px solid ${COLOR[f.severity]};border-radius:6px">
+    <p style="margin:0 0 4px;font-size:15px;font-weight:600">${esc(f.title)}</p>
+    ${f.causedBy ? `<p style="margin:0 0 6px;font-size:13px;color:#6e6e73">Loaded by ${esc(f.causedBy)}</p>` : ""}
+    ${f.triggers && f.triggers.length > 0 ? `<p style="margin:0 0 6px;font-size:13px;color:#6e6e73">Also loads ${esc(joinList(f.triggers))}</p>` : ""}
+    ${evidence.map((e) => `<p style="margin:0 0 4px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#3f3f46;word-break:break-all">${esc(e)}</p>`).join("")}
+    ${f.remediation ? `<p style="margin:8px 0 0;font-size:14px;line-height:1.5"><strong>Fix:</strong> ${esc(f.remediation)}</p>` : ""}
+  </div>`;
 }
 
-function esc(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+/** Each parent followed directly by the trackers it loaded, biggest chain first. */
+function orderByChain(rows: readonly FreeFinding[]): FreeFinding[] {
+  const present = new Set(rows.map((r) => r.vendor));
+  const childrenOf = new Map<string, FreeFinding[]>();
+  for (const r of rows) {
+    if (r.causedBy && present.has(r.causedBy)) {
+      childrenOf.set(r.causedBy, [...(childrenOf.get(r.causedBy) ?? []), r]);
+    }
+  }
+  const kids = (r: FreeFinding): number => childrenOf.get(r.vendor)?.length ?? 0;
+  const out: FreeFinding[] = [];
+  for (const r of [...rows].sort((a, b) => kids(b) - kids(a))) {
+    if (r.causedBy && present.has(r.causedBy)) continue;
+    out.push(r, ...(childrenOf.get(r.vendor) ?? []));
+  }
+  return out;
 }

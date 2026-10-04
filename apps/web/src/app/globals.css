@@ -5,12 +5,12 @@
   --ink: #1d1d1f;
   --ink-soft: #6e6e73;
   --hairline: #d2d2d7;
-  /* Primary actions are ink, not a hue. Colour is reserved for severity - a blue
-     button competes with the three colours that actually carry meaning. */
+  /* Primary actions are ink, not a hue. Color is reserved for severity - a blue
+     button competes with the three colors that actually carry meaning. */
   --accent: #1d1d1f;
   --accent-hover: #3a3a3c;
 
-  /* Verdict palette. Colour carries meaning here, never decoration. */
+  /* Verdict palette. Color carries meaning here, never decoration. */
   --critical: #d70015;
   --warning: #b25000;
   --gated: #00795c;
@@ -245,7 +245,7 @@ button:disabled {
   white-space: nowrap;
 }
 
-/* A clean scan must not be rendered in the colour of failure. */
+/* A clean scan must not be rendered in the color of failure. */
 .verdict.pass {
   color: var(--gated);
 }
@@ -566,7 +566,7 @@ footer {
   height: 100%;
 }
 
-/* The audit is the tier we want read first. Weight, not colour. */
+/* The audit is the tier we want read first. Weight, not color. */
 .tier.featured {
   border-color: var(--ink);
   box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.28);
@@ -721,7 +721,7 @@ footer {
 
 /* ---------- depth and motion ---------- */
 
-/* Flat grey reads as a box. A faint radial makes the section feel lit. */
+/* Flat gray reads as a box. A faint radial makes the section feel lit. */
 .tinted {
   background: radial-gradient(120% 80% at 50% 0%, #ffffff 0%, var(--paper-alt) 60%);
 }
@@ -749,7 +749,7 @@ footer {
   }
 }
 
-/* Clerk renders its own card; this just centres it in our layout. */
+/* Clerk renders its own card; this just centers it in our layout. */
 .auth-wrap {
   display: flex;
   justify-content: center;

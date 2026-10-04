@@ -47,7 +47,7 @@ export interface ScanOptions {
   /**
    * Send Global Privacy Control on the denied pass: a `Sec-GPC: 1` header on
    * every request and navigator.globalPrivacyControl = true. Off by default
-   * until measured, because a CMP that honours GPC may suppress its banner and
+   * until measured, because a CMP that honors GPC may suppress its banner and
    * change what a reject-click scan observes.
    */
   gpc?: boolean;

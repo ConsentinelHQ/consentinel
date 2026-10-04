@@ -91,7 +91,7 @@ export type Evidence =
     }
   | { kind: "script"; src: string; documented: boolean; integrity?: string }
   | { kind: "credential"; location: string; tokenPreview: string }
-  /** The consent platform's own observed behaviour, rather than a request or cookie. */
+  /** The consent platform's own observed behavior, rather than a request or cookie. */
   | { kind: "cmp"; platform: string; bannerShown: boolean; detail: string };
 
 /** Google Consent Mode state observed on the proving request, if any. */

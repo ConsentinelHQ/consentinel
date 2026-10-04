@@ -13,6 +13,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.9.2",
     "@consentinel/db": "workspace:*",
+    "@consentinel/notify": "workspace:^",
     "@consentinel/queue": "workspace:*",
     "@consentinel/shared": "workspace:*",
     "@sentry/nextjs": "^10.74.0",

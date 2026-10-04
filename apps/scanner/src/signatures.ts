@@ -6,7 +6,7 @@ import type { VendorCategory } from "@consentinel/shared";
  * ORDER MATTERS. classify() returns the FIRST match, so the allowlist block runs
  * before anything that could shadow it (google.com/recaptcha before google.com/ads).
  *
- * consentRequired=false means "recognised, never flagged". That is a deliberate
+ * consentRequired=false means "recognized, never flagged". That is a deliberate
  * anti-false-positive tool, not an oversight - see the allowlist notes below.
  */
 export const SIGNATURE_LIBRARY_VERSION = "0.3.0";
@@ -22,10 +22,10 @@ export interface Signature {
 
 export const SIGNATURES: Signature[] = [
   // ---------------------------------------------------------------------------
-  // ALLOWLIST - recognised, never flagged. Must stay first.
+  // ALLOWLIST - recognized, never flagged. Must stay first.
   // ---------------------------------------------------------------------------
 
-  // Bot defence and payments. Strictly necessary; flagging these is crying wolf.
+  // Bot defense and payments. Strictly necessary; flagging these is crying wolf.
   {
     id: "recaptcha",
     vendor: "Google reCAPTCHA",
@@ -108,7 +108,7 @@ export const SIGNATURES: Signature[] = [
   },
 
   /**
-   * Live chat and helpdesk: recognised, deliberately not flagged.
+   * Live chat and helpdesk: recognized, deliberately not flagged.
    *
    * Whether a chat widget is "strictly necessary" is genuinely contested, and a
    * request finding is hardcoded critical. A contested critical on a site that is
