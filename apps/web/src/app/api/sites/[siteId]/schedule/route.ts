@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getBillingState, getSiteForOrg, isEntitled, setSiteSchedule } from "@consentinel/db";
+import {
+  countMonitoredSites,
+  getBillingState,
+  getSiteForOrg,
+  isEntitled,
+  setSiteSchedule,
+} from "@consentinel/db";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 
@@ -32,6 +38,20 @@ export async function POST(
         { error: "Scheduled scans need a monitoring plan." },
         { status: 402 },
       );
+    }
+    // $99 is per monitored site. Changing the cadence of an already-monitored
+    // site is free; adding a new one needs a free slot.
+    if (site.schedule === "off" && billing) {
+      const used = await countMonitoredSites(db(), session.orgId);
+      if (used >= billing.planQuantity) {
+        const q = billing.planQuantity;
+        return NextResponse.json(
+          {
+            error: `Your plan covers ${String(q)} monitored site${q === 1 ? "" : "s"}. Add sites to your plan in Billing, or switch another site to manual.`,
+          },
+          { status: 402 },
+        );
+      }
     }
   }
 

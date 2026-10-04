@@ -449,7 +449,7 @@ export async function setSiteArchived(
 ): Promise<void> {
   await db
     .update(sites)
-    .set({ archivedAt: archived ? new Date() : null })
+    .set(archived ? { archivedAt: new Date() } : { archivedAt: null, schedule: "off" })
     .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
 }
 
@@ -470,4 +470,13 @@ export async function listArchivedSitesForOrg(
     .from(sites)
     .where(and(eq(sites.orgId, orgId), isNotNull(sites.archivedAt)))
     .orderBy(desc(sites.archivedAt));
+}
+
+/** Sites an org is paying to monitor: scheduled and not archived. */
+export async function countMonitoredSites(db: Database, orgId: string): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(sites)
+    .where(and(eq(sites.orgId, orgId), ne(sites.schedule, "off"), isNull(sites.archivedAt)));
+  return row?.n ?? 0;
 }
