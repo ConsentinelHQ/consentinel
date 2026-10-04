@@ -1,11 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ScanForm } from "@/components/scan-form";
+import { StripeGradient } from "@/components/stripe-gradient";
 
 export const metadata: Metadata = {
   title: "How it works - Consentinel",
   description:
     "Consentinel loads your site twice, once refusing consent and once accepting it, and reports every tracker that ignored the difference. Every finding carries the request or cookie that proves it.",
 };
+
+const BRAND = ["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"];
+
+// Anonymized from a real store: one ad tag pulled in eight more through cookie syncs.
+const CHAIN = [
+  "BidSwitch",
+  "Neustar (TransUnion)",
+  "Nielsen eXelate",
+  "NinthDecimal",
+  "Digital Audience",
+  "Taboola",
+  "Xandr (AppNexus)",
+  "Comscore",
+];
+
+// The two-pass diff, row by row. Fired in both = ignored the refusal.
+const DIFF = [
+  { name: "Meta Pixel", refused: true },
+  { name: "Amazon Ads", refused: true },
+  { name: "Klaviyo", refused: true },
+  { name: "TikTok Pixel", refused: false },
+  { name: "Pinterest Tag", refused: false },
+];
 
 // Real evidence, not an illustration. The method is the product's credibility.
 const EVIDENCE = [
@@ -42,40 +67,67 @@ export default function HowItWorks() {
 
       <section className="tinted">
         <div data-reveal className="wrap">
-          <h2 className="center">The two-pass scan</h2>
-          <ol className="method">
-            <li>
-              <h3>Pass one: refuse</h3>
-              <p>
-                A real browser loads your page. We detect your consent platform, find the reject
-                control, and click it. Then we record every network request that leaves the page and
-                every cookie written to it.
+          <div className="method-split">
+            <div className="method-steps">
+              <h2>The two-pass scan</h2>
+              <p className="lede" style={{ marginTop: "1rem" }}>
+                Your banner records a choice. We check whether anything listened.
               </p>
-              <p className="quiet">
-                Anything that fires here fired against an explicit refusal. That is the finding
-                regulators act on.
-              </p>
-            </li>
-            <li>
-              <h3>Pass two: accept</h3>
-              <p>
-                The same page, the same browser, the opposite answer. We record the same two things
-                again.
-              </p>
-              <p className="quiet">
-                This pass is what stops us crying wolf. A tag that appears only here is behaving
-                correctly, and we say so by name.
-              </p>
-            </li>
-            <li>
-              <h3>The difference is the report</h3>
-              <p>
-                Everything present in both passes ignored the choice. Everything present only in the
-                second pass is correctly gated. The gap between them is your exposure, and it is
-                measured rather than assumed.
-              </p>
-            </li>
-          </ol>
+              <ol className="steps">
+                <li>
+                  <span className="step-num">1</span>
+                  <div>
+                    <h3>Refuse</h3>
+                    <p>
+                      A real browser loads your page, clicks reject, and records every request and
+                      cookie.
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <span className="step-num">2</span>
+                  <div>
+                    <h3>Accept</h3>
+                    <p>Same page, same browser, the opposite answer. Recorded again.</p>
+                  </div>
+                </li>
+                <li>
+                  <span className="step-num">3</span>
+                  <div>
+                    <h3>Compare</h3>
+                    <p>
+                      Firing both times means it ignored the refusal. Firing only after accepting
+                      means it waited, and we say so by name.
+                    </p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+
+            <div className="diff" aria-hidden="true">
+              <div className="diff-head">
+                <span>Tracker</span>
+                <span>Refused</span>
+                <span>Accepted</span>
+                <span>Verdict</span>
+              </div>
+              {DIFF.map((row, i) => (
+                <div
+                  className="diff-row"
+                  data-s={row.refused ? "bad" : "ok"}
+                  key={row.name}
+                  style={{ animationDelay: `${String(i * 110)}ms` }}
+                >
+                  <span className="diff-name">{row.name}</span>
+                  <span className={`diff-dot${row.refused ? " on" : ""}`} />
+                  <span className="diff-dot on" />
+                  <span className="diff-verdict">
+                    {row.refused ? "Ignored your refusal" : "Waited for consent"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -108,6 +160,46 @@ export default function HowItWorks() {
                       <span className="proof">{row.proof}</span>
                     </span>
                     <span className="row-vendor">{row.severity}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <h2>One tag can bring eight more.</h2>
+              <p className="lede" style={{ marginTop: "1.25rem" }}>
+                Ad tags rarely travel alone. One pixel loads a sync frame, the frame calls a dozen
+                partners, and each partner sets its own cookies. Fix them one at a time and you will
+                be chasing symptoms.
+              </p>
+              <p style={{ marginTop: "1.25rem" }}>
+                Consentinel traces every tracker back to the tag that loaded it. On one real store,
+                a single advertising tag was responsible for nine findings, so the report puts that
+                one fix first.
+              </p>
+            </div>
+            <div className="specimen" aria-hidden="true">
+              <div className="specimen-head">
+                <span className="specimen-url">one tag, 9 findings</span>
+                <span className="verdict">fix this first</span>
+              </div>
+              <ul className="ledger">
+                <li className="row" data-severity="critical">
+                  <span className="gutter" />
+                  <span className="row-title">Amazon Advertising fires before consent</span>
+                  <span className="row-vendor">root</span>
+                </li>
+                {CHAIN.map((vendor) => (
+                  <li className="row is-child" data-severity="critical" key={vendor}>
+                    <span className="gutter" />
+                    <span className="row-title">{vendor}</span>
+                    <span className="row-vendor">via amazon</span>
                   </li>
                 ))}
               </ul>
@@ -204,18 +296,24 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      <section className="tinted">
-        <div data-reveal className="wrap center">
-          <h2>Point it at a page you own.</h2>
-          <p className="lede" style={{ marginTop: "1.25rem", marginInline: "auto" }}>
-            The free scan takes about a minute and needs no account. If the report is useful, the
-            paid audit runs the same method across your whole site.
-          </p>
-          <p style={{ marginTop: "1.75rem" }}>
-            <Link className="tier-cta primary" href="/">
-              Scan a site
-            </Link>
-          </p>
+      <section className="cta-section">
+        <div data-reveal className="wrap">
+          <div className="cta-panel">
+            <StripeGradient colors={BRAND} />
+            <div className="cta-card">
+              <h2>Point it at a page you own.</h2>
+              <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>
+                The free scan takes about a minute and needs no account.
+              </p>
+              <div style={{ marginTop: "1.5rem" }}>
+                <ScanForm />
+              </div>
+              <p className="quiet" style={{ marginTop: "1rem" }}>
+                Monitoring and audits run the same method across your whole site.{" "}
+                <Link href="/pricing">See pricing</Link>
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </main>
