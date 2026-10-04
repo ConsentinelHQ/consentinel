@@ -1,4 +1,4 @@
-import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
+import { chromium, type Browser, type BrowserContext, type Page, type Request } from "playwright";
 import {
   detectCmp,
   detectConsentMode,
@@ -70,6 +70,8 @@ export interface CapturedCookie {
   name: string;
   domain: string;
   expires: number;
+  /** The response that set it, and what initiated that request. */
+  setBy?: { url: string; initiator?: string };
 }
 
 export type ConsentInteraction =
@@ -114,6 +116,8 @@ interface CapturedContext {
   context: BrowserContext;
   page: Page;
   requests: CapturedRequest[];
+  /** name|domain -> first response that set it. */
+  setters: Map<string, { url: string; initiator?: string }>;
 }
 
 function registrableHost(url: string): string | null {
@@ -162,6 +166,32 @@ async function newCapturedContext(
   const startedAt = Date.now();
 
   const targetHost = registrableHost(targetUrl);
+  const setters = new Map<string, { url: string; initiator?: string }>();
+
+  // Who set each cookie. Cookie syncs set cookies from responses, so the response's
+  // request (and its initiator) is the chain back to the tag that started it.
+  context.on("response", (response) => {
+    void (async () => {
+      try {
+        const values = await response.headerValues("set-cookie");
+        if (values.length === 0) return;
+        const req = response.request();
+        const initiator = initiatorOf(req, page);
+        const host = new URL(response.url()).hostname;
+        for (const line of values.flatMap((v) => v.split("\n"))) {
+          const name = line.split("=")[0]?.trim();
+          if (!name) continue;
+          const domain = (/;\s*domain=([^;]+)/i.exec(line)?.[1] ?? host).trim().replace(/^\./, "");
+          const key = `${name}|${domain}`;
+          if (!setters.has(key)) {
+            setters.set(key, { url: response.url(), ...(initiator ? { initiator } : {}) });
+          }
+        }
+      } catch {
+        // Response gone or headers unreadable. Attribution is best-effort.
+      }
+    })();
+  });
 
   await context.route("**/*", async (route) => {
     const req = route.request();
@@ -204,7 +234,7 @@ async function newCapturedContext(
     await route.abort();
   });
 
-  return { browser, context, page, requests };
+  return { browser, context, page, requests, setters };
 }
 
 /**
@@ -255,9 +285,39 @@ async function provokeLateTags(page: Page, requests: CapturedRequest[]): Promise
   }
 }
 
-async function snapshotCookies(context: BrowserContext): Promise<CapturedCookie[]> {
+async function snapshotCookies(
+  context: BrowserContext,
+  setters: Map<string, { url: string; initiator?: string }> = new Map(),
+): Promise<CapturedCookie[]> {
   const cookies = await context.cookies();
-  return cookies.map((c) => ({ name: c.name, domain: c.domain, expires: c.expires }));
+  return cookies.map((c) => {
+    const domain = c.domain.replace(/^\./, "");
+    let setBy = setters.get(`${c.name}|${domain}`);
+    if (!setBy) {
+      for (const [key, value] of setters) {
+        const [name, d] = key.split("|");
+        if (name === c.name && d && (d.endsWith(domain) || domain.endsWith(d))) {
+          setBy = value;
+          break;
+        }
+      }
+    }
+    return { name: c.name, domain: c.domain, expires: c.expires, ...(setBy ? { setBy } : {}) };
+  });
+}
+
+/** Redirect source, else the non-main frame, else the referer. */
+function initiatorOf(req: Request, page: Page): string | undefined {
+  let initiator: string | undefined = req.redirectedFrom()?.url();
+  if (initiator === undefined) {
+    try {
+      const frame = req.frame();
+      if (frame !== page.mainFrame()) initiator = frame.url();
+    } catch {
+      // Service worker or detached frame.
+    }
+  }
+  return initiator ?? req.headers()["referer"];
 }
 
 /**
@@ -309,7 +369,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   await provokeLateTags(a.page, a.requests);
   const deniedPass: PassResult = {
     requests: a.requests,
-    cookies: await snapshotCookies(a.context),
+    cookies: await snapshotCookies(a.context, a.setters),
     interaction: deniedInteraction,
     ...(deniedResponse ? { mainResponse: deniedResponse } : {}),
     gpc: opts.gpc === true,
@@ -334,7 +394,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   await provokeLateTags(b.page, b.requests);
   const grantedPass: PassResult = {
     requests: b.requests,
-    cookies: await snapshotCookies(b.context),
+    cookies: await snapshotCookies(b.context, b.setters),
     interaction: grantedInteraction,
     ...(grantedResponse ? { mainResponse: grantedResponse } : {}),
   };

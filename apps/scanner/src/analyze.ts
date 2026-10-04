@@ -268,6 +268,10 @@ export function analyze(raw: RawScan): ScanResult {
       remediation: known
         ? remediationFor(sig.vendor)
         : `Confirm what sets this cookie. If it is not strictly necessary, gate it behind consent.`,
+      ...(() => {
+        const parent = c.setBy?.initiator ? classify(c.setBy.initiator) : null;
+        return sig && parent && parent.vendor !== sig.vendor ? { causedBy: parent.vendor } : {};
+      })(),
       firstSeenAt: now,
     });
   }

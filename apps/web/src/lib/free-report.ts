@@ -189,6 +189,8 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     evidence: string[];
     remediation: string[];
     causedBy: string | null;
+    /** Any finding with no traced parent. Then the vendor is not a child: claiming it is would overpromise the fix. */
+    untraced: boolean;
   }
 
   const groups = new Map<string, Group>();
@@ -208,13 +210,15 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
         evidence: [],
         remediation: [],
         causedBy: null,
+        untraced: false,
       };
       groups.set(vendor, g);
     }
 
     // Worst severity wins, so the gutter never understates the group.
     if (SEVERITY_RANK[f.severity] < SEVERITY_RANK[g.severity]) g.severity = f.severity;
-    if (f.causedBy) g.causedBy = canonicalVendor(f.causedBy);
+    if (f.causedBy) g.causedBy = g.causedBy ?? canonicalVendor(f.causedBy);
+    else g.untraced = true;
 
     const line = evidenceLine(f);
     if (line && !g.evidence.includes(line)) g.evidence.push(line);
@@ -230,6 +234,26 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     } else {
       g.otherTitles.push(f.title);
     }
+  }
+
+  // Only fully traced vendors join a chain.
+  for (const g of groups.values()) if (g.untraced) g.causedBy = null;
+
+  // Follow chains to the root: Amazon -> BidSwitch -> Neustar all roll up to Amazon.
+  const rootOf = (vendor: string): string => {
+    const seen = new Set<string>();
+    let cur = vendor;
+    for (;;) {
+      const parent = groups.get(cur)?.causedBy;
+      if (!parent || parent === cur || seen.has(parent) || !groups.has(parent)) return cur;
+      seen.add(cur);
+      cur = parent;
+    }
+  };
+  const roots = new Map([...groups.keys()].map((v) => [v, rootOf(v)]));
+  for (const g of groups.values()) {
+    const root = roots.get(g.vendor);
+    g.causedBy = root && root !== g.vendor ? root : null;
   }
 
   // Parent -> children, only where the parent is itself a finding on this page.
