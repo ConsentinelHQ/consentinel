@@ -153,6 +153,25 @@ export default function HowItWorks() {
       </section>
 
       <section>
+        <div data-reveal className="wrap center">
+          <h2>Scans that follow your releases.</h2>
+          <p className="lede" style={{ marginTop: "1.25rem" }}>
+            Most consent breaks ship with a release: a new tag, a theme update, an app install.
+            Every monitored site gets a private URL that runs a scan the moment you deploy. If a
+            release breaks consent, you get the alert within minutes, not at the next scheduled
+            scan.
+          </p>
+          <div className="allowlist-code" style={{ marginTop: "1.75rem", textAlign: "left" }}>
+            <pre>{`- name: Consent scan after deploy\n  run: curl -fsS -X POST "\${{ secrets.CONSENTINEL_DEPLOY_HOOK }}"`}</pre>
+          </div>
+          <p className="quiet" style={{ marginTop: "1rem" }}>
+            One step after your deploy in GitHub Actions. Works the same from any CI system, Shopify
+            Flow, or Zapier: it is a single HTTP POST.
+          </p>
+        </div>
+      </section>
+
+      <section>
         <div data-reveal className="wrap">
           <h2 className="center">What we do not do</h2>
           <p className="lede center" style={{ marginTop: "1.25rem", marginInline: "auto" }}>

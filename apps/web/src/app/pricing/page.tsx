@@ -62,6 +62,7 @@ export default function Pricing() {
             <p className="tier-note">Cancel any time, from your billing page</p>
             <ul className="tier-list">
               <li>Scheduled scans daily, weekly, or monthly</li>
+              <li>A scan after every deploy, from one line in your CI pipeline or a Zapier step</li>
               <li>An email the moment a new tracker starts firing before consent</li>
               <li>Every finding carries the request or cookie that proves it, and the fix</li>
               <li>Shareable report links for whoever has to make the change</li>
