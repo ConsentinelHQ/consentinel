@@ -196,7 +196,16 @@ function Report({
         const top = report.findings
           .filter((f) => !f.locked && (f.triggers?.length ?? 0) >= 2)
           .sort((a, b) => (b.triggers?.length ?? 0) - (a.triggers?.length ?? 0))[0];
-        if (!top?.triggers) return null;
+        if (!top?.triggers) {
+          // Free view: the chain exists, but naming it is part of what the gate is for.
+          if (!report.hiddenChainSize) return null;
+          return (
+            <p className="chain-callout">
+              <strong>One tag is causing {report.hiddenChainSize} of these findings.</strong> The
+              full report shows which one, so you can fix it first.
+            </p>
+          );
+        }
         return (
           <p className="chain-callout">
             <strong>One tag, {top.triggers.length + 1} findings.</strong> {top.vendor} also loads{" "}

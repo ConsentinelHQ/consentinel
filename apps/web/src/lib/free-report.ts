@@ -35,6 +35,8 @@ export interface FreeFinding {
 }
 
 export interface FreeReport {
+  /** Free view only: size of the biggest tracker chain, without naming the tag. */
+  hiddenChainSize?: number;
   /**
    * The denied pass sent Global Privacy Control instead of clicking reject.
    * Gated vendors then stopped because of the signal, not because they waited
@@ -69,8 +71,8 @@ function toFreeReportBase(result: ScanResult): FreeReport {
   // Deduped: the same cookie name can appear first- and third-party, and two
   // identical rows reads as a bug.
   const unattributedCookies = [
-    ...new Set(result.findings.filter(isUnattributed).map((f) => f.vendor)),
-  ];
+    ...new Set(result.findings.filter(isUnattributed).map(cookieLabel)),
+  ].sort();
 
   /**
    * Built from the same per-vendor rows as the full report, so a vendor appears
@@ -104,6 +106,7 @@ function toFreeReportBase(result: ScanResult): FreeReport {
     });
   }
   const lockedTotal = hidden.length;
+  const biggestChain = Math.max(0, ...grouped.map((g) => g.triggers?.length ?? 0));
 
   return {
     scanId: result.scanId,
@@ -118,6 +121,7 @@ function toFreeReportBase(result: ScanResult): FreeReport {
     correctlyGated: result.correctlyGated.map((g) => g.vendor),
     // Counts every hidden finding, including vendors not shown as rows.
     lockedCount: lockedTotal,
+    ...(biggestChain >= 2 ? { hiddenChainSize: biggestChain + 1 } : {}),
     unattributedCookies,
   };
 }
@@ -132,8 +136,8 @@ function toFullReportBase(result: ScanResult): FreeReport {
   const attributed = dedupe(result.findings.filter((f) => !isUnattributed(f)));
   const grouped = groupByVendor(attributed);
   const unattributedCookies = [
-    ...new Set(result.findings.filter(isUnattributed).map((f) => f.vendor)),
-  ];
+    ...new Set(result.findings.filter(isUnattributed).map(cookieLabel)),
+  ].sort();
 
   return {
     scanId: result.scanId,
@@ -323,4 +327,11 @@ function remediationWithChain(
 export function joinList(items: readonly string[]): string {
   if (items.length <= 1) return items.join("");
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1] ?? ""}`;
+}
+
+/** "dpm" on ".demdex.net" -> "demdex.net · dpm", so cookies cluster by domain. */
+function cookieLabel(f: Finding): string {
+  return f.evidence.kind === "cookie"
+    ? `${f.evidence.domain.replace(/^\./, "")} · ${f.vendor}`
+    : f.vendor;
 }
