@@ -22,6 +22,7 @@ import { classifyCookie } from "./cookies.js";
 import { CMP_REGISTRY_VERSION } from "./cmp/registry.js";
 import type { RawScan, CapturedRequest } from "./scanner.js";
 import { remediationFor } from "./remediation.js";
+import { canonicalVendor } from "@consentinel/shared";
 
 export const ENGINE_VERSION = "0.1.0";
 
@@ -206,7 +207,18 @@ export function analyze(raw: RawScan): ScanResult {
   //    right, not a tidy-up item - it is the thing a regulator asks about first.
   const pageHost = safeHost(raw.url);
   for (const c of raw.deniedPass.cookies) {
-    const sig = classifyCookie(c.name);
+    // Name first. An unfamiliar name on a known tracker's domain is still that
+    // tracker's cookie: ad-id on amazon-adsystem.com is Amazon's.
+    const byDomain = classify(`https://${c.domain.replace(/^\./, "")}/`);
+    const sig =
+      classifyCookie(c.name) ??
+      (byDomain
+        ? {
+            vendor: byDomain.vendor,
+            category: byDomain.category,
+            consentRequired: byDomain.consentRequired,
+          }
+        : null);
     // Strictly necessary cookies are lawful before consent. Flagging them is crying wolf.
     if (sig && !sig.consentRequired) continue;
 
@@ -261,8 +273,15 @@ export function analyze(raw: RawScan): ScanResult {
   }
 
   // 4) Diff: tags that appeared ONLY after consent - the legitimate, well-behaved set.
+  // A vendor that set cookies under denial did not stop, whatever its requests did.
+  const flagged = new Set(findings.map((f) => canonicalVendor(f.vendor)));
   const correctlyGated = grantedHits
-    .filter((h) => !deniedIds.has(h.sig.id) && h.sig.consentRequired)
+    .filter(
+      (h) =>
+        !deniedIds.has(h.sig.id) &&
+        h.sig.consentRequired &&
+        !flagged.has(canonicalVendor(h.sig.vendor)),
+    )
     .map((h) => ({ vendor: h.sig.vendor, category: h.sig.category }));
 
   const sorted = sortFindings(findings);
