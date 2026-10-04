@@ -1,5 +1,6 @@
 import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
+import { StripeGradient } from "@/components/stripe-gradient";
 
 // The hero object is a real finding set, not an illustration. What the product
 // produces is the most persuasive thing it has.
@@ -22,33 +23,47 @@ const SPECIMEN = [
 export default function Home() {
   return (
     <main>
-      <section className="hero center">
-        <div className="wrap">
-          <h1>Your tags are firing before anyone said yes.</h1>
-          <p className="lede">
-            Consentinel loads your site twice, once refusing consent and once accepting it, and
-            shows you every tracker that ignored the difference.
-          </p>
-          <ScanForm />
+      <section className="hero hero-split">
+        <div aria-hidden="true" className="hero-gradient">
+          <StripeGradient
+            amplitude={280}
+            colors={["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"]}
+          />
         </div>
 
-        <Parallax speed={0.1}>
-          <div className="specimen" aria-hidden="true">
-            <div className="specimen-head">
-              <span className="specimen-url">northvaleoutfitters.com</span>
-              <span className="verdict">3 trackers firing before consent</span>
-            </div>
-            <ul className="ledger">
-              {SPECIMEN.map((row) => (
-                <li className="row" data-severity={row.severity} key={row.title}>
-                  <span className="gutter" />
-                  <span className="row-title">{row.title}</span>
-                  <span className="row-vendor">{row.vendor}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="wrap hero-grid">
+          <div className="hero-copy">
+            <span className="hero-badge">12 states now require Global Privacy Control</span>
+            <h1>
+              Your tags are firing before <span className="gradient-text">anyone said yes.</span>
+            </h1>
+            <p className="lede">
+              Consentinel loads your site twice, once refusing consent and once accepting it, and
+              shows you every tracker that ignored the difference.
+            </p>
+            <ScanForm />
           </div>
-        </Parallax>
+
+          <div className="hero-visual">
+            <Parallax speed={0.1}>
+              <div className="specimen" aria-hidden="true">
+                <div className="specimen-head">
+                  <span className="specimen-url">northvaleoutfitters.com</span>
+                  <span className="verdict">3 trackers firing before consent</span>
+                </div>
+                <ul className="ledger">
+                  {SPECIMEN.map((row) => (
+                    <li className="row" data-severity={row.severity} key={row.title}>
+                      <span className="gutter" />
+                      <span className="row-title">{row.title}</span>
+                      <span className="row-vendor">{row.vendor}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Parallax>
+          </div>
+        </div>
       </section>
 
       <section className="tinted">

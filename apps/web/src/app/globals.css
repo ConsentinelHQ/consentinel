@@ -1484,3 +1484,222 @@ dialog.confirm .confirm-body {
   background: #f4f4f5;
   color: #18181b;
 }
+
+/* Homepage hero: animated gradient slab */
+.hero-split {
+  position: relative;
+  overflow: hidden;
+}
+.hero-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  pointer-events: none;
+  /* Static fallback: shows for reduced motion and before WebGL starts. */
+  background: linear-gradient(120deg, #0e0e12 0%, #d70015 45%, #1c1c24 70%, #ff6b5b 100%);
+}
+@media (min-width: 1024px) {
+  .hero-gradient {
+    inset: 0;
+    height: auto;
+    clip-path: polygon(58% 0, 100% 0, 100% 100%, 42% 100%);
+  }
+}
+.hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 3rem;
+  align-items: center;
+}
+@media (min-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1.05fr 1fr;
+    gap: 4rem;
+  }
+}
+.hero-copy {
+  text-align: left;
+}
+.hero-copy .lede {
+  max-width: 34rem;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(215, 0, 21, 0.06);
+  border: 1px solid rgba(215, 0, 21, 0.25);
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.hero-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d70015;
+}
+.gradient-text {
+  background: linear-gradient(90deg, #d70015, #ff6b5b, #d70015);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-shift 6s linear infinite;
+}
+@keyframes gradient-shift {
+  to {
+    background-position: 200% center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text {
+    animation: none;
+  }
+}
+.hero-visual .specimen {
+  margin: 0;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+}
+
+/* Hero v2: vibrant palette, slab anchored to page center so it never covers the copy */
+.hero-split {
+  padding-top: 6rem;
+  padding-bottom: 7rem;
+}
+.hero-gradient {
+  background: linear-gradient(
+    115deg,
+    #7038ff 0%,
+    #6ec3f4 30%,
+    #ef008f 55%,
+    #ffba27 78%,
+    #00d68f 100%
+  );
+}
+@media (min-width: 1024px) {
+  .hero-gradient {
+    clip-path: polygon(calc(50% + 240px) 0, 100% 0, 100% 100%, calc(50% + 60px) 100%);
+  }
+  .hero-grid {
+    grid-template-columns: 1.15fr 1fr;
+    gap: 3rem;
+  }
+}
+.hero-copy h1 {
+  font-size: clamp(2.5rem, 4vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.hero-copy .lede {
+  margin-top: 1.25rem;
+}
+.hero-copy form,
+.hero-copy .scan-form {
+  margin-left: 0;
+  margin-right: 0;
+}
+.hero-badge {
+  background: rgba(112, 56, 255, 0.07);
+  border-color: rgba(112, 56, 255, 0.25);
+  color: #5b2ee0;
+}
+.hero-badge::before {
+  background: #00d68f;
+}
+.gradient-text {
+  background: linear-gradient(90deg, #7038ff, #ef008f, #ff8a00, #00b377, #7038ff);
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.hero-visual .specimen {
+  box-shadow: 0 30px 80px rgba(50, 20, 120, 0.25);
+}
+
+/* Hero v3: full first screen, soft feathered gradient instead of a hard diagonal */
+@media (min-width: 1024px) {
+  .hero-split {
+    min-height: calc(100vh - 65px);
+    display: flex;
+    align-items: center;
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+  .hero-split .hero-grid {
+    flex: 1;
+  }
+  .hero-gradient {
+    clip-path: none;
+    -webkit-mask-image: linear-gradient(100deg, transparent 52%, #000 70%);
+    mask-image: linear-gradient(100deg, transparent 52%, #000 70%);
+  }
+  .hero-copy h1 {
+    font-size: clamp(2.75rem, 4.2vw, 4.25rem);
+  }
+  .hero-visual .specimen {
+    transform: scale(1.06);
+    transform-origin: left center;
+  }
+}
+
+/* Hero v4: tall but capped, so big monitors don't stretch it */
+@media (min-width: 1024px) {
+  .hero-split {
+    min-height: min(calc(100vh - 65px), 760px);
+    padding-top: 3rem;
+    padding-bottom: 3.5rem;
+  }
+  .hero-copy h1 {
+    font-size: clamp(2.75rem, 3.8vw, 3.75rem);
+  }
+}
+
+/* Hero v5: ribbon slope into the bottom-left, white woven into the fallback */
+@media (min-width: 1024px) {
+  .hero-gradient {
+    background: linear-gradient(
+      115deg,
+      #7038ff 0%,
+      #6ec3f4 25%,
+      #ffffff 45%,
+      #ef008f 62%,
+      #ffba27 80%,
+      #00d68f 100%
+    );
+    -webkit-mask-image: linear-gradient(125deg, transparent 56%, #000 74%);
+    mask-image: linear-gradient(125deg, transparent 56%, #000 74%);
+  }
+}
+
+/* Hero v6: fade edge follows the hand-drawn slope (top: under the nav, bottom: far left) */
+@media (min-width: 1024px) {
+  .hero-gradient {
+    -webkit-mask-image: linear-gradient(142deg, transparent 40%, #000 58%);
+    mask-image: linear-gradient(142deg, transparent 40%, #000 58%);
+  }
+}
+
+/* Hero v7: wider visual that breaks out to the right, bigger gap between columns */
+@media (min-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
+    gap: clamp(3rem, 6vw, 6.5rem);
+  }
+  .hero-visual {
+    /* Extend past the content edge by up to 200px, only where the screen has room. */
+    margin-right: calc(-1 * clamp(0px, (100vw - 1100px) / 2, 200px));
+  }
+  .hero-visual .specimen {
+    transform: none;
+  }
+}
