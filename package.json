@@ -37,5 +37,17 @@
     "*.{json,md,yml,yaml,css,js,cjs,mjs}": [
       "prettier --write"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss@<8.5.18": "^8.5.18",
+      "brace-expansion@1": "^1.1.20",
+      "brace-expansion@5": "^5.0.11"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-vfj7-8cjw-p6xm"
+      ]
+    }
   }
 }
