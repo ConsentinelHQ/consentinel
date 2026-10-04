@@ -15,6 +15,7 @@ import {
   upsertUser,
 } from "../src/repository";
 import { fingerprintFinding } from "../src/fingerprint";
+import { orgs } from "../src/schema";
 
 const checks: Array<[string, boolean]> = [];
 const check = (name: string, ok: boolean): void => {
@@ -145,9 +146,15 @@ async function main(): Promise<void> {
   );
 
   // --- account path + diffing ---
-  const userId = await upsertUser(db, `clerk_${randomUUID()}`, "charlie@example.com");
-  const siteId = await addSite(db, userId, url, "Test shop");
-  check("addSite is idempotent", (await addSite(db, userId, url)) === siteId);
+  await upsertUser(db, `clerk_${randomUUID()}`, "charlie@example.com");
+  // Sites belong to orgs, not users. Create one the way the web app does.
+  const [org] = await db
+    .insert(orgs)
+    .values({ clerkOrgId: `org_${randomUUID()}`, name: "Test org" })
+    .returning({ id: orgs.id });
+  if (!org) throw new Error("org insert failed");
+  const siteId = await addSite(db, org.id, url, "Test shop");
+  check("addSite is idempotent", (await addSite(db, org.id, url)) === siteId);
 
   const scan2 = await createScan(db, { url, siteId, trigger: "scheduled" });
   // Meta fixed, GA4 still there, a NEW critical appeared.
