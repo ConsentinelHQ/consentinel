@@ -18,7 +18,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const parsed = body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: "That does not look like a URL." }, { status: 400 });
+    return NextResponse.json({ error: "That doesn’t look like a URL." }, { status: 400 });
   }
 
   // Same SSRF guard the public scanner uses. An authenticated user is still not

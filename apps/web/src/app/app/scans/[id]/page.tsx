@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 /**
  * Same report, inside the app shell. The public /scan/[id] route exists for the
  * anonymous funnel; a signed-in user clicking through from their own site list
- * should not be dropped back onto the marketing site.
+ * shouldn’t be dropped back onto the marketing site.
  */
 export default async function AppScanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

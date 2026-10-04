@@ -20,8 +20,8 @@ export function ShareReport({ scanId }: { scanId: string }) {
       if (!response.ok || !link) {
         const message =
           typeof data === "object" && data !== null
-            ? ((data as { error?: string }).error ?? "Could not create a link.")
-            : "Could not create a link.";
+            ? ((data as { error?: string }).error ?? "Couldn’t create a link.")
+            : "Couldn’t create a link.";
         setError(message);
         setBusy(false);
         return;
@@ -35,7 +35,7 @@ export function ShareReport({ scanId }: { scanId: string }) {
         setCopied(false);
       }
     } catch {
-      setError("Could not reach the server. Try again.");
+      setError("Couldn’t reach the server. Try again.");
     }
     setBusy(false);
   }

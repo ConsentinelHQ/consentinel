@@ -29,7 +29,7 @@ export function ArchiveSiteButton({
     setBusy(false);
     if (!response.ok) {
       setOpen(false);
-      setError("Could not update the site. Try again.");
+      setError("Couldn’t update the site. Try again.");
       return;
     }
     if (archived) router.refresh();

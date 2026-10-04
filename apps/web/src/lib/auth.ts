@@ -34,7 +34,7 @@ export async function requireSession(): Promise<Session> {
   localUser ??= (await database.insert(users).values({ clerkUserId, email }).returning())[0];
   if (!localUser) throw new Error("failed to create user");
 
-  // Personal org fallback: keyed on the Clerk user id so it is stable and unique.
+  // Personal org fallback: keyed on the Clerk user id so it’s stable and unique.
   const effectiveOrgKey = clerkOrgId ?? `personal:${clerkUserId}`;
   const orgName = clerkOrgId ? (user?.username ?? "Organization") : email || "Personal";
 

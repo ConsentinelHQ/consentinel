@@ -60,7 +60,7 @@ export async function sendRegressionAlert(input: AlertInput): Promise<SendResult
     preheader: groups.map((g) => g.vendor).join(", "),
     bodyHtml,
     bodyText,
-    reason: `You are receiving this because your organization monitors ${host} with Consentinel.`,
+    reason: `You’re receiving this because your organization monitors ${host} with Consentinel.`,
     manageUrl: `${appUrl()}/app`,
   });
 

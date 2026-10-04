@@ -50,8 +50,8 @@ export function ContactForm() {
       <div className="gate">
         <h3>Message received.</h3>
         <p className="quiet">
-          You will hear back within one business day. If it is urgent, reply to any email from us
-          and it lands in the same place.
+          You will hear back within one business day. If it’s urgent, reply to any email from us and
+          it lands in the same place.
         </p>
       </div>
     );

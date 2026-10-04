@@ -4,8 +4,8 @@ import { useEffect, useState, type CSSProperties } from "react";
 
 /**
  * The scanner reports only "queued" or "running", so step labels advance on a
- * timer and hold on the last one rather than claiming progress we cannot see.
- * The elapsed clock is the one number that is real.
+ * timer and hold on the last one rather than claiming progress we can’t see.
+ * The elapsed clock is the one number that’s real.
  */
 const STEPS = [
   "Opening the page",
@@ -18,7 +18,7 @@ const STEPS = [
 const STEP_MS = 12_000;
 
 export function ScanProgress({ status, since }: { status: string; since?: string }) {
-  // Count from when the scan really started, so a reload does not reset the clock.
+  // Count from when the scan really started, so a reload doesn’t reset the clock.
   const [startedAt] = useState(() => {
     const t = since ? Date.parse(since) : NaN;
     return Number.isNaN(t) ? Date.now() : Math.min(t, Date.now());

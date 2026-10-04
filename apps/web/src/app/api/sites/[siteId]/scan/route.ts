@@ -21,7 +21,7 @@ export async function POST(
     return NextResponse.json({ error: "Restore this site to scan it." }, { status: 409 });
   }
 
-  // One scan at a time per site. A double click should not burn two browser runs.
+  // One scan at a time per site. A double click shouldn’t burn two browser runs.
   const inFlight = await getInFlightScanForSite(db(), site.id);
   if (inFlight) {
     return NextResponse.json(

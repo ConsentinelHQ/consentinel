@@ -39,7 +39,7 @@ export async function POST(
   const scan = await getScan(db(), id);
   if (!scan) return NextResponse.json({ error: "Scan not found." }, { status: 404 });
   if (!(await callerOwnsScan(scan.siteId, session.userId))) {
-    // 404 rather than 403: do not confirm the scan exists to a stranger.
+    // 404 rather than 403: don’t confirm the scan exists to a stranger.
     return NextResponse.json({ error: "Scan not found." }, { status: 404 });
   }
   if (scan.status !== "complete") {
@@ -47,7 +47,7 @@ export async function POST(
   }
 
   const token = await getOrCreateShareToken(db(), id);
-  if (!token) return NextResponse.json({ error: "Could not create a link." }, { status: 500 });
+  if (!token) return NextResponse.json({ error: "Couldn’t create a link." }, { status: 500 });
 
   const origin = new URL(request.url).origin;
   return NextResponse.json({ url: `${origin}/report/${id}?t=${token}` });

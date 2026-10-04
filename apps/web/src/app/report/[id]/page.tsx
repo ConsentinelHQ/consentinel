@@ -37,7 +37,7 @@ export default async function SharedReport({
       </section>
       <footer>
         <div className="wrap">
-          Consentinel. This report was shared with you and is not publicly listed.
+          Consentinel. This report was shared with you and isn’t publicly listed.
         </div>
       </footer>
     </main>

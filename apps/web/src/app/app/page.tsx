@@ -30,7 +30,7 @@ export default async function Dashboard() {
           <h2>No sites yet.</h2>
           <p className="quiet">
             Add the domain you want watched. You can run a scan immediately, and set a schedule once
-            you are on a monitoring plan.
+            you’re on a monitoring plan.
           </p>
         </div>
       ) : (

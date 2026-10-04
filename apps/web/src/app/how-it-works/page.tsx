@@ -56,9 +56,9 @@ export default function HowItWorks() {
     <main>
       <section className="hero center">
         <div className="wrap">
-          <h1>We do not ask your site. We watch it.</h1>
+          <h1>We don’t ask your site. We watch it.</h1>
           <p className="lede">
-            A consent banner records a choice. It does not prove anything was honored. Consentinel
+            A consent banner records a choice. It doesn’t prove anything was honored. Consentinel
             loads your site twice, under two different answers, and reports every difference between
             what you promised and what actually happened.
           </p>
@@ -137,13 +137,13 @@ export default function HowItWorks() {
             <div>
               <h2>Every finding carries its proof.</h2>
               <p className="lede" style={{ marginTop: "1.25rem" }}>
-                We do not report that something &quot;may be&quot; firing. Each line comes with the
+                We don’t report that something &quot;may be&quot; firing. Each line comes with the
                 exact request or cookie that caused it, so the person who has to fix it can verify
                 the claim in their own devtools in under a minute.
               </p>
               <p style={{ marginTop: "1.25rem" }}>
                 That matters when the report leaves your desk. Evidence survives being forwarded to
-                a developer, an agency, a lawyer, or an auditor. An opinion does not.
+                a developer, an agency, a lawyer, or an auditor. An opinion doesn’t.
               </p>
             </div>
             <div className="specimen" aria-hidden="true">
@@ -212,7 +212,7 @@ export default function HowItWorks() {
         <div data-reveal className="wrap">
           <h2 className="center">What we grade, and how</h2>
           <p className="lede center" style={{ marginTop: "1.25rem", marginInline: "auto" }}>
-            Every non-essential tag that fires before consent is a violation. They are not equally
+            Every non-essential tag that fires before consent is a violation. They’re not equally
             urgent. If everything is critical, nothing is, and the report stops helping you decide
             what to fix first.
           </p>
@@ -258,39 +258,39 @@ export default function HowItWorks() {
           </div>
           <p className="quiet" style={{ marginTop: "1rem" }}>
             One step after your deploy in GitHub Actions. Works the same from any CI system, Shopify
-            Flow, or Zapier: it is a single HTTP POST.
+            Flow, or Zapier: it’s a single HTTP POST.
           </p>
         </div>
       </section>
 
       <section>
         <div data-reveal className="wrap">
-          <h2 className="center">What we do not do</h2>
+          <h2 className="center">What we don’t do</h2>
           <p className="lede center" style={{ marginTop: "1.25rem", marginInline: "auto" }}>
             Every tool in this category publishes what it catches. Here is what ours misses, because
             you should know before you rely on it.
           </p>
           <ul className="limits">
             <li>
-              <strong>We cannot always find your reject button.</strong> If your consent platform is
+              <strong>We can’t always find your reject button.</strong> If your consent platform is
               custom or unusual, we may not be able to click refuse. When that happens the scan runs
               in the banner&apos;s default state instead, and the report says so, because
               &quot;before any choice was made&quot; is weaker evidence than &quot;after
-              refusing&quot; and should not be presented as the same thing.
+              refusing&quot; and shouldn’t be presented as the same thing.
             </li>
             <li>
               <strong>Some sites refuse us.</strong> Enterprise bot management can reject an
               automated browser outright. We would rather fail loudly than return a clean report we
-              did not earn.
+              didn’t earn.
             </li>
             <li>
-              <strong>We cannot attribute every cookie.</strong> Real sites set cookies we do not
+              <strong>We can’t attribute every cookie.</strong> Real sites set cookies we don’t
               recognize. We list them separately as evidence rather than counting them as findings,
-              because we cannot prove they are non-essential and guessing would waste your time.
+              because we can’t prove they’re non-essential and guessing would waste your time.
             </li>
             <li>
               <strong>A scan is a moment, not a guarantee.</strong> A clean scan today says nothing
-              about the tag someone adds on Thursday. That is what monitoring is for.
+              about the tag someone adds on Thursday. That’s what monitoring is for.
             </li>
           </ul>
         </div>

@@ -40,7 +40,7 @@ export function ScheduleControl({
         const data = (await response.json()) as { error?: string };
         // Revert rather than leave the control lying about the stored state.
         setValue(previous);
-        setError(data.error ?? "Could not change the schedule.");
+        setError(data.error ?? "Couldn’t change the schedule.");
         setLimited(response.status === 402 && entitled);
         return;
       }

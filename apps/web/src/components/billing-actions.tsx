@@ -27,7 +27,7 @@ export function BillingActions({ action, label }: { action: Action; label: strin
       }
       window.location.href = url;
     } catch {
-      setError("Could not reach Stripe. Try again.");
+      setError("Couldn’t reach Stripe. Try again.");
       setBusy(false);
     }
   }

@@ -5,7 +5,7 @@ import IORedis from "ioredis";
 
 /**
  * Serverless functions are recycled constantly. Cache clients on globalThis so a
- * burst of requests does not open a connection per invocation and exhaust Postgres.
+ * burst of requests doesn’t open a connection per invocation and exhaust Postgres.
  */
 const globals = globalThis as unknown as {
   __db?: Database;
@@ -15,7 +15,7 @@ const globals = globalThis as unknown as {
 
 function required(name: string): string {
   const v = process.env[name];
-  if (!v) throw new Error(`${name} is not set`);
+  if (!v) throw new Error(`${name} isn’t set`);
   return v;
 }
 

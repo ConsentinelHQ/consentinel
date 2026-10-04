@@ -28,7 +28,7 @@ export function ScanNowButton({
           router.refresh();
           return;
         }
-        setError(data.error ?? "Could not start that scan.");
+        setError(data.error ?? "Couldn’t start that scan.");
         setBusy(false);
         return;
       }
@@ -36,7 +36,7 @@ export function ScanNowButton({
       setBusy(false);
       router.refresh();
     } catch {
-      setError("Could not reach the server.");
+      setError("Couldn’t reach the server.");
       setBusy(false);
     }
   }, [busy, router, siteId]);

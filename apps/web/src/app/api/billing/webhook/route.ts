@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 function webhookSecret(): string {
   const secret = process.env["STRIPE_WEBHOOK_SECRET"];
-  if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET is not set");
+  if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET isn’t set");
   return secret;
 }
 

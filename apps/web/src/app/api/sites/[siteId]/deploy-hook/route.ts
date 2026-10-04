@@ -17,6 +17,6 @@ export async function POST(
   if (!site) return NextResponse.json({ error: "Site not found." }, { status: 404 });
 
   const token = await rotateDeployHookToken(db(), site.id, session.orgId);
-  if (!token) return NextResponse.json({ error: "Could not regenerate." }, { status: 500 });
+  if (!token) return NextResponse.json({ error: "Couldn’t regenerate." }, { status: 500 });
   return NextResponse.json({ token });
 }

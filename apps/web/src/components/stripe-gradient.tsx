@@ -5,7 +5,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 /**
  * Animated WebGL mesh gradient (the Stripe technique). Ported from the AlphaHub
  * marketing site, hardened for strict mode: no non-null assertions, no unchecked
- * indexing, and the GL context is keyed on values so a re-render does not rebuild it.
+ * indexing, and the GL context is keyed on values so a re-render doesn’t rebuild it.
  * Reduced-motion visitors keep the static CSS gradient behind the canvas.
  */
 

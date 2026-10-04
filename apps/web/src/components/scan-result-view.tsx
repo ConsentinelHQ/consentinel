@@ -50,7 +50,7 @@ export function ScanResultView({
         if (data.status === "failed") {
           setState({
             kind: "failed",
-            message: data.error ?? "The scan could not be completed.",
+            message: data.error ?? "The scan couldn’t be completed.",
             ...(data.blockedBy ? { blockedBy: data.blockedBy } : {}),
           });
           return;
@@ -69,7 +69,7 @@ export function ScanResultView({
     };
   }, [scanId, shareToken]);
 
-  // A block is not a failure, it is a finding about their infrastructure. Saying
+  // A block isn’t a failure, it’s a finding about their infrastructure. Saying
   // "something went wrong" throws away the only useful thing we learned.
   if (state.kind === "failed" && state.blockedBy) {
     return <Blocked message={state.message} vendor={state.blockedBy} />;
@@ -115,8 +115,8 @@ function Report({
 }) {
   const clean = report.findings.length === 0;
 
-  // A clean site is a result, not an empty screen. It is also the moment to offer
-  // monitoring: nothing is worth protecting until there is a clean baseline.
+  // A clean site is a result, not an empty screen. It’s also the moment to offer
+  // monitoring: nothing is worth protecting until there’s a clean baseline.
   if (clean) {
     return (
       <>
@@ -162,7 +162,7 @@ function Report({
           <h3>Keep it that way.</h3>
           <p className="quiet">
             This page is clean today. Consentinel can re-scan it on a schedule and tell you the
-            moment someone ships a tag that is not.
+            moment someone ships a tag that’s not.
           </p>
           <p style={{ marginTop: "1rem" }}>
             <a href="/">Scan another page</a>
@@ -186,7 +186,7 @@ function Report({
         <p className="stakes">
           Twelve US states, including California and New Jersey, legally require sites to honor
           Global Privacy Control. California has settled with Sephora ($1.2M) and Healthline
-          ($1.55M) over opt-outs that did not work.
+          ($1.55M) over opt-outs that didn’t work.
         </p>
       )}
 
@@ -197,7 +197,7 @@ function Report({
           .filter((f) => !f.locked && (f.triggers?.length ?? 0) >= 2)
           .sort((a, b) => (b.triggers?.length ?? 0) - (a.triggers?.length ?? 0))[0];
         if (!top?.triggers) {
-          // Free view: the chain exists, but naming it is part of what the gate is for.
+          // Free view: the chain exists, but naming it’s part of what the gate is for.
           if (!report.hiddenChainSize) return null;
           return (
             <p className="chain-callout">
@@ -219,7 +219,7 @@ function Report({
           <span className="specimen-url">{report.url}</span>
           <span className={`verdict${report.counts.critical === 0 ? " pass" : ""}`}>
             {/* "0 critical, 1 to clean up" reads as a contradiction next to a
-                headline about trackers firing. Say the thing that is true. */}
+                headline about trackers firing. Say the thing that’s true. */}
             {report.counts.critical > 0
               ? `${report.counts.critical} critical, ${report.counts.warning} to clean up`
               : report.counts.warning > 0
@@ -278,18 +278,18 @@ function Report({
         </ul>
 
         {report.unattributedCookies.length > 0 && (
-          // Evidence, not findings. Collapsed because we cannot prove these are
+          // Evidence, not findings. Collapsed because we can’t prove these are
           // non-essential, and listing them inline buries the ones we can prove.
           <details className="unattributed">
             <summary>
-              {report.unattributedCookies.length} more cookies we could not attribute
+              {report.unattributedCookies.length} more cookies we couldn’t attribute
             </summary>
             <p className="quiet">
               {report.gpc
                 ? "These were set while Global Privacy Control was on"
                 : "These were set before consent"}{" "}
-              but we could not tie them to a known vendor. Confirm with your team whether each one
-              is strictly necessary.
+              but we couldn’t tie them to a known vendor. Confirm with your team whether each one is
+              strictly necessary.
             </p>
             <ul className="cookie-names">
               {report.unattributedCookies.map((name) => (
@@ -300,7 +300,7 @@ function Report({
         )}
       </div>
 
-      {/* Nothing is withheld from an owner, so there is nothing to gate. */}
+      {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
     </>
   );
@@ -421,7 +421,7 @@ function Blocked({ vendor, message }: { vendor: string; message: string }) {
         {named ? `${labelFor(vendor)} blocked the scan.` : "Bot protection blocked the scan."}
       </h1>
       <p className="lede" style={{ marginTop: "1.25rem" }}>
-        Your site refused us before the page loaded, so there is nothing to report yet. That
+        Your site refused us before the page loaded, so there’s nothing to report yet. That
         protection is doing its job. We just need to be let through once.
       </p>
 

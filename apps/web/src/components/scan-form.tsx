@@ -33,13 +33,13 @@ export function ScanForm() {
       }
       const scanId = (data as { scanId?: string }).scanId;
       if (!scanId) {
-        setError("The scan could not be started. Try again.");
+        setError("The scan couldn’t be started. Try again.");
         setBusy(false);
         return;
       }
       router.push(`/scan/${scanId}`);
     } catch {
-      setError("The scan could not be started. Check your connection and try again.");
+      setError("The scan couldn’t be started. Check your connection and try again.");
       setBusy(false);
     }
   }
@@ -77,5 +77,5 @@ function readError(data: unknown): string {
     const message = (data as { error?: unknown }).error;
     if (typeof message === "string") return message;
   }
-  return "The scan could not be started. Try again.";
+  return "The scan couldn’t be started. Try again.";
 }

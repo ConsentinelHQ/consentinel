@@ -52,7 +52,7 @@ export function DeployHookPanel({
     setBusy(false);
     setOpen(false);
     if (!response.ok) {
-      setError("Could not regenerate. Try again.");
+      setError("Couldn’t regenerate. Try again.");
       return;
     }
     const data = (await response.json()) as { token: string };

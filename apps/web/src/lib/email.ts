@@ -40,7 +40,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
   const stakes =
     "Twelve US states, including California and New Jersey, legally require sites to honor " +
     "Global Privacy Control. California has settled with Sephora ($1.2M) and Healthline ($1.55M) " +
-    "over opt-outs that did not work.";
+    "over opt-outs that didn’t work.";
 
   const callout = top?.triggers
     ? `One tag, ${String(top.triggers.length + 1)} findings. ${top.vendor} also loads ${joinList(top.triggers)}. Fix it first and all of them stop.`
@@ -60,7 +60,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     }
     ${
       report.unattributedCookies.length > 0
-        ? `<p style="margin:16px 0 0;color:#6e6e73;font-size:13px;line-height:1.6">${String(report.unattributedCookies.length)} more cookies we could not attribute to a known vendor. Confirm whether each is strictly necessary:<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px">${esc(report.unattributedCookies.join(", "))}</span></p>`
+        ? `<p style="margin:16px 0 0;color:#6e6e73;font-size:13px;line-height:1.6">${String(report.unattributedCookies.length)} more cookies we couldn’t attribute to a known vendor. Confirm whether each is strictly necessary:<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px">${esc(report.unattributedCookies.join(", "))}</span></p>`
         : ""
     }
     <div style="margin:28px 0 0;padding:20px;border:1px solid #e4e4e7;border-radius:12px">
@@ -93,7 +93,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     preheader: callout ?? verdict,
     bodyHtml,
     bodyText,
-    reason: `You are receiving this because you requested a Consentinel report for ${host}.`,
+    reason: `You’re receiving this because you requested a Consentinel report for ${host}.`,
   });
 
   return sendEmail({

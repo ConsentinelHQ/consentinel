@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Scan after deploy. Public by design: the token in the path is the credential.
- * POST only, so a link pasted into Slack cannot trigger a scan through its preview.
+ * POST only, so a link pasted into Slack can’t trigger a scan through its preview.
  */
 export async function POST(
   _request: Request,
@@ -35,7 +35,7 @@ export async function POST(
     );
   }
 
-  // A deploy pipeline retrying, or several deploys in a row, should not stack scans.
+  // A deploy pipeline retrying, or several deploys in a row, shouldn’t stack scans.
   const inFlight = await getInFlightScanForSite(db(), site.id);
   if (inFlight) {
     return NextResponse.json({ status: "already_running", scanId: inFlight }, { status: 202 });
@@ -55,7 +55,7 @@ export async function POST(
     trigger: "deploy",
   });
   if (result.status === "refused") {
-    return NextResponse.json({ error: `Cannot scan: ${result.reason}.` }, { status: 422 });
+    return NextResponse.json({ error: `Can’t scan: ${result.reason}.` }, { status: 422 });
   }
   return NextResponse.json({ status: "queued", scanId: result.scan.id }, { status: 202 });
 }

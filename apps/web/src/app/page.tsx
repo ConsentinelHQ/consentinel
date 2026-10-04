@@ -107,7 +107,7 @@ export default function Home() {
             <div className="tile">
               <h3>Scripts nobody approved</h3>
               <p>
-                Third-party scripts running on payment pages with no record of why they are there,
+                Third-party scripts running on payment pages with no record of why they’re there,
                 which PCI DSS now requires you to account for.
               </p>
             </div>
@@ -128,7 +128,7 @@ export default function Home() {
 
       <footer>
         <div data-reveal className="wrap center">
-          Consentinel. Scan only sites you are authorized to test.
+          Consentinel. Scan only sites you’re authorized to test.
         </div>
       </footer>
     </main>

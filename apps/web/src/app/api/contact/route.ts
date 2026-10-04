@@ -26,7 +26,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Too many messages. Try again later." }, { status: 429 });
   }
 
-  // Stored before anything else. An enquiry we cannot email is still an enquiry.
+  // Stored before anything else. An enquiry we can’t email is still an enquiry.
   await db()
     .insert(inquiries)
     .values({

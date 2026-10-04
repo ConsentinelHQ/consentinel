@@ -12,7 +12,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
         </div>
       </section>
       <footer>
-        <div className="wrap">Consentinel. Scan only sites you are authorized to test.</div>
+        <div className="wrap">Consentinel. Scan only sites you’re authorized to test.</div>
       </footer>
     </main>
   );

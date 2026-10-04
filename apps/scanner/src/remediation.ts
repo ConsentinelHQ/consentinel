@@ -17,7 +17,7 @@ export function remediationFor(vendor: string): string {
   }
   if (v.startsWith("shopify")) {
     return (
-      "Shopify sets this when its Customer Privacy API was not told the visitor opted out. " +
+      "Shopify sets this when its Customer Privacy API wasn’t told the visitor opted out. " +
       "Check that your consent app is connected to Shopify's Customer Privacy API and passes " +
       "Global Privacy Control through."
     );
@@ -39,7 +39,7 @@ export function remediationFor(vendor: string): string {
     ? "Set Google Consent Mode defaults to denied so it waits for an opt-in."
     : "Use your consent app's script blocking so it only loads after an opt-in.";
   const base =
-    `Gate ${vendor} behind consent so it cannot load, send data, or set cookies until the ` +
+    `Gate ${vendor} behind consent so it can’t load, send data, or set cookies until the ` +
     `visitor opts in. ${how}`;
   return EMBEDS.some((e) => v.includes(e))
     ? `${base} If it comes from an embed, use the privacy-enhanced or click-to-load variant.`

@@ -39,7 +39,7 @@ export function ConfirmDialog({
         onCancel();
       }}
       onClick={(e) => {
-        // Clicking the backdrop closes; clicks inside the panel do not.
+        // Clicking the backdrop closes; clicks inside the panel don’t.
         if (e.target === e.currentTarget) onCancel();
       }}
       ref={ref}

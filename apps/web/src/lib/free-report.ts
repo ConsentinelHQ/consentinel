@@ -9,7 +9,7 @@ import {
 
 /**
  * The free tier shows enough to be credible and concerning, and withholds the part
- * that is actually worth money: the evidence and the remediation. Redaction happens
+ * that’s actually worth money: the evidence and the remediation. Redaction happens
  * on the server - shipping the full result to the browser and hiding it with CSS
  * would mean the gate is a formality anyone can bypass in devtools.
  */
@@ -53,7 +53,7 @@ export interface FreeReport {
   findings: FreeFinding[];
   correctlyGated: string[];
   lockedCount: number;
-  /** Cookies seen pre-consent that we could not attribute. Evidence, not findings. */
+  /** Cookies seen pre-consent that we couldn’t attribute. Evidence, not findings. */
   unattributedCookies: string[];
 }
 
@@ -189,7 +189,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     evidence: string[];
     remediation: string[];
     causedBy: string | null;
-    /** Any finding with no traced parent. Then the vendor is not a child: claiming it is would overpromise the fix. */
+    /** Any finding with no traced parent. Then the vendor isn’t a child: claiming it’s would overpromise the fix. */
     untraced: boolean;
   }
 

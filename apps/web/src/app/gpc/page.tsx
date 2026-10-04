@@ -143,8 +143,8 @@ export default function GpcPage() {
                 when it was on. 45% did.
               </p>
               <p>
-                The usual cause is not a missing banner. It is tags that never hear the
-                visitor&apos;s choice.
+                The usual cause isn’t a missing banner. It’s tags that never hear the visitor&apos;s
+                choice.
               </p>
             </StatCard>
             <StatCard
@@ -170,7 +170,7 @@ export default function GpcPage() {
               <p>
                 Its own explanation: its privacy compliance vendor &quot;may not have properly
                 identified and blocked all relevant online trackers&quot; after a visitor opted out.
-                The banner worked. The trackers did not listen.
+                The banner worked. The trackers didn’t listen.
               </p>
             </StatCard>
           </div>
@@ -251,7 +251,7 @@ export default function GpcPage() {
               <strong>
                 California, Colorado, and Connecticut ran a joint sweep in September 2025
               </strong>{" "}
-              targeting businesses that do not honor Global Privacy Control.{" "}
+              targeting businesses that don’t honor Global Privacy Control.{" "}
               <a
                 href="https://cppa.ca.gov/announcements/2025/20250909.html"
                 rel="noopener noreferrer"
@@ -279,7 +279,7 @@ export default function GpcPage() {
         <div data-reveal className="wrap">
           <h2>What honoring it actually takes</h2>
           <p className="lede" style={{ marginTop: "1rem" }}>
-            Most sites that fail are not ignoring the law. Their consent platform reads the signal
+            Most sites that fail aren’t ignoring the law. Their consent platform reads the signal
             correctly, and some tags never hear about it.
           </p>
           <ul className="limits">

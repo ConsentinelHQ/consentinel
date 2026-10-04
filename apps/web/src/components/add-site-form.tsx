@@ -23,7 +23,7 @@ export function AddSiteForm() {
         });
         if (!response.ok) {
           const data = (await response.json()) as { error?: string };
-          setError(data.error ?? "Could not add that site.");
+          setError(data.error ?? "Couldn’t add that site.");
           setBusy(false);
           return;
         }
@@ -31,7 +31,7 @@ export function AddSiteForm() {
         setBusy(false);
         router.refresh();
       } catch {
-        setError("Could not reach the server. Try again.");
+        setError("Couldn’t reach the server. Try again.");
         setBusy(false);
       }
     },

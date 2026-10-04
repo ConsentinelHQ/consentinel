@@ -27,7 +27,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
   const scans = await listScansForSite(db(), siteId, 20);
   const entitled = isEntitled(await getBillingState(db(), session.orgId));
 
-  // Matches the API's 30-minute window: a scan stuck longer than that is stalled,
+  // Matches the API's 30-minute window: a scan stuck longer than that’s stalled,
   // not in flight, so it can never lock the Scan now button forever.
   const STALL_MS = 30 * 60 * 1000;
   const isActive = (scan: (typeof scans)[number]): boolean =>
@@ -48,7 +48,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
       {site.archivedAt !== null && (
         <div className="archived-banner">
           <span>
-            This site is archived. Scheduled scans are off and it is hidden from your list.
+            This site is archived. Scheduled scans are off and it’s hidden from your list.
           </span>
           <ArchiveSiteButton archived host={displayHost(site.url)} siteId={site.id} />
         </div>
@@ -71,8 +71,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         <div className="empty">
           <h2>No scans yet.</h2>
           <p className="quiet">
-            Run one now. The first scan becomes the baseline everything after it is compared
-            against.
+            Run one now. The first scan becomes the baseline everything after it’s compared against.
           </p>
         </div>
       ) : (

@@ -10,7 +10,7 @@ import { useEffect } from "react";
  * That makes the failsafes below more important than the animation itself.
  */
 export function Reveal() {
-  // Client navigation does not remount the layout. Without re-running on
+  // Client navigation doesn’t remount the layout. Without re-running on
   // pathname change, the next page's elements are never observed.
   const pathname = usePathname();
 
@@ -39,7 +39,7 @@ export function Reveal() {
       { rootMargin: "0px 0px -10% 0px", threshold: 0.05 },
     );
 
-    // forEach, not for-of: NodeListOf is not iterable under this tsconfig target.
+    // forEach, not for-of: NodeListOf isn’t iterable under this tsconfig target.
     els.forEach((el) => {
       io.observe(el);
     });
@@ -52,7 +52,7 @@ export function Reveal() {
     });
 
     // Last resort. A missing animation is a nuisance; invisible content is a
-    // broken page, so after 2s we stop caring why the observer did not fire.
+    // broken page, so after 2s we stop caring why the observer didn’t fire.
     const failsafe = window.setTimeout(() => {
       els.forEach(reveal);
     }, 2000);
