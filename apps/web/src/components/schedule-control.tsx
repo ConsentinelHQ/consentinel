@@ -23,12 +23,14 @@ export function ScheduleControl({
   const router = useRouter();
   const [value, setValue] = useState(schedule);
   const [error, setError] = useState<string | null>(null);
+  const [limited, setLimited] = useState(false);
 
   const change = useCallback(
     async (next: string): Promise<void> => {
       const previous = value;
       setValue(next);
       setError(null);
+      setLimited(false);
       const response = await fetch(`/api/sites/${siteId}/schedule`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -39,6 +41,7 @@ export function ScheduleControl({
         // Revert rather than leave the control lying about the stored state.
         setValue(previous);
         setError(data.error ?? "Could not change the schedule.");
+        setLimited(response.status === 402 && entitled);
         return;
       }
       router.refresh();
@@ -61,7 +64,17 @@ export function ScheduleControl({
           <Link href="/app/billing">Start monitoring</Link> to schedule scans.
         </p>
       )}
-      {error !== null && <p className="form-error">{error}</p>}
+      {error !== null && (
+        <p className="form-error">
+          {error}
+          {limited && (
+            <>
+              {" "}
+              <Link href="/app/billing">Open billing</Link>
+            </>
+          )}
+        </p>
+      )}
     </label>
   );
 }
