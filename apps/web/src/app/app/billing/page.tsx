@@ -21,6 +21,8 @@ export default async function Billing({
   const state = await getBillingState(database, session.orgId);
   const siteCount = await countOrgSites(database, session.orgId);
   const active = isEntitled(state);
+  // Comped orgs have a plan but no Stripe customer, so there's no portal to open.
+  const comped = active && !state?.stripeCustomerId;
 
   // Webhooks land in a second or two, so a fresh return can still read as unpaid.
   const pending = checkout === "success" && !active;
@@ -54,13 +56,14 @@ export default async function Billing({
               <dt>Plan</dt>
               <dd>
                 Monitoring, {state.planQuantity} site{state.planQuantity === 1 ? "" : "s"}
+                {comped ? " (complimentary)" : ""}
               </dd>
             </div>
             <div>
               <dt>Status</dt>
               <dd>{state.planStatus}</dd>
             </div>
-            {state.currentPeriodEnd ? (
+            {state.currentPeriodEnd && !comped ? (
               <div>
                 <dt>Renews</dt>
                 <dd>{DATE.format(state.currentPeriodEnd)}</dd>
@@ -75,7 +78,13 @@ export default async function Billing({
             </p>
           ) : null}
 
-          <BillingActions action="portal" label="Manage billing" />
+          {comped ? (
+            <p className="quiet billing-note">
+              This plan is complimentary, so there&apos;s no card or invoice to manage.
+            </p>
+          ) : (
+            <BillingActions action="portal" label="Manage billing" />
+          )}
         </>
       ) : !pending ? (
         <>

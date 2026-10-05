@@ -37,7 +37,7 @@ export function BillingActions({ action, label }: { action: Action; label: strin
       <button type="button" onClick={() => void go()} disabled={busy}>
         {busy ? "One moment..." : label}
       </button>
-      {error ? <p className="quiet">{error}</p> : null}
+      {error ? <p className="form-error">{error}</p> : null}
     </div>
   );
 }
