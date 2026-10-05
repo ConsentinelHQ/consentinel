@@ -2869,3 +2869,72 @@ section.panel.panel-gap {
 .dash-row:has(.link-button) {
   align-items: center;
 }
+
+/* Plan picker */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 1.1rem;
+  background: #fff;
+  border: 1px solid var(--hairline, #e4e4e7);
+  border-radius: 14px;
+}
+.plan-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.plan-price {
+  margin: 0.4rem 0 1rem;
+  font-size: 1.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.plan-price span {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #71717a;
+}
+.plan-card ul {
+  flex: 1;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+.plan-card li {
+  padding-left: 1.1rem;
+  position: relative;
+}
+.plan-card li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #18181b;
+}
+.plan-card em {
+  margin-left: 0.35rem;
+  font-style: normal;
+  font-size: 0.75rem;
+  color: #71717a;
+  white-space: nowrap;
+}
+.plan-card .billing-actions {
+  margin-top: 0;
+}
+@media (max-width: 960px) {
+  .plan-grid {
+    grid-template-columns: 1fr;
+  }
+}

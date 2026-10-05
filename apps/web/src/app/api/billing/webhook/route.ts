@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/nextjs";
 import type Stripe from "stripe";
 import { applySubscriptionState, findOrgIdByStripeCustomerId, toPlanStatus } from "@consentinel/db";
 import { db } from "@/lib/server";
-import { stripe } from "@/lib/stripe";
+import { planForPrice, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,12 +35,17 @@ async function syncSubscription(subscription: Stripe.Subscription): Promise<void
   if (!status) console.error("[stripe webhook] unknown status", subscription.status);
   const gone = subscription.status === "canceled" || subscription.status === "incomplete_expired";
   const periodEnd = item?.current_period_end;
+  const plan = planForPrice(item?.price.id);
+  // An unknown price still entitles as Monitor, but somebody needs to know.
+  if (!gone && !plan) {
+    Sentry.captureMessage(`unknown Stripe price ${item?.price.id ?? "none"}`);
+  }
 
   await applySubscriptionState(db(), orgId, {
     stripeSubscriptionId: gone ? null : subscription.id,
     stripeSubscriptionItemId: gone ? null : (item?.id ?? null),
     // Plan drops to "none" the moment Stripe says the subscription is gone.
-    plan: gone ? "none" : "monitoring",
+    plan: gone ? "none" : (plan ?? "monitoring"),
     planStatus: status,
     planQuantity: gone ? 0 : (item?.quantity ?? 0),
     currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,

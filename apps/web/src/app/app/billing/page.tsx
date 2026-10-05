@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { activePlan, countOrgSites, getBillingState, isEntitled, siteLimit } from "@consentinel/db";
+import {
+  PLANS,
+  activePlan,
+  countOrgSites,
+  getBillingState,
+  isEntitled,
+  siteLimit,
+} from "@consentinel/db";
 import { BillingActions } from "@/components/billing-actions";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
@@ -33,9 +40,7 @@ export default async function Billing({
     <div className="wrap app-content">
       <div className="app-head">
         <h1>Billing</h1>
-        <p className="quiet">
-          Monitoring is $99 per site each month. Scanning on demand stays free.
-        </p>
+        <p className="quiet">Pick the plan that fits. Scanning on demand stays free.</p>
       </div>
 
       {pending ? (
@@ -90,14 +95,51 @@ export default async function Billing({
         </>
       ) : !pending ? (
         <>
-          <div className="empty">
-            <h2>No monitoring plan.</h2>
-            <p className="quiet">
-              Scheduled scans and regression alerts need a plan. You will be charged for{" "}
-              {Math.max(1, siteCount)} site{Math.max(1, siteCount) === 1 ? "" : "s"}.
-            </p>
+          <div className="plan-grid">
+            {Object.values(PLANS).map((p) => {
+              const sites = Math.max(1, siteCount);
+              return (
+                <div className="plan-card" key={p.id}>
+                  <h2>{p.name}</h2>
+                  <p className="plan-price">
+                    ${p.price}
+                    <span>/mo{p.perSite ? " per site" : ""}</span>
+                  </p>
+                  <ul>
+                    <li>
+                      {p.perSite
+                        ? `${String(sites)} site${sites === 1 ? "" : "s"} today, billed per site`
+                        : `Up to ${String(p.includedSites)} sites`}
+                    </li>
+                    <li>Daily scans and new-issue alerts</li>
+                    <li>Scan after every deploy</li>
+                    {p.pagesPerScan > 1 ? (
+                      <li>
+                        Product, cart and checkout pages <em>Coming soon</em>
+                      </li>
+                    ) : (
+                      <li>Homepage scanned</li>
+                    )}
+                    <li>
+                      {p.historyDays === 365 ? "12 months" : `${String(p.historyDays)} days`} of
+                      history
+                    </li>
+                    {p.slack ? (
+                      <li>
+                        Slack alerts and PDF evidence <em>Coming soon</em>
+                      </li>
+                    ) : null}
+                    {p.workspaces ? (
+                      <li>
+                        Client workspaces, white-label reports, API <em>Coming soon</em>
+                      </li>
+                    ) : null}
+                  </ul>
+                  <BillingActions action="checkout" label={`Choose ${p.name}`} plan={p.id} />
+                </div>
+              );
+            })}
           </div>
-          <BillingActions action="checkout" label="Start monitoring" />
         </>
       ) : null}
     </div>

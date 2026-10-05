@@ -1,11 +1,20 @@
 "use client";
 
+import type { PaidPlan } from "@consentinel/db";
 import { useState } from "react";
 
 type Action = "checkout" | "portal";
 
 /** Both buttons do the same thing: POST, then follow the URL Stripe returns. */
-export function BillingActions({ action, label }: { action: Action; label: string }) {
+export function BillingActions({
+  action,
+  label,
+  plan,
+}: {
+  action: Action;
+  label: string;
+  plan?: PaidPlan;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,7 +22,11 @@ export function BillingActions({ action, label }: { action: Action; label: strin
     setBusy(true);
     setError(null);
     try {
-      const response = await fetch(`/api/billing/${action}`, { method: "POST" });
+      const response = await fetch(`/api/billing/${action}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(plan === undefined ? {} : { plan }),
+      });
       const data: unknown = await response.json();
       const url = typeof data === "object" && data !== null ? (data as { url?: string }).url : null;
       if (!response.ok || !url) {
