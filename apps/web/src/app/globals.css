@@ -2938,3 +2938,19 @@ section.panel.panel-gap {
     grid-template-columns: 1fr;
   }
 }
+
+/* Account block sits under the logo, always visible */
+.dash-account {
+  margin-top: 0;
+  padding: 0 0 1rem;
+  border-top: none;
+  border-bottom: 1px solid var(--hairline, #e4e4e7);
+}
+@media (max-width: 860px) {
+  .dash-account {
+    order: 3;
+    margin-left: auto;
+    padding: 0;
+    border-bottom: none;
+  }
+}

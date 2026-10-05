@@ -13,7 +13,6 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <Image alt="" height={22} src="/logo.svg" width={22} />
           <span>Consentinel</span>
         </Link>
-        <AppNav />
         <div className="dash-account">
           <OrganizationSwitcher
             afterCreateOrganizationUrl="/app"
@@ -53,6 +52,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           />
           <UserButton />
         </div>
+        <AppNav />
       </aside>
       <main className="dash-main">{children}</main>
     </div>
