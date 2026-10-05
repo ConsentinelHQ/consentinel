@@ -3009,3 +3009,19 @@ a.nav-cta {
     animation: none;
   }
 }
+
+/* Hover for the animated nav button */
+a.nav-cta {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+a.nav-cta:hover {
+  background:
+    linear-gradient(90deg, rgba(112, 56, 255, 0.06), rgba(239, 0, 143, 0.06)) padding-box,
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(from var(--ring-angle), #7038ff, #6ec3f4, #ef008f, #ffba27, #00d68f, #7038ff)
+      border-box !important;
+  box-shadow: 0 4px 14px rgba(112, 56, 255, 0.18);
+  transform: translateY(-1px);
+}
