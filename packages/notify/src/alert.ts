@@ -60,17 +60,25 @@ export async function sendRegressionAlert(input: AlertInput): Promise<SendResult
     preheader: groups.map((g) => g.vendor).join(", "),
     bodyHtml,
     bodyText,
-    reason: `You’re receiving this because your organization monitors ${host} with Consentinel.`,
-    manageUrl: `${appUrl()}/app`,
+    reason: `You’re receiving this because you get alerts for ${host} on Consentinel. You can turn them off anytime.`,
+    manageUrl: `${appUrl()}/app/alerts`,
   });
 
-  return sendEmail({
-    from: process.env["ALERT_FROM_EMAIL"] ?? "Consentinel <alerts@consentinelhq.com>",
-    to: input.to,
-    subject: `${String(n)} new ${noun} firing before consent on ${host}`,
-    html,
-    text,
-  });
+  // One email per person: a shared To line would expose every member's address.
+  let last: SendResult | undefined;
+  for (const [i, to] of input.to.entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 550)); // stay under Resend's 2/s
+    const result = await sendEmail({
+      from: process.env["ALERT_FROM_EMAIL"] ?? "Consentinel <alerts@consentinelhq.com>",
+      to: [to],
+      subject: `${String(n)} new ${noun} firing before consent on ${host}`,
+      html,
+      text,
+    });
+    if (!result.sent) return result;
+    last = result;
+  }
+  return last ?? { sent: false, reason: "no recipients" };
 }
 
 function groupByVendor(
