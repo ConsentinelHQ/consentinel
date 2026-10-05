@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PLANS } from "@consentinel/db";
 
 export const metadata: Metadata = {
   title: "Pricing - Consentinel",
-  description: "A free scan of any page, and continuous monitoring for $99 a month per site.",
+  description:
+    "A free scan of any page. Monitoring from $99 a month per site, with plans for growing brands and agencies.",
 };
+
+const { monitoring, growth, agency } = PLANS;
 
 export default function Pricing() {
   return (
@@ -20,7 +24,7 @@ export default function Pricing() {
       </section>
 
       <section>
-        <div data-reveal className="wrap tiers">
+        <div data-reveal className="wrap tiers tiers-4">
           <div className="tier">
             <h2>Free scan</h2>
             <p className="tier-price">$0</p>
@@ -37,21 +41,71 @@ export default function Pricing() {
           </div>
 
           <div className="tier featured">
-            <h2>Monitoring</h2>
+            <h2>{monitoring.name}</h2>
             <p className="tier-price">
-              $99<span className="tier-per">/month per site</span>
+              ${monitoring.price}
+              <span className="tier-per">/month per site</span>
             </p>
-            <p className="tier-note">Cancel any time, from your billing page</p>
+            <p className="tier-note">For a single store</p>
             <ul className="tier-list">
               <li>Scheduled scans daily, weekly, or monthly</li>
-              <li>A scan after every deploy, from one line in your CI pipeline or a Zapier step</li>
-              <li>An email the moment a new tracker starts firing before consent</li>
+              <li>A scan after every deploy, from your CI pipeline or a Zapier step</li>
+              <li>An email the moment a new tracker fires before consent</li>
               <li>Every finding carries the request or cookie that proves it, and the fix</li>
               <li>Shareable report links for whoever has to make the change</li>
+              <li>{monitoring.historyDays} days of scan history</li>
             </ul>
-            {/* Signed-out visitors get bounced through sign-up and land here ready to pay. */}
+            {/* Signed-out visitors go through sign-up and land on the plan picker. */}
             <Link className="tier-cta primary" href="/app/billing">
               Start monitoring
+            </Link>
+          </div>
+
+          <div className="tier">
+            <h2>{growth.name}</h2>
+            <p className="tier-price">
+              ${growth.price}
+              <span className="tier-per">/month</span>
+            </p>
+            <p className="tier-note">For growing brands</p>
+            <ul className="tier-list">
+              <li>Up to {growth.includedSites} sites</li>
+              <li>Everything in {monitoring.name}</li>
+              <li>12 months of scan history</li>
+              <li>
+                Product, cart and checkout pages scanned <span className="soon">Coming soon</span>
+              </li>
+              <li>
+                Slack alerts and PDF evidence exports <span className="soon">Coming soon</span>
+              </li>
+            </ul>
+            <Link className="tier-cta" href="/app/billing">
+              Choose {growth.name}
+            </Link>
+          </div>
+
+          <div className="tier">
+            <h2>{agency.name}</h2>
+            <p className="tier-price">
+              ${agency.price}
+              <span className="tier-per">/month</span>
+            </p>
+            <p className="tier-note">For agencies managing client stores</p>
+            <ul className="tier-list">
+              <li>Up to {agency.includedSites} sites</li>
+              <li>Everything in {growth.name}</li>
+              <li>
+                A workspace per client <span className="soon">Coming soon</span>
+              </li>
+              <li>
+                White-label reports under your brand <span className="soon">Coming soon</span>
+              </li>
+              <li>
+                API access <span className="soon">Coming soon</span>
+              </li>
+            </ul>
+            <Link className="tier-cta" href="/app/billing">
+              Choose {agency.name}
             </Link>
           </div>
         </div>
@@ -61,8 +115,10 @@ export default function Pricing() {
         <div data-reveal className="wrap center">
           <h2>More than one site?</h2>
           <p className="lede" style={{ marginTop: "1.25rem", marginInline: "auto" }}>
-            Monitoring is $99 per site. Add every storefront, region, or brand from your dashboard
-            and your plan updates on its own. No sales call, no quote.
+            {monitoring.name} is ${monitoring.price} per site. From the fourth site, {growth.name}{" "}
+            costs less and covers up to {growth.includedSites}. Agencies get {agency.includedSites}{" "}
+            sites for ${agency.price}. Switch plans any time from your billing page. No sales call,
+            no quote.
           </p>
         </div>
       </section>

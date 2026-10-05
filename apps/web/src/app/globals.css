@@ -2954,3 +2954,25 @@ section.panel.panel-gap {
     border-bottom: none;
   }
 }
+
+/* Four-plan pricing grid */
+.tiers.tiers-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 1240px;
+}
+.tier .soon {
+  margin-left: 0.3rem;
+  font-size: 0.75rem;
+  color: #71717a;
+  white-space: nowrap;
+}
+@media (max-width: 1100px) {
+  .tiers.tiers-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .tiers.tiers-4 {
+    grid-template-columns: 1fr;
+  }
+}
