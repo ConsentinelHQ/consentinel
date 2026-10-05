@@ -694,3 +694,34 @@ export async function findRecipientByToken(
 export async function unsubscribeByToken(db: Database, token: string): Promise<void> {
   await db.delete(alertRecipients).where(eq(alertRecipients.unsubscribeToken, token));
 }
+
+export async function getSlackWebhook(db: Database, orgId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ url: orgs.slackWebhookUrl })
+    .from(orgs)
+    .where(eq(orgs.id, orgId))
+    .limit(1);
+  return row?.url ?? null;
+}
+
+export async function setSlackWebhook(
+  db: Database,
+  orgId: string,
+  url: string | null,
+): Promise<void> {
+  await db.update(orgs).set({ slackWebhookUrl: url }).where(eq(orgs.id, orgId));
+}
+
+/** Org and Slack target for a site, for the worker's alert path. */
+export async function getSlackTargetForSite(
+  db: Database,
+  siteId: string,
+): Promise<{ orgId: string; url: string | null } | null> {
+  const [row] = await db
+    .select({ orgId: orgs.id, url: orgs.slackWebhookUrl })
+    .from(sites)
+    .innerJoin(orgs, eq(orgs.id, sites.orgId))
+    .where(eq(sites.id, siteId))
+    .limit(1);
+  return row ?? null;
+}

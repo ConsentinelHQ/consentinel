@@ -78,6 +78,13 @@
       "when": 1791239457097,
       "tag": "0010_pretty_hex",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791243050810,
+      "tag": "0011_mighty_unus",
+      "breakpoints": true
     }
   ]
 }

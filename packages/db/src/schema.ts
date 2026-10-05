@@ -74,6 +74,7 @@ export const orgs = pgTable(
     planStatus: text("plan_status").$type<PlanStatus>(),
     /** Sites paid for. Scheduling gated on site count <= this. */
     planQuantity: integer("plan_quantity").notNull().default(0),
+    slackWebhookUrl: text("slack_webhook_url"),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

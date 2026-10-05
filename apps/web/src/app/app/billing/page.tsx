@@ -125,9 +125,12 @@ export default async function Billing({
                       history
                     </li>
                     {p.slack ? (
-                      <li>
-                        Slack alerts and PDF evidence <em>Coming soon</em>
-                      </li>
+                      <>
+                        <li>Slack alerts</li>
+                        <li>
+                          PDF evidence <em>Coming soon</em>
+                        </li>
+                      </>
                     ) : null}
                     {p.workspaces ? (
                       <li>

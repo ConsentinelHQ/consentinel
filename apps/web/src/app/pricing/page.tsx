@@ -75,8 +75,9 @@ export default function Pricing() {
               <li>
                 Product, cart and checkout pages scanned <span className="soon">Coming soon</span>
               </li>
+              <li>Slack alerts</li>
               <li>
-                Slack alerts and PDF evidence exports <span className="soon">Coming soon</span>
+                PDF evidence exports <span className="soon">Coming soon</span>
               </li>
             </ul>
             <Link className="tier-cta" href="/app/billing">
