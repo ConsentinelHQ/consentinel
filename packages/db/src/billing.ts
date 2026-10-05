@@ -36,7 +36,7 @@ const ENTITLED: ReadonlySet<string> = new Set(["active", "trialing"]);
 
 export function isEntitled(state: BillingState | null): boolean {
   if (!state) return false;
-  return state.plan === "monitoring" && ENTITLED.has(state.planStatus ?? "");
+  return state.plan !== "none" && ENTITLED.has(state.planStatus ?? "");
 }
 
 export async function getBillingState(db: Database, orgId: string): Promise<BillingState | null> {

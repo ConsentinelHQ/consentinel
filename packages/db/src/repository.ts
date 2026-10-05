@@ -382,7 +382,7 @@ export async function listDueSites(db: Database, now = new Date()): Promise<DueS
     })
     .from(sites)
     .innerJoin(orgs, eq(orgs.id, sites.orgId))
-    .where(and(ne(sites.schedule, "off"), eq(orgs.plan, "monitoring"), isNull(sites.archivedAt)));
+    .where(and(ne(sites.schedule, "off"), ne(orgs.plan, "none"), isNull(sites.archivedAt)));
 
   return rows
     .filter((r) => {
@@ -643,10 +643,11 @@ export async function addExternalRecipient(
   db: Database,
   orgId: string,
   email: string,
+  limit: number = MAX_EXTERNAL_RECIPIENTS,
 ): Promise<"added" | "exists" | "limit"> {
   const existing = await listExternalRecipients(db, orgId);
   if (existing.some((r) => r.email === email)) return "exists";
-  if (existing.length >= MAX_EXTERNAL_RECIPIENTS) return "limit";
+  if (existing.length >= limit) return "limit";
   const inserted = await db
     .insert(alertRecipients)
     .values({ orgId, email, unsubscribeToken: randomBytes(24).toString("base64url") })

@@ -5,6 +5,7 @@ import {
   getBillingState,
   getSiteForOrg,
   isEntitled,
+  siteLimit,
   setSiteSchedule,
 } from "@consentinel/db";
 import { requireSession } from "@/lib/auth";
@@ -43,8 +44,8 @@ export async function POST(
     // site is free; adding a new one needs a free slot.
     if (site.schedule === "off" && billing) {
       const used = await countMonitoredSites(db(), session.orgId);
-      if (used >= billing.planQuantity) {
-        const q = billing.planQuantity;
+      if (used >= siteLimit(billing)) {
+        const q = siteLimit(billing);
         return NextResponse.json(
           {
             error: `Your plan covers ${String(q)} monitored site${q === 1 ? "" : "s"}. Add sites to your plan in Billing, or switch another site to manual.`,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
-  MAX_EXTERNAL_RECIPIENTS,
+  externalRecipientLimit,
+  getBillingState,
   addExternalRecipient,
   removeExternalRecipient,
 } from "@consentinel/db";
@@ -21,10 +22,11 @@ export async function POST(request: Request) {
   if (!EMAIL.test(value) || value.length > 254) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   }
-  const result = await addExternalRecipient(db(), session.orgId, value);
+  const limit = externalRecipientLimit(await getBillingState(db(), session.orgId));
+  const result = await addExternalRecipient(db(), session.orgId, value, limit);
   if (result === "limit") {
     return NextResponse.json(
-      { error: `You can add up to ${String(MAX_EXTERNAL_RECIPIENTS)} people.` },
+      { error: `You can add up to ${String(limit)} people.` },
       { status: 400 },
     );
   }

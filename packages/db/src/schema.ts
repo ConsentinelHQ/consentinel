@@ -147,7 +147,7 @@ export const sites = pgTable(
 
 export type OrgRole = "owner" | "admin" | "member";
 /** "none" gates scheduling and alerting. Manual scans stay free forever. */
-export type OrgPlan = "none" | "monitoring";
+export type OrgPlan = "none" | "monitoring" | "growth" | "agency";
 export type PlanStatus =
   | "trialing"
   | "active"

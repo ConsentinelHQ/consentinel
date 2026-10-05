@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { countOrgSites, getBillingState, isEntitled } from "@consentinel/db";
+import { activePlan, countOrgSites, getBillingState, isEntitled, siteLimit } from "@consentinel/db";
 import { BillingActions } from "@/components/billing-actions";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
@@ -21,6 +21,8 @@ export default async function Billing({
   const state = await getBillingState(database, session.orgId);
   const siteCount = await countOrgSites(database, session.orgId);
   const active = isEntitled(state);
+  const plan = activePlan(state);
+  const limit = siteLimit(state);
   // Comped orgs have a plan but no Stripe customer, so there's no portal to open.
   const comped = active && !state?.stripeCustomerId;
 
@@ -55,7 +57,7 @@ export default async function Billing({
             <div>
               <dt>Plan</dt>
               <dd>
-                Monitoring, {state.planQuantity} site{state.planQuantity === 1 ? "" : "s"}
+                {plan?.name ?? "Monitor"}, {limit} site{limit === 1 ? "" : "s"}
                 {comped ? " (complimentary)" : ""}
               </dd>
             </div>
@@ -71,10 +73,10 @@ export default async function Billing({
             ) : null}
           </dl>
 
-          {siteCount > state.planQuantity ? (
+          {siteCount > limit ? (
             <p className="quiet billing-note">
-              You have {siteCount} sites but are paying for {state.planQuantity}. Only the paid
-              number can be scheduled.
+              You have {siteCount} sites but your plan covers {limit}. Only the paid number can be
+              scheduled.
             </p>
           ) : null}
 

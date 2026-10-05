@@ -7,3 +7,4 @@ export * from "./fingerprint.js";
 // dependency. Keeps the ORM an implementation detail of this package.
 export { and, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 export * from "./billing.js";
+export * from "./plans.js";

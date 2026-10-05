@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {
-  MAX_EXTERNAL_RECIPIENTS,
+  externalRecipientLimit,
+  getBillingState,
   listExternalRecipients,
   listOrgAlertSettings,
 } from "@consentinel/db";
@@ -14,10 +15,12 @@ export const dynamic = "force-dynamic";
 
 export default async function Alerts() {
   const session = await requireSession();
-  const [members, external] = await Promise.all([
+  const [members, external, billing] = await Promise.all([
     listOrgAlertSettings(db(), session.orgId),
     listExternalRecipients(db(), session.orgId),
+    getBillingState(db(), session.orgId),
   ]);
+  const limit = externalRecipientLimit(billing);
   const me = members.find((m) => m.userId === session.userId);
   const receiving = members.filter((m) => m.alertsEnabled).length;
 
@@ -69,14 +72,14 @@ export default async function Alerts() {
         <div className="panel-head">
           <h2>Also notify</h2>
           <span className="panel-count">
-            {external.length} of {MAX_EXTERNAL_RECIPIENTS}
+            {external.length} of {limit}
           </span>
         </div>
         <p className="panel-note">
           Your agency, privacy counsel, or anyone without an account. Each gets their own email with
           an unsubscribe link.
         </p>
-        <RecipientManager limit={MAX_EXTERNAL_RECIPIENTS} recipients={external} />
+        <RecipientManager limit={limit} recipients={external} />
       </section>
     </div>
   );
