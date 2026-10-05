@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import type Stripe from "stripe";
-import { applySubscriptionState, findOrgIdByStripeCustomerId, toPlanStatus } from "@consentinel/db";
+import {
+  PLANS,
+  applySubscriptionState,
+  findOrgIdByStripeCustomerId,
+  toPlanStatus,
+} from "@consentinel/db";
 import { db } from "@/lib/server";
 import { planForPrice, stripe } from "@/lib/stripe";
 
@@ -36,6 +41,16 @@ async function syncSubscription(subscription: Stripe.Subscription): Promise<void
   const gone = subscription.status === "canceled" || subscription.status === "incomplete_expired";
   const periodEnd = item?.current_period_end;
   const plan = planForPrice(item?.price.id);
+
+  // Stripe's portal carries quantity across plan switches. Flat plans are one unit,
+  // so a 4-site Monitor customer moving to Growth must not be billed 4 x $299.
+  if (!gone && plan && !PLANS[plan].perSite && item && item.quantity !== 1) {
+    await stripe().subscriptionItems.update(item.id, {
+      quantity: 1,
+      proration_behavior: "create_prorations",
+    });
+    return; // the resulting subscription.updated event syncs the corrected state
+  }
   // An unknown price still entitles as Monitor, but somebody needs to know.
   if (!gone && !plan) {
     Sentry.captureMessage(`unknown Stripe price ${item?.price.id ?? "none"}`);
