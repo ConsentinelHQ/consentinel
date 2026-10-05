@@ -2984,3 +2984,28 @@ section.pricing-hero {
 section.pricing-tiers {
   padding-top: 0;
 }
+
+/* Animated gradient ring on the nav Dashboard button */
+@property --ring-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+a.nav-cta {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(from var(--ring-angle), #7038ff, #6ec3f4, #ef008f, #ffba27, #00d68f, #7038ff)
+      border-box !important;
+  animation: ring-spin 12s linear infinite;
+}
+@keyframes ring-spin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  a.nav-cta {
+    animation: none;
+  }
+}
