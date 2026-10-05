@@ -71,6 +71,13 @@
       "when": 1791238899188,
       "tag": "0009_famous_the_liberteens",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791239457097,
+      "tag": "0010_pretty_hex",
+      "breakpoints": true
     }
   ]
 }

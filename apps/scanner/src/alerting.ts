@@ -3,6 +3,7 @@ import {
   findPreviousScans,
   getScan,
   listAlertRecipients,
+  listExternalAlertRecipients,
   type Database,
 } from "@consentinel/db";
 import { sendRegressionAlert } from "@consentinel/notify";
@@ -54,10 +55,18 @@ export async function alertOnRegression(
 
   const recipients = await listAlertRecipients(db, scan.siteId);
   const to = [...new Set(recipients.map((r) => r.email))].filter((e) => e.length > 0);
-  if (to.length === 0) return;
+  const memberSet = new Set(to);
+  const external = (await listExternalAlertRecipients(db, scan.siteId))
+    .filter((r) => !memberSet.has(r.email))
+    .map((r) => ({
+      email: r.email,
+      unsubscribeUrl: `${config.APP_URL}/unsubscribe?t=${encodeURIComponent(r.unsubscribeToken)}`,
+    }));
+  if (to.length === 0 && external.length === 0) return;
 
   const result = await sendRegressionAlert({
     to,
+    external,
     siteUrl: scan.url,
     added: added.map((f) => ({
       vendor: f.vendor,

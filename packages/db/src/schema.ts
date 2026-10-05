@@ -287,3 +287,24 @@ export type ScanRow = typeof scans.$inferSelect;
 export type FindingRow = typeof findings.$inferSelect;
 export type LeadRow = typeof leads.$inferSelect;
 export type InquiryRow = typeof inquiries.$inferSelect;
+
+/**
+ * People outside the org who get alerts: agency, counsel, teammates without a
+ * login. Each has its own unsubscribe token since they can't reach settings.
+ */
+export const alertRecipients = pgTable(
+  "alert_recipients",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    unsubscribeToken: text("unsubscribe_token").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("alert_recipients_org_email_idx").on(t.orgId, t.email),
+    uniqueIndex("alert_recipients_token_idx").on(t.unsubscribeToken),
+  ],
+);

@@ -1,7 +1,9 @@
+import { randomBytes } from "node:crypto";
 import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
 import type { ScanResult, Severity } from "@consentinel/shared";
 import type { Database } from "./client.js";
 import {
+  alertRecipients,
   findings,
   orgMembers,
   orgs,
@@ -617,4 +619,77 @@ export async function setAlertsEnabled(
     .update(orgMembers)
     .set({ alertsEnabled: enabled })
     .where(and(eq(orgMembers.orgId, orgId), eq(orgMembers.userId, userId)));
+}
+
+export const MAX_EXTERNAL_RECIPIENTS = 10;
+
+export interface ExternalRecipient {
+  id: string;
+  email: string;
+}
+
+export async function listExternalRecipients(
+  db: Database,
+  orgId: string,
+): Promise<ExternalRecipient[]> {
+  return db
+    .select({ id: alertRecipients.id, email: alertRecipients.email })
+    .from(alertRecipients)
+    .where(eq(alertRecipients.orgId, orgId))
+    .orderBy(alertRecipients.email);
+}
+
+export async function addExternalRecipient(
+  db: Database,
+  orgId: string,
+  email: string,
+): Promise<"added" | "exists" | "limit"> {
+  const existing = await listExternalRecipients(db, orgId);
+  if (existing.some((r) => r.email === email)) return "exists";
+  if (existing.length >= MAX_EXTERNAL_RECIPIENTS) return "limit";
+  const inserted = await db
+    .insert(alertRecipients)
+    .values({ orgId, email, unsubscribeToken: randomBytes(24).toString("base64url") })
+    .onConflictDoNothing()
+    .returning({ id: alertRecipients.id });
+  return inserted.length === 0 ? "exists" : "added";
+}
+
+/** Scoped to the org so one customer can't remove another's recipient. */
+export async function removeExternalRecipient(
+  db: Database,
+  orgId: string,
+  id: string,
+): Promise<void> {
+  await db
+    .delete(alertRecipients)
+    .where(and(eq(alertRecipients.orgId, orgId), eq(alertRecipients.id, id)));
+}
+
+/** External recipients for the org that owns a site, for the worker. */
+export async function listExternalAlertRecipients(
+  db: Database,
+  siteId: string,
+): Promise<{ email: string; unsubscribeToken: string }[]> {
+  return db
+    .select({ email: alertRecipients.email, unsubscribeToken: alertRecipients.unsubscribeToken })
+    .from(sites)
+    .innerJoin(alertRecipients, eq(alertRecipients.orgId, sites.orgId))
+    .where(eq(sites.id, siteId));
+}
+
+export async function findRecipientByToken(
+  db: Database,
+  token: string,
+): Promise<{ email: string } | null> {
+  const [row] = await db
+    .select({ email: alertRecipients.email })
+    .from(alertRecipients)
+    .where(eq(alertRecipients.unsubscribeToken, token))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function unsubscribeByToken(db: Database, token: string): Promise<void> {
+  await db.delete(alertRecipients).where(eq(alertRecipients.unsubscribeToken, token));
 }

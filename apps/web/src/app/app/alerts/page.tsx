@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { listOrgAlertSettings } from "@consentinel/db";
+import {
+  MAX_EXTERNAL_RECIPIENTS,
+  listExternalRecipients,
+  listOrgAlertSettings,
+} from "@consentinel/db";
 import { AlertToggle } from "@/components/alert-toggle";
+import { RecipientManager } from "@/components/recipient-manager";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 
@@ -9,7 +14,10 @@ export const dynamic = "force-dynamic";
 
 export default async function Alerts() {
   const session = await requireSession();
-  const members = await listOrgAlertSettings(db(), session.orgId);
+  const [members, external] = await Promise.all([
+    listOrgAlertSettings(db(), session.orgId),
+    listExternalRecipients(db(), session.orgId),
+  ]);
   const me = members.find((m) => m.userId === session.userId);
   const receiving = members.filter((m) => m.alertsEnabled).length;
 
@@ -32,14 +40,14 @@ export default async function Alerts() {
 
       <section className="panel panel-gap">
         <div className="panel-head">
-          <h2>Who gets alerts</h2>
+          <h2>Team members</h2>
           <span className="panel-count">
-            {receiving} of {members.length}
+            {receiving} of {members.length} receiving
           </span>
         </div>
-        {receiving === 0 && (
+        {receiving + external.length === 0 && (
           <p className="panel-note is-danger">
-            Nobody here gets alerts. Scans still run, but regressions go unseen.
+            Nobody gets alerts. Scans still run, but regressions go unseen.
           </p>
         )}
         <ul className="panel-list">
@@ -55,6 +63,20 @@ export default async function Alerts() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="panel panel-gap">
+        <div className="panel-head">
+          <h2>Also notify</h2>
+          <span className="panel-count">
+            {external.length} of {MAX_EXTERNAL_RECIPIENTS}
+          </span>
+        </div>
+        <p className="panel-note">
+          Your agency, privacy counsel, or anyone without an account. Each gets their own email with
+          an unsubscribe link.
+        </p>
+        <RecipientManager limit={MAX_EXTERNAL_RECIPIENTS} recipients={external} />
       </section>
     </div>
   );

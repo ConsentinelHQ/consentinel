@@ -2766,3 +2766,106 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
     padding: 1.5rem 1rem 3rem;
   }
 }
+
+/* Panels are <section>s: cancel the marketing section padding */
+section.panel {
+  padding: 0;
+  margin-block: 0;
+}
+section.panel.panel-gap {
+  margin-top: 1rem;
+}
+.dash-row-name {
+  font-size: 0.92rem;
+}
+
+/* Alert recipients */
+.recipient-add {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid var(--hairline, #e4e4e7);
+}
+.recipient-add input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 38px;
+  margin: 0;
+  padding: 0 0.75rem;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 0.92rem;
+}
+.recipient-add input:focus {
+  outline: 2px solid #18181b;
+  outline-offset: -1px;
+}
+.recipient-add .dash-cta,
+.unsub .dash-cta {
+  margin-top: 0;
+  height: 38px;
+  padding: 0 1rem;
+  border: none;
+  cursor: pointer;
+}
+.dash-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #71717a;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.link-button:hover {
+  background: none;
+  color: #b91c1c;
+  text-decoration: underline;
+}
+.unsub {
+  max-width: 520px;
+  padding-block: 5rem;
+}
+.unsub form {
+  margin-top: 1.5rem;
+}
+
+/* Remove button: quiet ghost button, red tint on hover */
+.dash-row .link-button,
+.dash-row .link-button:hover,
+.dash-row .link-button:focus-visible {
+  padding: 0.3rem 0.65rem !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  font-size: 0.82rem !important;
+  line-height: 1.2 !important;
+}
+.dash-row .link-button {
+  background: transparent !important;
+  color: #71717a !important;
+}
+.dash-row .link-button:hover:not(:disabled) {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+}
+.dash-row .link-button:focus-visible {
+  outline: 2px solid #b91c1c;
+  outline-offset: 1px;
+}
+.dash-row .link-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.dash-row:has(.link-button) {
+  align-items: center;
+}

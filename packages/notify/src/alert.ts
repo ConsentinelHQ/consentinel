@@ -13,6 +13,8 @@ export interface AlertInput {
   /** Newly appeared findings. Only criticals are passed in. */
   added: { vendor: string; title: string; severity: Severity; remediation: string }[];
   reportUrl: string;
+  /** Non-members added on the Alerts page, each with their own unsubscribe link. */
+  external?: { email: string; unsubscribeUrl: string }[];
 }
 
 export async function sendRegressionAlert(input: AlertInput): Promise<SendResult> {
@@ -56,29 +58,48 @@ export async function sendRegressionAlert(input: AlertInput): Promise<SendResult
     `See the evidence: ${input.reportUrl}`,
   ].join("\n");
 
-  const { html, text } = renderEmail({
-    preheader: groups.map((g) => g.vendor).join(", "),
+  const subject = `${String(n)} new ${noun} firing before consent on ${host}`;
+  const from = process.env["ALERT_FROM_EMAIL"] ?? "Consentinel <alerts@consentinelhq.com>";
+  const preheader = groups.map((g) => g.vendor).join(", ");
+  const member = renderEmail({
+    preheader,
     bodyHtml,
     bodyText,
     reason: `You’re receiving this because you get alerts for ${host} on Consentinel. You can turn them off anytime.`,
     manageUrl: `${appUrl()}/app/alerts`,
   });
 
-  // One email per person: a shared To line would expose every member's address.
+  // One email per person: a shared To line would expose every address.
+  const jobs = [
+    ...input.to.map((email) => ({ email, html: member.html, text: member.text })),
+    ...(input.external ?? []).map((r) => {
+      const own = renderEmail({
+        preheader,
+        bodyHtml,
+        bodyText,
+        reason: `You’re receiving this because you were added to Consentinel alerts for ${host}. Unsubscribe anytime.`,
+        manageUrl: r.unsubscribeUrl,
+      });
+      return { email: r.email, html: own.html, text: own.text };
+    }),
+  ];
+
+  // One bad address shouldn't stop everyone else's alert.
   let last: SendResult | undefined;
-  for (const [i, to] of input.to.entries()) {
+  let failed: SendResult | undefined;
+  for (const [i, job] of jobs.entries()) {
     if (i > 0) await new Promise((r) => setTimeout(r, 550)); // stay under Resend's 2/s
     const result = await sendEmail({
-      from: process.env["ALERT_FROM_EMAIL"] ?? "Consentinel <alerts@consentinelhq.com>",
-      to: [to],
-      subject: `${String(n)} new ${noun} firing before consent on ${host}`,
-      html,
-      text,
+      from,
+      to: [job.email],
+      subject,
+      html: job.html,
+      text: job.text,
     });
-    if (!result.sent) return result;
-    last = result;
+    if (result.sent) last = result;
+    else failed = result;
   }
-  return last ?? { sent: false, reason: "no recipients" };
+  return failed ?? last ?? { sent: false, reason: "no recipients" };
 }
 
 function groupByVendor(

@@ -40,11 +40,16 @@ function statusLabel(site: Site): string {
   return n === 0 ? "nothing critical" : `${String(n)} critical`;
 }
 
+// Bare host reads cleaner than a full URL in a dense list.
+function name(site: Site): string {
+  return site.label ?? site.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
 function Row({ site, meta, danger }: { site: Site; meta: string; danger?: boolean }) {
   return (
     <li>
       <Link className="dash-row" href={`/app/sites/${site.id}`}>
-        <span className="dash-row-name">{site.label ?? site.url}</span>
+        <span className="dash-row-name">{name(site)}</span>
         <span className={danger === true ? "dash-row-meta is-danger" : "dash-row-meta"}>
           {meta}
         </span>
@@ -118,7 +123,9 @@ export default async function Overview() {
         <div className="kpi">
           <div className="kpi-label">Last scan</div>
           <div className="kpi-value">{ago(lastScan)}</div>
-          <div className="kpi-sub">{recent[0]?.label ?? recent[0]?.url ?? "no scans yet"}</div>
+          <div className="kpi-sub">
+            {recent[0] === undefined ? "no scans yet" : name(recent[0])}
+          </div>
         </div>
       </div>
 
