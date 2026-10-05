@@ -13,7 +13,7 @@ const { monitoring, growth, agency } = PLANS;
 export default function Pricing() {
   return (
     <main>
-      <section className="hero center">
+      <section className="hero center pricing-hero">
         <div className="wrap">
           <h1>Priced to be read, not quoted.</h1>
           <p className="lede">
@@ -23,7 +23,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section>
+      <section className="pricing-tiers">
         <div data-reveal className="wrap tiers tiers-4">
           <div className="tier">
             <h2>Free scan</h2>

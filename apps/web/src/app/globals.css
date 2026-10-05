@@ -2976,3 +2976,11 @@ section.panel.panel-gap {
     grid-template-columns: 1fr;
   }
 }
+
+/* Pricing: close the hero-to-tiers gap */
+section.pricing-hero {
+  padding-bottom: 2.5rem;
+}
+section.pricing-tiers {
+  padding-top: 0;
+}
