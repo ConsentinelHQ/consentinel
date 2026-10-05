@@ -64,6 +64,13 @@
       "when": 1791136257333,
       "tag": "0008_old_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791238899188,
+      "tag": "0009_famous_the_liberteens",
+      "breakpoints": true
     }
   ]
 }

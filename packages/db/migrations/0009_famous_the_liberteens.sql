@@ -1,0 +1,1 @@
+ALTER TABLE "org_members" ADD COLUMN "alerts_enabled" boolean DEFAULT true NOT NULL;

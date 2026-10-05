@@ -430,7 +430,7 @@ export interface AlertRecipient {
   orgId: string;
 }
 
-/** Everyone in the org that owns this site. Per-user opt-out is not built yet. */
+/** Everyone in the org that owns this site. Members who turned alerts off are skipped. */
 export async function listAlertRecipients(db: Database, siteId: string): Promise<AlertRecipient[]> {
   return db
     .select({ email: users.email, orgId: orgs.id })
@@ -438,7 +438,7 @@ export async function listAlertRecipients(db: Database, siteId: string): Promise
     .innerJoin(orgs, eq(orgs.id, sites.orgId))
     .innerJoin(orgMembers, eq(orgMembers.orgId, orgs.id))
     .innerJoin(users, eq(users.id, orgMembers.userId))
-    .where(eq(sites.id, siteId));
+    .where(and(eq(sites.id, siteId), eq(orgMembers.alertsEnabled, true)));
 }
 
 /** The site's allowlist token for a scan, or null for ad-hoc scans with no site. */
@@ -582,4 +582,39 @@ export async function rotateDeployHookToken(
     .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)))
     .returning({ token: sites.deployHookToken });
   return row?.token ?? null;
+}
+
+export interface AlertMember {
+  userId: string;
+  email: string;
+  role: string;
+  alertsEnabled: boolean;
+}
+
+/** Every member of an org with their alert setting, for the Alerts page. */
+export async function listOrgAlertSettings(db: Database, orgId: string): Promise<AlertMember[]> {
+  return db
+    .select({
+      userId: users.id,
+      email: users.email,
+      role: orgMembers.role,
+      alertsEnabled: orgMembers.alertsEnabled,
+    })
+    .from(orgMembers)
+    .innerJoin(users, eq(users.id, orgMembers.userId))
+    .where(eq(orgMembers.orgId, orgId))
+    .orderBy(users.email);
+}
+
+/** Scoped to org and user, so one member can't change another's setting. */
+export async function setAlertsEnabled(
+  db: Database,
+  orgId: string,
+  userId: string,
+  enabled: boolean,
+): Promise<void> {
+  await db
+    .update(orgMembers)
+    .set({ alertsEnabled: enabled })
+    .where(and(eq(orgMembers.orgId, orgId), eq(orgMembers.userId, userId)));
 }

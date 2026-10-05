@@ -94,6 +94,7 @@ export const orgMembers = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role").$type<OrgRole>().notNull().default("member"),
+    alertsEnabled: boolean("alerts_enabled").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
