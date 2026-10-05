@@ -3,8 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Pricing - Consentinel",
-  description:
-    "A free scan of any page, a fixed-price consent audit at $1,500, and continuous monitoring from $99 a month.",
+  description: "A free scan of any page, and continuous monitoring for $99 a month per site.",
 };
 
 export default function Pricing() {
@@ -15,8 +14,7 @@ export default function Pricing() {
           <h1>Priced to be read, not quoted.</h1>
           <p className="lede">
             Audit tools in this category hide their pricing behind a sales call. Ours is on this
-            page. Scan anything free, and pay only when you want the evidence in a form you can hand
-            to someone.
+            page. Scan anything free, and pay only when you want it watched.
           </p>
         </div>
       </section>
@@ -39,22 +37,6 @@ export default function Pricing() {
           </div>
 
           <div className="tier featured">
-            <h2>Consent audit</h2>
-            <p className="tier-price">$1,500</p>
-            <p className="tier-note">One domain, up to 25 pages, delivered in 5 business days</p>
-            <ul className="tier-list">
-              <li>Every page scanned under both consent states</li>
-              <li>Each finding carries the request or cookie that proves it</li>
-              <li>Remediation written for whoever has to make the change</li>
-              <li>Script inventory suitable for PCI DSS 6.4.3 evidence</li>
-              <li>A re-scan after your fixes, included</li>
-            </ul>
-            <a className="tier-cta primary" href="/contact">
-              Book an audit
-            </a>
-          </div>
-
-          <div className="tier">
             <h2>Monitoring</h2>
             <p className="tier-price">
               $99<span className="tier-per">/month per site</span>
@@ -68,7 +50,7 @@ export default function Pricing() {
               <li>Shareable report links for whoever has to make the change</li>
             </ul>
             {/* Signed-out visitors get bounced through sign-up and land here ready to pay. */}
-            <Link className="tier-cta" href="/app/billing">
+            <Link className="tier-cta primary" href="/app/billing">
               Start monitoring
             </Link>
           </div>
@@ -77,16 +59,10 @@ export default function Pricing() {
 
       <section>
         <div data-reveal className="wrap center">
-          <h2>Bigger than 25 pages?</h2>
-          <p className="lede" style={{ marginTop: "1.25rem" }}>
-            Multi-domain estates, staging environments, and authenticated journeys are all things we
-            scan. Tell us the shape of it and we will quote against the number above, not against
-            your company size.
-          </p>
-          <p style={{ marginTop: "1.75rem" }}>
-            <Link className="tier-cta" href="/contact">
-              Get in touch
-            </Link>
+          <h2>More than one site?</h2>
+          <p className="lede" style={{ marginTop: "1.25rem", marginInline: "auto" }}>
+            Monitoring is $99 per site. Add every storefront, region, or brand from your dashboard
+            and your plan updates on its own. No sales call, no quote.
           </p>
         </div>
       </section>

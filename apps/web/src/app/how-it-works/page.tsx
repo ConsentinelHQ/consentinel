@@ -309,7 +309,7 @@ export default function HowItWorks() {
                 <ScanForm />
               </div>
               <p className="quiet" style={{ marginTop: "1rem" }}>
-                Monitoring and audits run the same method across your whole site.{" "}
+                Monitoring runs the same scan on a schedule and after every deploy.{" "}
                 <Link href="/pricing">See pricing</Link>
               </p>
             </div>

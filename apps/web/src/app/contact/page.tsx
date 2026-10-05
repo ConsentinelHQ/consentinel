@@ -3,7 +3,7 @@ import { ContactForm } from "@/components/contact-form";
 
 export const metadata: Metadata = {
   title: "Contact - Consentinel",
-  description: "Book a consent audit, join the monitoring waitlist, or ask a question.",
+  description: "Questions about a scan, your report, or monitoring.",
 };
 
 export default function Contact() {

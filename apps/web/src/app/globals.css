@@ -2451,3 +2451,12 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
     linear-gradient(var(--paper-alt), var(--paper-alt)) padding-box,
     linear-gradient(90deg, #7038ff, #6ec3f4, #ef008f, #ffba27, #00d68f) border-box;
 }
+
+/* Pricing: two tiers, centered */
+@media (min-width: 768px) {
+  .tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 820px;
+    margin-inline: auto;
+  }
+}

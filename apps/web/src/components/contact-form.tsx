@@ -3,13 +3,12 @@
 import { useCallback, useState, type FormEvent } from "react";
 
 const TOPICS = [
-  { value: "audit", label: "Book a consent audit" },
-  { value: "monitoring", label: "Monitoring waitlist" },
+  { value: "monitoring", label: "Monitoring or billing" },
   { value: "general", label: "Something else" },
 ] as const;
 
 export function ContactForm() {
-  const [topic, setTopic] = useState<string>("audit");
+  const [topic, setTopic] = useState<string>("general");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
