@@ -15,7 +15,7 @@ export default function Pricing() {
     <main>
       <section className="hero center pricing-hero">
         <div className="wrap">
-          <h1>Priced to be read, not quoted.</h1>
+          <h1>Monitoring from $99 a month.</h1>
           <p className="lede">
             Audit tools in this category hide their pricing behind a sales call. Ours is on this
             page. Scan anything free, and pay only when you want it watched.
