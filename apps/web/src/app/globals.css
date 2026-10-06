@@ -3031,3 +3031,9 @@ a.nav-cta:hover {
   cursor: default;
   pointer-events: none;
 }
+
+.tier-cta.is-disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}

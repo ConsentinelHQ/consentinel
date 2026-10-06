@@ -80,9 +80,9 @@ export default function Pricing() {
                 PDF evidence exports <span className="soon">Coming soon</span>
               </li>
             </ul>
-            <Link className="tier-cta" href="/app/billing">
-              Choose {growth.name}
-            </Link>
+            <span aria-disabled="true" className="tier-cta is-disabled">
+              Coming soon
+            </span>
           </div>
 
           <div className="tier">

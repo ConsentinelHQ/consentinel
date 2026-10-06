@@ -138,7 +138,7 @@ export default async function Billing({
                       </li>
                     ) : null}
                   </ul>
-                  {p.id === "agency" ? (
+                  {p.id === "agency" || p.id === "growth" ? (
                     <span aria-disabled="true" className="tier-cta is-disabled">
                       Coming soon
                     </span>
