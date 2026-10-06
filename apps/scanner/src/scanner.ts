@@ -54,6 +54,8 @@ export interface ScanOptions {
 }
 
 export interface CapturedRequest {
+  /** Request body, capped, for personal-data detection. */
+  postData?: string;
   url: string;
   method: string;
   resourceType: string;
@@ -206,12 +208,19 @@ async function newCapturedContext(
       }
     }
     initiator ??= req.headers()["referer"];
+    let postData: string | null = null;
+    try {
+      postData = req.postData();
+    } catch {
+      // Binary or unreadable body: nothing to inspect.
+    }
     requests.push({
       url,
       method: req.method(),
       resourceType: req.resourceType(),
       tMs: Date.now() - startedAt,
       ...(initiator ? { initiator } : {}),
+      ...(postData ? { postData: postData.slice(0, 16384) } : {}),
     });
 
     const host = registrableHost(url);
