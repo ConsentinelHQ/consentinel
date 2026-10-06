@@ -1,3 +1,4 @@
+import { SEED } from "./pii.js";
 import { chromium, type Browser, type BrowserContext, type Page, type Request } from "playwright";
 import {
   detectCmp,
@@ -22,6 +23,8 @@ const QUIET_POLL_MS = 250;
 const MAX_SETTLE_MS = 15_000;
 
 export interface ScanOptions {
+  /** Type a test identity into forms to detect personal-data leaks. Off unless set. */
+  probePii?: boolean;
   /**
    * Record third-party requests but never send them. Used by fixture tests so a
    * suite run never touches a real tracker. Real scans must be false: tags load
@@ -94,6 +97,8 @@ export interface MainResponse {
 }
 
 export interface PassResult {
+  /** Which test identity fields were filled during this pass, if probing. */
+  seeded?: { email: boolean; phone: boolean };
   requests: CapturedRequest[];
   cookies: CapturedCookie[];
   interaction: ConsentInteraction;
@@ -342,7 +347,40 @@ async function gotoCapturing(page: Page, url: string): Promise<MainResponse | un
   return { status: response.status(), headers: response.headers(), title };
 }
 
+/**
+ * Type the probe identity into visible email and phone fields, without submitting,
+ * so tags that read forms (advanced matching, identify calls) reveal what they send.
+ */
+async function seedIdentity(page: Page): Promise<{ email: boolean; phone: boolean }> {
+  const fill = async (selector: string, value: string): Promise<boolean> => {
+    try {
+      const fields = page.locator(selector);
+      const n = Math.min(await fields.count(), 5);
+      for (let i = 0; i < n; i++) {
+        const f = fields.nth(i);
+        if (!(await f.isVisible().catch(() => false))) continue;
+        await f.fill(value, { timeout: 2000 });
+        await f.dispatchEvent("change");
+        await f.blur();
+        return true;
+      }
+    } catch {
+      // Field detached, covered, or read-only. Nothing seeded here.
+    }
+    return false;
+  };
+  const email = await fill(
+    'input[type="email"], input[autocomplete="email"], input[name*="email" i]',
+    SEED.email,
+  );
+  const phone = SEED.phone
+    ? await fill('input[type="tel"], input[autocomplete="tel"], input[name*="phone" i]', SEED.phone)
+    : false;
+  return { email, phone };
+}
+
 export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawScan> {
+  const probePii = opts.probePii ?? process.env["CONSENTINEL_PII_PROBE"] === "1";
   // --- Pass 0: detection ---
   const probe = await newCapturedContext(url, opts);
   await probe.page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
@@ -376,12 +414,19 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     };
   }
   await provokeLateTags(a.page, a.requests);
+  const seeded = probePii ? await seedIdentity(a.page) : null;
+  if (seeded)
+    process.stderr.write(
+      `[pii] seeded email=${String(seeded.email)} phone=${String(seeded.phone)}\n`,
+    );
+  if (seeded && (seeded.email || seeded.phone)) await provokeLateTags(a.page, a.requests);
   const deniedPass: PassResult = {
     requests: a.requests,
     cookies: await snapshotCookies(a.context, a.setters),
     interaction: deniedInteraction,
     ...(deniedResponse ? { mainResponse: deniedResponse } : {}),
     gpc: opts.gpc === true,
+    ...(seeded ? { seeded } : {}),
   };
   await a.browser.close();
 

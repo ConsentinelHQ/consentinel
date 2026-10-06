@@ -151,3 +151,69 @@ export function detectPiiLeaks(
   }
   return hits;
 }
+
+/** How a leak reads in a finding title. */
+export function leakDescription(hit: PiiHit): string {
+  switch (hit.kind) {
+    case "email":
+      return "the email address typed into the page";
+    case "email-sha256":
+    case "email-md5":
+    case "email-sha1":
+      return "a hashed copy of the email address typed into the page";
+    case "phone":
+      return "the phone number typed into the page";
+    case "phone-sha256":
+      return "a hashed copy of the phone number typed into the page";
+    case "identifier-param":
+      return `a hashed contact identifier (${hit.field ?? "unnamed field"})`;
+  }
+}
+
+export function leakDetail(hit: PiiHit, vendor: string): string {
+  const where =
+    (hit.location === "body" ? "the request body" : "the request URL") +
+    (hit.field ? `, in the "${hit.field}" field` : "");
+  if (hit.kind === "identifier-param") {
+    return (
+      `${vendor} received a hashed value in an email or phone field (${where}). ` +
+      `Ad platforms use these to match visitors to real people.`
+    );
+  }
+  return (
+    `During the scan we typed a test identity (${SEED.email}) into a form on the page and did not ` +
+    `submit it. ${vendor} received it in ${where}. Hashing does not make it anonymous: ad ` +
+    `platforms match hashed emails and phone numbers to real people.`
+  );
+}
+
+export function leakRemediation(vendor: string): string {
+  if (/meta|facebook/i.test(vendor)) {
+    return (
+      "Turn off Automatic Advanced Matching in Meta Events Manager, or stop the Meta pixel " +
+      "loading for visitors who opt out. Either way, contact details stop reaching Meta after an opt-out."
+    );
+  }
+  if (/tiktok/i.test(vendor)) {
+    return (
+      "Turn off automatic advanced matching in TikTok Events Manager, or stop the TikTok pixel " +
+      "loading for visitors who opt out."
+    );
+  }
+  if (/pinterest/i.test(vendor)) {
+    return (
+      "Turn off automatic enhanced match in your Pinterest tag settings, or stop the Pinterest tag " +
+      "loading for visitors who opt out."
+    );
+  }
+  if (/google|doubleclick/i.test(vendor)) {
+    return (
+      "Only send enhanced conversions data when ad_user_data consent is granted, and make sure " +
+      "Google Consent Mode receives the opt-out."
+    );
+  }
+  return (
+    `Stop ${vendor} from receiving visitor contact details when a visitor opts out, using your ` +
+    `consent app's script blocking or ${vendor}'s own consent settings.`
+  );
+}

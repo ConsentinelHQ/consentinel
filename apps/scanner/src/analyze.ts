@@ -1,3 +1,4 @@
+import { detectPiiLeaks, leakDescription, leakDetail, leakRemediation } from "./pii.js";
 import {
   FINDING_SCHEMA_VERSION,
   countBySeverity,
@@ -114,6 +115,41 @@ export function analyze(raw: RawScan): ScanResult {
       firstSeenAt: now,
       compliance: [],
     });
+  }
+
+  /**
+   * 0b) Personal data reaching third parties. Only when the scan seeded a test
+   * identity, so every hit is provable. Always critical: contact details reaching
+   * an ad platform after an opt-out is the exposure regulators and wiretap claims target.
+   */
+  if (raw.deniedPass.seeded) {
+    const targetHost = new URL(raw.url).hostname.replace(/^www\./, "");
+    for (const hit of detectPiiLeaks(raw.deniedPass.requests, targetHost)) {
+      const req = raw.deniedPass.requests.find((r) => r.url === hit.url);
+      const sig = req ? classifyPass([req])[0]?.sig : undefined;
+      const vendor = sig?.vendor ?? hit.host;
+      findings.push({
+        id: nextId("pii"),
+        schemaVersion: FINDING_SCHEMA_VERSION,
+        type: "pii-leak-to-tracker",
+        severity: "critical",
+        vendor,
+        category: sig?.category ?? "unknown",
+        title: `${vendor} received ${leakDescription(hit)} ${when}`,
+        detail: leakDetail(hit, vendor),
+        remediation: leakRemediation(vendor),
+        evidence: {
+          kind: "request",
+          url: hit.url,
+          method: hit.method,
+          resourceType: req?.resourceType ?? "other",
+          ...(hit.field ? { matched: hit.field } : {}),
+        },
+        observedUnder,
+        firstSeenAt: now,
+        compliance: [],
+      });
+    }
   }
 
   // 1) Trackers firing under denied/rejected consent - the core violation.
