@@ -3074,3 +3074,12 @@ a.nav-cta:hover {
   white-space: pre;
   font-size: 0.85rem;
 }
+
+/* Report header: scan date under the URL */
+.scan-when {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(0, 0, 0, 0.55);
+  margin: 0 0 0.75rem;
+}

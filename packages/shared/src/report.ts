@@ -317,11 +317,11 @@ function observedUnderGpc(result: ScanResult): boolean {
 }
 
 export function toFreeReport(result: ScanResult): FreeReport {
-  return withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) });
+  return adaptForGpc(withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) }));
 }
 
 export function toFullReport(result: ScanResult): FreeReport {
-  return withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) });
+  return adaptForGpc(withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) }));
 }
 
 /** Children point at the parent; parents list what fixing them also clears. */
@@ -373,4 +373,49 @@ function withRowCount(report: FreeReport): FreeReport {
 /** Severity counts exactly as the full report shows them. Stored on each scan so lists match the report. */
 export function displayCounts(result: ScanResult): Record<Severity, number> {
   return toFullReportBase(result).counts;
+}
+
+/**
+ * A GPC scan tests an opt-out, not an opt-in. US law lets most tags load by default
+ * but requires them to stop when the visitor opts out, so "before consent" and
+ * "until the visitor opts in" describe the wrong rule. Rewritten at report time so
+ * stored scans read correctly without a rescan.
+ */
+function adaptForGpc(report: FreeReport): FreeReport {
+  if (!report.gpc) return report;
+  const cookieYes = (report.cmpName ?? "").toLowerCase().includes("cookieyes");
+  const blocking = cookieYes
+    ? "Find where it loads in your theme or apps, then change the script's type to " +
+      '"text/plain" and add data-cookieyes="cookieyes-advertisement" so CookieYes holds ' +
+      "it back for visitors who opt out."
+    : "Use your consent app's script blocking so it doesn't load for visitors who opt out.";
+  const rules: [RegExp, string][] = [
+    [
+      /Gate (.+?) behind consent so it can(?:not|[’']t) load, send data, or set cookies until the visitor opts in\./g,
+      "Stop $1 from loading, sending data, or setting cookies when a visitor opts out, including through Global Privacy Control.",
+    ],
+    [/Use your consent app's script blocking so it only loads after an opt-in\./g, blocking],
+    [
+      /Set Google Consent Mode defaults to denied so it waits for an opt-in\./g,
+      "Make sure your consent app sets Google Consent Mode to denied when a visitor opts out or sends Global Privacy Control.",
+    ],
+    [/Gate (.+?) behind consent and this stops with it\./g, "Fix $1 and this stops with it."],
+    [
+      /Delay Klaviyo's onsite script until marketing consent,/g,
+      "Hold back Klaviyo's onsite script for visitors who opt out,",
+    ],
+    [
+      /Load Clarity only after consent, or use Clarity's consent API so it waits for an opt-in before recording sessions\./g,
+      "Don't load Clarity for visitors who opt out, or use Clarity's consent API so it doesn't record their sessions.",
+    ],
+  ];
+  const rewrite = (t: string): string => rules.reduce((acc, [re, to]) => acc.replace(re, to), t);
+  return {
+    ...report,
+    findings: report.findings.map((f) => ({
+      ...f,
+      title: f.title.replace(/ before consent$/, " with Global Privacy Control on"),
+      ...(f.remediation ? { remediation: rewrite(f.remediation) } : {}),
+    })),
+  };
 }

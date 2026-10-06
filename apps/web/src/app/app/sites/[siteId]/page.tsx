@@ -37,7 +37,9 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
   return (
     <div className="wrap app-content">
       <p className="quiet">
-        <Link href="/app">Sites</Link>
+        <Link href="/app/sites">
+          <span aria-hidden="true">←</span> Sites
+        </Link>
       </p>
 
       <div className="app-head">

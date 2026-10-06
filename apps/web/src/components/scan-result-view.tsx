@@ -120,6 +120,18 @@ function Report({
   if (clean) {
     return (
       <>
+        <p className="scan-when">
+          Scanned{" "}
+          {new Intl.DateTimeFormat("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: "America/New_York",
+            timeZoneName: "short",
+          }).format(new Date(report.scannedAt))}
+        </p>
         <h1>Nothing fired before consent.</h1>
         <p className="lede" style={{ marginTop: "1.25rem" }}>
           {report.cmpName
@@ -174,6 +186,18 @@ function Report({
 
   return (
     <>
+      <p className="scan-when">
+        Scanned{" "}
+        {new Intl.DateTimeFormat("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "America/New_York",
+          timeZoneName: "short",
+        }).format(new Date(report.scannedAt))}
+      </p>
       <h1>{report.headline}</h1>
       <p className="lede" style={{ marginTop: "1.25rem" }}>
         {report.cmpName
@@ -216,7 +240,21 @@ function Report({
 
       <div className="specimen" style={{ marginTop: "3rem" }}>
         <div className="specimen-head">
-          <span className="specimen-url">{report.url}</span>
+          <div className="specimen-id">
+            <span className="specimen-url">{report.url}</span>
+            <span className="scan-when">
+              Scanned{" "}
+              {new Intl.DateTimeFormat("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                timeZone: "America/New_York",
+                timeZoneName: "short",
+              }).format(new Date(report.scannedAt))}
+            </span>
+          </div>
           <span className={`verdict${report.counts.critical === 0 ? " pass" : ""}`}>
             {/* "0 critical, 1 to clean up" reads as a contradiction next to a
                 headline about trackers firing. Say the thing that’s true. */}

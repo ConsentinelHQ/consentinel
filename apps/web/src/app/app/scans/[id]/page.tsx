@@ -14,7 +14,9 @@ export default async function AppScanPage({ params }: { params: Promise<{ id: st
   return (
     <div className="wrap app-content">
       <p className="quiet">
-        <Link href="/app">Sites</Link>
+        <Link href="/app/sites">
+          <span aria-hidden="true">←</span> Sites
+        </Link>
       </p>
       <ScanResultView actions={<ShareReport scanId={id} />} scanId={id} />
     </div>
