@@ -138,7 +138,13 @@ export default async function Billing({
                       </li>
                     ) : null}
                   </ul>
-                  <BillingActions action="checkout" label={`Choose ${p.name}`} plan={p.id} />
+                  {p.id === "agency" ? (
+                    <span aria-disabled="true" className="tier-cta is-disabled">
+                      Coming soon
+                    </span>
+                  ) : (
+                    <BillingActions action="checkout" label={`Choose ${p.name}`} plan={p.id} />
+                  )}
                 </div>
               );
             })}

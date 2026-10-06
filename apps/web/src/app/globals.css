@@ -3025,3 +3025,9 @@ a.nav-cta:hover {
   box-shadow: 0 4px 14px rgba(112, 56, 255, 0.18);
   transform: translateY(-1px);
 }
+
+.tier-cta.is-disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}

@@ -105,9 +105,9 @@ export default function Pricing() {
                 API access <span className="soon">Coming soon</span>
               </li>
             </ul>
-            <Link className="tier-cta" href="/app/billing">
-              Choose {agency.name}
-            </Link>
+            <span aria-disabled="true" className="tier-cta is-disabled">
+              Coming soon
+            </span>
           </div>
         </div>
       </section>
