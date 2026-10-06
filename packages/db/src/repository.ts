@@ -1,3 +1,4 @@
+import { displayCounts } from "@consentinel/shared";
 import { randomBytes } from "node:crypto";
 import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
 import type { ScanResult, Severity } from "@consentinel/shared";
@@ -87,9 +88,9 @@ export async function completeScan(
         cmpName: result.cmp.detected?.name ?? null,
         consentModePresent: result.cmp.consentMode.present,
         headline: result.headline,
-        criticalCount: result.counts.critical,
-        warningCount: result.counts.warning,
-        infoCount: result.counts.info,
+        criticalCount: displayCounts(result).critical,
+        warningCount: displayCounts(result).warning,
+        infoCount: displayCounts(result).info,
         result,
       })
       .where(eq(scans.id, scanId));

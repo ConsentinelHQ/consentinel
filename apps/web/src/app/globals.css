@@ -3037,3 +3037,40 @@ a.nav-cta:hover {
   cursor: default;
   pointer-events: none;
 }
+
+/* Cloudflare allowlist panel: match the rest of the card */
+.allowlist ol {
+  font-size: 0.83rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  padding-left: 1.25rem;
+  margin: 0.75rem 0;
+}
+.allowlist ol li {
+  margin: 0.5rem 0;
+}
+.allowlist ol strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+.allowlist code {
+  font-size: 0.85em;
+  background: #f4f4f5;
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+.allowlist-code {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  min-width: 0;
+}
+.allowlist-code pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+  font-size: 0.85rem;
+}
