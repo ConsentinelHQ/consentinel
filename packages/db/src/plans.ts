@@ -99,3 +99,10 @@ export function can(state: BillingState | null, feature: Feature): boolean {
 export function externalRecipientLimit(state: BillingState | null): number {
   return activePlan(state)?.externalRecipients ?? PLANS.monitoring.externalRecipients;
 }
+
+/** Yearly price per unit where offered: two months free versus monthly. */
+export const ANNUAL_PRICES: Readonly<Partial<Record<PaidPlan, number>>> = {
+  monitoring: 990,
+  growth: 2990,
+  agency: 7990,
+};

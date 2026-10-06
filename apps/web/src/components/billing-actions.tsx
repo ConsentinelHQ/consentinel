@@ -10,10 +10,12 @@ export function BillingActions({
   action,
   label,
   plan,
+  interval,
 }: {
   action: Action;
   label: string;
   plan?: PaidPlan;
+  interval?: "month" | "year";
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,10 @@ export function BillingActions({
       const response = await fetch(`/api/billing/${action}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(plan === undefined ? {} : { plan }),
+        body: JSON.stringify({
+          ...(plan === undefined ? {} : { plan }),
+          ...(interval === "year" ? { interval } : {}),
+        }),
       });
       const data: unknown = await response.json();
       const url = typeof data === "object" && data !== null ? (data as { url?: string }).url : null;

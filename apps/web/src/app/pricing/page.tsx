@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PLANS } from "@consentinel/db";
+import { ANNUAL_PRICES, PLANS } from "@consentinel/db";
 
 export const metadata: Metadata = {
   title: "Pricing - Consentinel",
@@ -46,6 +46,7 @@ export default function Pricing() {
               ${monitoring.price}
               <span className="tier-per">/month per site</span>
             </p>
+            <p className="tier-annual">or ${ANNUAL_PRICES.monitoring} /year, 2 months free</p>
             <p className="tier-note">For a single store</p>
             <ul className="tier-list">
               <li>Scheduled scans daily, weekly, or monthly</li>
@@ -66,6 +67,9 @@ export default function Pricing() {
             <p className="tier-price">
               ${growth.price}
               <span className="tier-per">/month</span>
+            </p>
+            <p className="tier-annual">
+              or ${ANNUAL_PRICES.growth?.toLocaleString("en-US")}/year, 2 months free
             </p>
             <p className="tier-note">For growing brands</p>
             <ul className="tier-list">
@@ -90,6 +94,9 @@ export default function Pricing() {
             <p className="tier-price">
               ${agency.price}
               <span className="tier-per">/month</span>
+            </p>
+            <p className="tier-annual">
+              or ${ANNUAL_PRICES.agency?.toLocaleString("en-US")}/year, 2 months free
             </p>
             <p className="tier-note">For agencies managing client stores</p>
             <ul className="tier-list">

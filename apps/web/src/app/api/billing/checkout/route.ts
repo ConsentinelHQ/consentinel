@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  ANNUAL_PRICES,
   PLANS,
   countOrgSites,
   getBillingState,
@@ -9,7 +10,7 @@ import {
 } from "@consentinel/db";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
-import { priceIdFor, stripe } from "@/lib/stripe";
+import { annualPriceIdFor, priceIdFor, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +25,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     typeof body === "object" && body !== null ? (body as { plan?: unknown }).plan : undefined;
   const plan: PaidPlan =
     typeof requested === "string" && isPaidPlan(requested) ? requested : "monitoring";
+  const yearly =
+    typeof body === "object" &&
+    body !== null &&
+    (body as { interval?: unknown }).interval === "year";
+  if (yearly && !ANNUAL_PRICES[plan]) {
+    return NextResponse.json(
+      { error: "Yearly billing isn't available for this plan." },
+      { status: 400 },
+    );
+  }
 
   const state = await getBillingState(database, session.orgId);
   if (!state) return NextResponse.json({ error: "Org not found." }, { status: 404 });
@@ -55,7 +66,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const checkout = await stripe().checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
-    line_items: [{ price: priceIdFor(plan), quantity }],
+    line_items: [{ price: yearly ? annualPriceIdFor(plan) : priceIdFor(plan), quantity }],
     // Both carried so the webhook can resolve the org from either object.
     client_reference_id: session.orgId,
     metadata: { orgId: session.orgId },

@@ -31,6 +31,19 @@ export function planForPrice(priceId: string | undefined): PaidPlan | null {
   if (!priceId) return null;
   for (const plan of Object.keys(PRICE_ENV) as PaidPlan[]) {
     if (process.env[PRICE_ENV[plan]] === priceId) return plan;
+    const yearly = ANNUAL_PRICE_ENV[plan];
+    if (yearly && process.env[yearly] === priceId) return plan;
   }
   return null;
+}
+
+const ANNUAL_PRICE_ENV: Partial<Record<PaidPlan, string>> = {
+  monitoring: "STRIPE_PRICE_MONITORING_ANNUAL",
+};
+
+export function annualPriceIdFor(plan: PaidPlan): string {
+  const name = ANNUAL_PRICE_ENV[plan];
+  const price = name ? process.env[name] : undefined;
+  if (!name || !price?.startsWith("price_")) throw new Error(`no yearly price for ${plan}`);
+  return price;
 }

@@ -3104,3 +3104,32 @@ a.nav-cta:hover {
 .cl-organizationSwitcherPopoverActionButtonText {
   font-size: 0.95rem !important;
 }
+
+/* Annual billing */
+.tier-annual {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+.plan-card .billing-actions + .billing-actions {
+  margin-top: 0.5rem;
+}
+
+/* Billing plan cards: one primary, one secondary, both full width */
+.plan-annual {
+  margin: -0.6rem 0 1rem;
+}
+.plan-card .billing-actions button {
+  width: 100%;
+}
+.plan-card .billing-actions + .billing-actions button {
+  background: #fff;
+  color: #18181b;
+  border: 1px solid #d4d4d8;
+}
+.plan-card .billing-actions + .billing-actions button:hover {
+  border-color: #18181b;
+}
+.plan-card ul {
+  align-content: start;
+}

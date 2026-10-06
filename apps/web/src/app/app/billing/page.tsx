@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import {
+  ANNUAL_PRICES,
   PLANS,
   activePlan,
   countOrgSites,
@@ -105,6 +106,12 @@ export default async function Billing({
                     ${p.price}
                     <span>/mo{p.perSite ? " per site" : ""}</span>
                   </p>
+                  {ANNUAL_PRICES[p.id] ? (
+                    <p className="tier-annual plan-annual">
+                      or ${ANNUAL_PRICES[p.id]?.toLocaleString("en-US")}/year
+                      {p.perSite ? " per site" : ""}, 2 months free
+                    </p>
+                  ) : null}
                   <ul>
                     <li>
                       {p.perSite
@@ -143,7 +150,17 @@ export default async function Billing({
                       Coming soon
                     </span>
                   ) : (
-                    <BillingActions action="checkout" label={`Choose ${p.name}`} plan={p.id} />
+                    <>
+                      <BillingActions action="checkout" label="Pay monthly" plan={p.id} />
+                      {ANNUAL_PRICES[p.id] ? (
+                        <BillingActions
+                          action="checkout"
+                          interval="year"
+                          label="Pay annually · 2 months free"
+                          plan={p.id}
+                        />
+                      ) : null}
+                    </>
                   )}
                 </div>
               );
