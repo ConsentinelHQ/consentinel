@@ -1,3 +1,4 @@
+import { BillingCycle } from "@/components/billing-cycle";
 import type { Metadata } from "next";
 import {
   ANNUAL_PRICES,
@@ -71,6 +72,12 @@ export default async function Billing({
               <dt>Status</dt>
               <dd>{state.planStatus}</dd>
             </div>
+            {state.stripeSubscriptionId && !comped ? (
+              <BillingCycle
+                subscriptionId={state.stripeSubscriptionId}
+                perSite={plan?.perSite ?? true}
+              />
+            ) : null}
             {state.currentPeriodEnd && !comped ? (
               <div>
                 <dt>Renews</dt>
