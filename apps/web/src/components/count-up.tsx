@@ -50,7 +50,10 @@ export function CountUp({
   return (
     <span ref={ref}>
       {prefix}
-      {value.toFixed(decimals)}
+      {value.toLocaleString("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })}
       {suffix}
     </span>
   );

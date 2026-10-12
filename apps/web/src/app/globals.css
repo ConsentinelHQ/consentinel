@@ -349,6 +349,12 @@ button:disabled {
   color: var(--ink-soft);
   font-size: 0.97rem;
 }
+.tile .stat {
+  color: var(--ink);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 1.25rem;
+}
 
 /* ---------- status + gate ---------- */
 
