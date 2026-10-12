@@ -341,7 +341,7 @@ function initiatorOf(req: Request, page: Page): string | undefined {
  * produce. Callers treat an absent response as "no evidence", never as "not blocked".
  */
 async function gotoCapturing(page: Page, url: string): Promise<MainResponse | undefined> {
-  const response = await page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
+  const response = await gotoWithFallback(page, url);
   if (!response) return undefined;
   const title = await page.title().catch(() => "");
   return { status: response.status(), headers: response.headers(), title };
@@ -383,7 +383,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   const probePii = opts.probePii ?? process.env["CONSENTINEL_PII_PROBE"] === "1";
   // --- Pass 0: detection ---
   const probe = await newCapturedContext(url, opts);
-  await probe.page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
+  await gotoWithFallback(probe.page, url);
   await probe.page.waitForTimeout(600);
   const cmp = await detectCmp(probe.page, probe.requests);
   const consentMode = await detectConsentMode(probe.page);
@@ -455,4 +455,21 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   await b.browser.close();
 
   return { url, cmp, consentMode, deniedPass, grantedPass };
+}
+
+async function gotoWithFallback<R>(
+  page: {
+    goto(
+      url: string,
+      opts: { waitUntil: "load" | "domcontentloaded"; timeout: number },
+    ): Promise<R>;
+  },
+  url: string,
+): Promise<R> {
+  try {
+    return await page.goto(url, { waitUntil: "load", timeout: GOTO_TIMEOUT });
+  } catch (err) {
+    if (!(err instanceof Error) || err.name !== "TimeoutError") throw err;
+    return await page.goto(url, { waitUntil: "domcontentloaded", timeout: GOTO_TIMEOUT * 2 });
+  }
 }
