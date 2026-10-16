@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CountUp } from "@/components/count-up";
+import { JiraLoop } from "@/components/jira-loop";
 import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
 import { StripeGradient } from "@/components/stripe-gradient";
@@ -170,6 +171,53 @@ export default function Home() {
           </p>
           <p style={{ marginTop: "1.25rem" }}>
             <Link href="/pricing">See pricing &rarr;</Link>
+          </p>
+        </div>
+      </section>
+
+      <section className="tinted">
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <p className="eyebrow">Jira integration</p>
+              <h2>Close the ticket. We check the fix.</h2>
+            </div>
+            <p className="lede">
+              Every new critical finding opens a Jira ticket with the evidence and the fix. When
+              someone moves it to Done, Consentinel rescans your site and posts the verdict on the
+              ticket. Nothing closes on a fix that didn’t ship.
+            </p>
+          </div>
+
+          <JiraLoop />
+
+          <div className="tiles jira-points">
+            <div className="tile">
+              <h3>Tickets open themselves</h3>
+              <p>
+                A tracker that starts firing after opt-out becomes a ticket in your project, with
+                the vendor, the proof and the fix. Nobody copies findings out of a report.
+              </p>
+            </div>
+            <div className="tile">
+              <h3>Done means rescanned</h3>
+              <p>
+                Moving any ticket to Done triggers a fresh scan. A release that breaks consent gets
+                flagged on the ticket that shipped it, not weeks later.
+              </p>
+            </div>
+            <div className="tile">
+              <h3>A record that holds up</h3>
+              <p>
+                Each verdict is a dated comment on the ticket: what fired, when it was fixed, and
+                the scan that proves it. That’s what counsel and PCI DSS 11.6.1 reviews ask for.
+              </p>
+            </div>
+          </div>
+
+          <p className="jira-foot center">
+            Works with Jira Cloud in about two minutes. Alongside email and Slack alerts, on Growth
+            and Agency. <Link href="/pricing">See plans &rarr;</Link>
           </p>
         </div>
       </section>
