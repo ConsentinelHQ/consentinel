@@ -80,6 +80,7 @@ export default function Pricing() {
                 Product, cart and checkout pages scanned <span className="soon">Coming soon</span>
               </li>
               <li>Slack alerts</li>
+              <li>Jira tickets, with fixes verified when a ticket closes</li>
               <li>
                 PDF evidence exports <span className="soon">Coming soon</span>
               </li>
