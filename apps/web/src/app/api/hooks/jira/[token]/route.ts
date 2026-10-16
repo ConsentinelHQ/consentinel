@@ -50,12 +50,18 @@ export async function POST(
     return NextResponse.json({ status: "ignored", reason: "issue isn't done" });
   }
 
-  const siteId = await resolveSite(conn.orgId, issueKey, new URL(request.url));
+  const url = new URL(request.url);
+  const siteId = await resolveSite(conn.orgId, issueKey, url);
   if (!siteId) {
-    return NextResponse.json(
-      { error: "Couldn't tell which site to scan. Add ?site=yourdomain.com to the hook URL." },
-      { status: 422 },
-    );
+    const sites = (await listActiveSites(db(), conn.orgId)).map((s) => hostOf(s.url));
+    const wanted = url.searchParams.get("site");
+    const error =
+      sites.length === 0
+        ? "This org has no sites. Add one in Consentinel first."
+        : wanted
+          ? `No site matching ${wanted} in this org. Use one of: ${sites.join(", ")}`
+          : `More than one site. Add ?site=<domain> to the hook URL, one of: ${sites.join(", ")}`;
+    return NextResponse.json({ error }, { status: 422 });
   }
 
   // Jira retries and duplicate rules shouldn't stack scans for one ticket.

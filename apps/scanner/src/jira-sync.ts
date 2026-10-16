@@ -110,7 +110,12 @@ export async function postJiraVerdict(
   if (!creds) return;
 
   const site = host(scan.url);
-  const link = adf.p(adf.text("See the full report", { href: reportUrl(config, scanId) }));
+  // The token belongs to whoever connected Jira, so the comment says who's speaking.
+  const link = adf.p(
+    adf.text("Consentinel", { bold: true }),
+    adf.text(" automated verification. "),
+    adf.text("See the full report", { href: reportUrl(config, scanId) }),
+  );
   const tracked = await getTrackedJiraIssue(db, creds.orgId, scan.jiraIssueKey);
   const added = (await newCriticalFindings(db, scan)) ?? [];
   // Findings this ticket was opened for are not "new" when they persist, but drop
@@ -195,6 +200,7 @@ export async function postJiraScanFailure(
           adf.text("Couldn't verify. ", { bold: true }),
           adf.text(`Consentinel couldn't scan ${host(scan.url)} after this ticket closed. ${why}`),
         ),
+        adf.p(adf.text("Consentinel", { bold: true }), adf.text(" automated verification.")),
       ),
     );
   } catch (error) {

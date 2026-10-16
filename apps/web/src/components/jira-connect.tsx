@@ -59,7 +59,9 @@ function ConnectForm() {
         <a href={API_TOKEN_URL} rel="noreferrer" target="_blank">
           Atlassian API token
         </a>{" "}
-        from an account that can create issues in the project.
+        from an account that can create issues in the project. A service account like
+        consentinel@yourcompany.com keeps tickets and comments from looking like a teammate wrote
+        them.
       </p>
       <div className="jira-form">
         <input
