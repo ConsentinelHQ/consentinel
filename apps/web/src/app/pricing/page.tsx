@@ -82,12 +82,12 @@ export default function Pricing() {
               <li>Slack alerts</li>
               <li>Jira tickets, with fixes verified when a ticket closes</li>
               <li>
-                PDF evidence exports <span className="soon">Coming soon</span>
+                PDF exports <span className="soon">Coming soon</span>
               </li>
             </ul>
-            <span aria-disabled="true" className="tier-cta is-disabled">
-              Coming soon
-            </span>
+            <Link className="tier-cta" href="/app/billing">
+              Start {growth.name}
+            </Link>
           </div>
 
           <div className="tier">
