@@ -112,11 +112,16 @@ under two simultaneous real scans.
 | `REPORT_FROM_EMAIL`              | set               | -                 | Must be on a verified domain |
 | `TURNSTILE_SECRET_KEY`           | set               | -                 |                              |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | set               | -                 |                              |
+| `INTEGRATION_KEY`                | set               | set               | **Same value.** See below    |
 
 `ALLOW_PRIVATE_SCAN_TARGETS` disables the SSRF guard. It exists for local fixtures. If it
 is truthy in production, anyone can point your worker at `169.254.169.254` and read your
 cloud metadata. Set it explicitly to `false` in both places and check it again after the
 first deploy, not before.
+
+`INTEGRATION_KEY` encrypts stored Jira API tokens (AES-256-GCM). Generate once with
+`openssl rand -base64 32` and set the identical value on Vercel and Render: web encrypts on
+connect, the worker decrypts to post tickets. Changing it breaks every saved Jira connection.
 
 ---
 

@@ -21,6 +21,7 @@ export interface CreateScanInput {
   url: string;
   siteId?: string;
   trigger?: ScanTrigger;
+  jiraIssueKey?: string;
 }
 
 /** Enqueue a scan. Returns the row the worker will pick up and the UI will poll. */
@@ -31,6 +32,7 @@ export async function createScan(db: Database, input: CreateScanInput): Promise<
       url: input.url,
       ...(input.siteId !== undefined ? { siteId: input.siteId } : {}),
       trigger: input.trigger ?? "public",
+      ...(input.jiraIssueKey !== undefined ? { jiraIssueKey: input.jiraIssueKey } : {}),
       status: "queued",
     })
     .returning();

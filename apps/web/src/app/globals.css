@@ -3139,3 +3139,54 @@ a.nav-cta:hover {
 .plan-card ul {
   align-content: start;
 }
+
+/* Jira integration */
+.jira-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid var(--hairline, #e4e4e7);
+}
+.jira-form input {
+  min-width: 0;
+  height: 38px;
+  margin: 0;
+  padding: 0 0.75rem;
+  border: 1px solid #d4d4d8;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 0.92rem;
+}
+.jira-form input:focus {
+  outline: 2px solid #18181b;
+  outline-offset: -1px;
+}
+.jira-form .dash-cta {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 0;
+  height: 38px;
+  padding: 0 1rem;
+  border: none;
+  cursor: pointer;
+}
+.jira-steps {
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid var(--hairline, #e4e4e7);
+  font-size: 0.92rem;
+}
+.jira-steps ol {
+  margin: 0.4rem 0 0.8rem;
+  padding-left: 1.2rem;
+}
+.jira-steps .allowlist-code {
+  margin-bottom: 0.6rem;
+}
+@media (max-width: 640px) {
+  .jira-form {
+    grid-template-columns: 1fr;
+  }
+}

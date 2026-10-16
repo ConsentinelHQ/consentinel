@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   can,
   externalRecipientLimit,
+  getJiraConnectionSummary,
   getSlackWebhook,
   getBillingState,
   listExternalRecipients,
@@ -10,6 +11,7 @@ import {
 } from "@consentinel/db";
 import { AlertToggle } from "@/components/alert-toggle";
 import { RecipientManager } from "@/components/recipient-manager";
+import { JiraConnect } from "@/components/jira-connect";
 import { SlackConnect } from "@/components/slack-connect";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
@@ -27,6 +29,8 @@ export default async function Alerts() {
   const limit = externalRecipientLimit(billing);
   const slackAllowed = can(billing, "slack");
   const slackUrl = slackAllowed ? await getSlackWebhook(db(), session.orgId) : null;
+  const jiraAllowed = can(billing, "jira");
+  const jira = jiraAllowed ? await getJiraConnectionSummary(db(), session.orgId) : null;
   const me = members.find((m) => m.userId === session.userId);
   const receiving = members.filter((m) => m.alertsEnabled).length;
 
@@ -97,6 +101,33 @@ export default async function Alerts() {
         ) : (
           <p className="panel-empty">
             Post new critical findings to a Slack channel. Available on Growth and Agency.
+          </p>
+        )}
+      </section>
+      <section className="panel panel-gap">
+        <div className="panel-head">
+          <h2>Jira</h2>
+          {jiraAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
+        </div>
+        {jiraAllowed ? (
+          <JiraConnect
+            connection={
+              jira
+                ? {
+                    baseUrl: jira.baseUrl,
+                    projectKey: jira.projectKey,
+                    issueTypeName: jira.issueTypeName,
+                    autoCreate: jira.autoCreate,
+                    hookToken: jira.hookToken,
+                  }
+                : null
+            }
+          />
+        ) : (
+          <p className="panel-empty">
+            Open a Jira ticket for every new critical finding, and rescan automatically when a
+            ticket moves to Done so nothing closes on a fix that didn&apos;t ship. Available on
+            Growth and Agency.
           </p>
         )}
       </section>

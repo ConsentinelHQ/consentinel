@@ -17,6 +17,7 @@ import {
 } from "@consentinel/queue";
 import { scan, ScanBlockedError, UncredibleScanError } from "./index.js";
 import { alertOnRegression } from "./alerting.js";
+import { postJiraScanFailure, postJiraVerdict } from "./jira-sync.js";
 import { Sentry } from "./instrument.js";
 
 /**
@@ -100,6 +101,14 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
       }
 
+      // Closes the loop on a ticket moved to Done. Never fails the scan.
+      try {
+        await postJiraVerdict(db, scanId, config);
+      } catch (error) {
+        console.error("jira verdict failed", { scanId, error });
+        Sentry.captureException(error, { tags: { area: "jira" }, extra: { scanId } });
+      }
+
       return { scanId, critical: result.counts.critical };
     },
     {
@@ -129,7 +138,9 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
     }
     if (scanId && isLastAttempt) {
       // Best effort: the DB record must not stay "running" forever.
-      void markScanFailed(db, scanId, err.message);
+      void markScanFailed(db, scanId, err.message).then(() =>
+        postJiraScanFailure(db, scanId, err.message),
+      );
     }
   });
 

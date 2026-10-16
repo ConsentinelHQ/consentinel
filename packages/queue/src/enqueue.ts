@@ -4,7 +4,9 @@ import { assertScannableUrl } from "./safety.js";
 
 export interface EnqueueOptions {
   siteId?: string;
-  trigger?: "public" | "manual" | "scheduled" | "deploy";
+  trigger?: "public" | "manual" | "scheduled" | "deploy" | "jira";
+  /** Jira issue to post the verdict back to. */
+  jiraIssueKey?: string;
   /** Serve a recent identical scan instead of burning a worker slot. 0 disables. */
   cacheMaxAgeMs?: number;
   allowPrivate?: boolean;
@@ -40,6 +42,7 @@ export async function enqueueScan(
     url: check.url,
     ...(opts.siteId !== undefined ? { siteId: opts.siteId } : {}),
     ...(opts.trigger !== undefined ? { trigger: opts.trigger } : {}),
+    ...(opts.jiraIssueKey !== undefined ? { jiraIssueKey: opts.jiraIssueKey } : {}),
   });
 
   await queue.add(

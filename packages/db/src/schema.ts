@@ -161,7 +161,7 @@ export type PlanStatus =
 export type ScanSchedule = "off" | "daily" | "weekly" | "monthly";
 
 export type ScanStatus = "queued" | "running" | "complete" | "failed";
-export type ScanTrigger = "public" | "manual" | "scheduled" | "deploy";
+export type ScanTrigger = "public" | "manual" | "scheduled" | "deploy" | "jira";
 
 export const scans = pgTable(
   "scans",
@@ -193,6 +193,8 @@ export const scans = pgTable(
      * and the UI turns it into an allowlist instruction rather than an apology.
      */
     blockedBy: text("blocked_by"),
+    /** Jira issue whose transition to Done started this scan. The verdict is posted back to it. */
+    jiraIssueKey: text("jira_issue_key"),
     queuedAt: timestamp("queued_at", { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
@@ -309,3 +311,60 @@ export const alertRecipients = pgTable(
     uniqueIndex("alert_recipients_token_idx").on(t.unsubscribeToken),
   ],
 );
+
+/**
+ * One Jira Cloud site per org. The API token is AES-GCM encrypted at rest: unlike
+ * a Slack webhook, it can read and write the customer's whole Jira as that user.
+ */
+export const jiraConnections = pgTable(
+  "jira_connections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    /** https://<name>.atlassian.net - Cloud only, validated on save. */
+    baseUrl: text("base_url").notNull(),
+    email: text("email").notNull(),
+    apiTokenEnc: text("api_token_enc").notNull(),
+    projectKey: text("project_key").notNull(),
+    issueTypeId: text("issue_type_id").notNull(),
+    issueTypeName: text("issue_type_name").notNull(),
+    /** Open a ticket for every new critical regression. */
+    autoCreate: boolean("auto_create").notNull().default(true),
+    /** Secret in the inbound hook URL that Jira Automation calls when an issue is done. */
+    hookToken: text("hook_token")
+      .notNull()
+      .default(sql`replace(gen_random_uuid()::text || gen_random_uuid()::text, '-', '')`),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("jira_connections_org_idx").on(t.orgId),
+    uniqueIndex("jira_connections_hook_token_idx").on(t.hookToken),
+  ],
+);
+
+/**
+ * Tickets Consentinel opened, with the exact findings in them. When one moves to
+ * Done we rescan and check those fingerprints, so "fixed" is proven, not claimed.
+ */
+export const jiraIssues = pgTable(
+  "jira_issues",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    issueKey: text("issue_key").notNull(),
+    scanId: uuid("scan_id").references(() => scans.id, { onDelete: "set null" }),
+    fingerprints: jsonb("fingerprints").$type<string[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("jira_issues_org_key_idx").on(t.orgId, t.issueKey)],
+);
+
+export type JiraConnectionRow = typeof jiraConnections.$inferSelect;
+export type JiraIssueRow = typeof jiraIssues.$inferSelect;
