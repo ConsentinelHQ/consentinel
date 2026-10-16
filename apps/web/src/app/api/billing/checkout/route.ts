@@ -10,9 +10,12 @@ import {
 } from "@consentinel/db";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
-import { annualPriceIdFor, priceIdFor, stripe } from "@/lib/stripe";
+import { annualPriceIdFor, hasPrice, priceIdFor, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
+
+/** Plans open for purchase. Agency stays closed until workspaces ship. */
+const SELLABLE: ReadonlySet<PaidPlan> = new Set(["monitoring", "growth"]);
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -32,6 +35,13 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (yearly && !ANNUAL_PRICES[plan]) {
     return NextResponse.json(
       { error: "Yearly billing isn't available for this plan." },
+      { status: 400 },
+    );
+  }
+
+  if (!SELLABLE.has(plan) || !hasPrice(plan, yearly)) {
+    return NextResponse.json(
+      { error: `${PLANS[plan].name} isn't available to buy yet.` },
       { status: 400 },
     );
   }

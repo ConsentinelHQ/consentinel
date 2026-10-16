@@ -98,7 +98,16 @@ export default async function Billing({
               This plan is complimentary, so there&apos;s no card or invoice to manage.
             </p>
           ) : (
-            <BillingActions action="portal" label="Manage billing" />
+            <>
+              {plan?.id === "monitoring" ? (
+                <p className="quiet billing-note">
+                  Need Slack, Jira tickets with verified fixes, or up to{" "}
+                  {PLANS.growth.includedSites} sites for ${PLANS.growth.price}/month? Switch to{" "}
+                  {PLANS.growth.name} from Manage billing.
+                </p>
+              ) : null}
+              <BillingActions action="portal" label="Manage billing" />
+            </>
           )}
         </>
       ) : !pending ? (
@@ -153,7 +162,7 @@ export default async function Billing({
                       </li>
                     ) : null}
                   </ul>
-                  {p.id === "agency" || p.id === "growth" ? (
+                  {p.id === "agency" ? (
                     <span aria-disabled="true" className="tier-cta is-disabled">
                       Coming soon
                     </span>

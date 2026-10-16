@@ -39,7 +39,18 @@ export function planForPrice(priceId: string | undefined): PaidPlan | null {
 
 const ANNUAL_PRICE_ENV: Partial<Record<PaidPlan, string>> = {
   monitoring: "STRIPE_PRICE_MONITORING_ANNUAL",
+  growth: "STRIPE_PRICE_GROWTH_ANNUAL",
 };
+
+/**
+ * True when the price this checkout would use is configured. Checked before we
+ * create a session: the webhook falls back to Monitor for unknown prices, so a
+ * missing Growth price would sell Growth and grant Monitor.
+ */
+export function hasPrice(plan: PaidPlan, yearly: boolean): boolean {
+  const name = yearly ? ANNUAL_PRICE_ENV[plan] : PRICE_ENV[plan];
+  return name !== undefined && (process.env[name]?.startsWith("price_") ?? false);
+}
 
 export function annualPriceIdFor(plan: PaidPlan): string {
   const name = ANNUAL_PRICE_ENV[plan];
