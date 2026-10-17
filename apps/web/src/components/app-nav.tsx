@@ -50,6 +50,17 @@ const ITEMS: Item[] = [
     ),
   },
   {
+    href: "/app/portfolio",
+    label: "Portfolio",
+    match: (p) => p.startsWith("/app/portfolio"),
+    icon: (
+      <svg {...SVG}>
+        <path d="M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18" />
+      </svg>
+    ),
+  },
+  {
     href: "/app/alerts",
     label: "Alerts",
     match: (p) => p.startsWith("/app/alerts"),
@@ -57,6 +68,19 @@ const ITEMS: Item[] = [
       <svg {...SVG}>
         <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </svg>
+    ),
+  },
+  {
+    href: "/app/branding",
+    label: "Branding",
+    match: (p) => p.startsWith("/app/branding"),
+    icon: (
+      <svg {...SVG}>
+        <path d="M12 21a9 9 0 1 1 9-9c0 2-1.5 3-3 3h-2a2 2 0 0 0-1 3.7c.6.4.6 2.3-3 2.3z" />
+        <circle cx="7.5" cy="11" r="1" />
+        <circle cx="11" cy="7.5" r="1" />
+        <circle cx="16" cy="8.5" r="1" />
       </svg>
     ),
   },

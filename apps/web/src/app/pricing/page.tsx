@@ -103,12 +103,9 @@ export default function Pricing() {
             <ul className="tier-list">
               <li>Up to {agency.includedSites} sites</li>
               <li>Everything in {growth.name}</li>
-              <li>
-                A workspace per client <span className="soon">Coming soon</span>
-              </li>
-              <li>
-                White-label reports under your brand <span className="soon">Coming soon</span>
-              </li>
+              <li>Portfolio dashboard grouped by client</li>
+              <li>Bulk import from CSV and one-click rescans</li>
+              <li>White-label reports under your brand</li>
               <li>
                 API access <span className="soon">Coming soon</span>
               </li>
