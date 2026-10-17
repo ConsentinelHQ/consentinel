@@ -16,11 +16,14 @@ export function ScanResultView({
   scanId,
   shareToken,
   actions,
+  branded = false,
 }: {
   scanId: string;
   shareToken?: string | undefined;
   /** Rendered between the lede and the report card. */
   actions?: ReactNode;
+  /** White-label share: no Consentinel upsell or funnel links in the body. */
+  branded?: boolean;
 }) {
   const [state, setState] = useState<State>({ kind: "loading", status: "queued" });
 
@@ -101,17 +104,19 @@ export function ScanResultView({
     );
   }
 
-  return <Report actions={actions} report={state.report} scanId={scanId} />;
+  return <Report actions={actions} branded={branded} report={state.report} scanId={scanId} />;
 }
 
 function Report({
   report,
   scanId,
   actions,
+  branded,
 }: {
   report: FreeReport;
   scanId: string;
   actions?: ReactNode;
+  branded: boolean;
 }) {
   const clean = report.findings.length === 0;
 
@@ -170,16 +175,18 @@ function Report({
           </ul>
         </div>
 
-        <div className="gate">
-          <h3>Keep it that way.</h3>
-          <p className="quiet">
-            This page is clean today. Consentinel can re-scan it on a schedule and tell you the
-            moment someone ships a tag that’s not.
-          </p>
-          <p style={{ marginTop: "1rem" }}>
-            <a href="/">Scan another page</a>
-          </p>
-        </div>
+        {!branded && (
+          <div className="gate">
+            <h3>Keep it that way.</h3>
+            <p className="quiet">
+              This page is clean today. Consentinel can re-scan it on a schedule and tell you the
+              moment someone ships a tag that’s not.
+            </p>
+            <p style={{ marginTop: "1rem" }}>
+              <a href="/">Scan another page</a>
+            </p>
+          </div>
+        )}
       </>
     );
   }

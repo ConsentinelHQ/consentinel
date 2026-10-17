@@ -157,9 +157,13 @@ export default async function Billing({
                       </>
                     ) : null}
                     {p.workspaces ? (
-                      <li>
-                        Client workspaces, white-label reports, API <em>Coming soon</em>
-                      </li>
+                      <>
+                        <li>Portfolio dashboard and CSV import</li>
+                        <li>White-label reports</li>
+                        <li>
+                          API <em>Coming soon</em>
+                        </li>
+                      </>
                     ) : null}
                   </ul>
                   {p.id === "agency" ? (

@@ -9,3 +9,4 @@ export { and, desc, eq, inArray, isNull, lt, or, sql } from "drizzle-orm";
 export * from "./billing.js";
 export * from "./plans.js";
 export * from "./jira.js";
+export * from "./portfolio.js";

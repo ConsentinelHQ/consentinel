@@ -75,6 +75,16 @@ export const orgs = pgTable(
     /** Sites paid for. Scheduling gated on site count <= this. */
     planQuantity: integer("plan_quantity").notNull().default(0),
     slackWebhookUrl: text("slack_webhook_url"),
+    /**
+     * White-label (Agency). When brandName is set and the plan allows it, shared
+     * reports render under the agency's brand instead of Consentinel's.
+     */
+    brandName: text("brand_name"),
+    /** https only. Hosted by the agency; we never proxy or store the image. */
+    brandLogoUrl: text("brand_logo_url"),
+    /** #rrggbb, validated on save. Used for the report header accent. */
+    brandColor: text("brand_color"),
+    brandWebsite: text("brand_website"),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -113,6 +123,8 @@ export const sites = pgTable(
       .references(() => orgs.id, { onDelete: "cascade" }),
     url: text("url").notNull(),
     label: text("label"),
+    /** Agency grouping: which client this store belongs to. Free text, null for direct customers. */
+    client: text("client"),
     /** How often to scan automatically. "off" means manual only. */
     schedule: text("schedule").$type<ScanSchedule>().notNull().default("off"),
     /** Set by the scheduler after each run, so a query can find what is due. */
@@ -140,6 +152,7 @@ export const sites = pgTable(
   (t) => [
     uniqueIndex("sites_org_url_idx").on(t.orgId, t.url),
     index("sites_org_idx").on(t.orgId),
+    index("sites_org_client_idx").on(t.orgId, t.client),
     // The scheduler queries "what is due" across all orgs, so this index carries
     // the hot path for every cron tick.
     index("sites_schedule_idx").on(t.schedule, t.lastScheduledAt),
