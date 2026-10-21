@@ -4322,3 +4322,455 @@ button.print-button:hover:not(:disabled) {
     break-inside: avoid;
   }
 }
+
+/* Bulk import dialog */
+dialog.import-dialog {
+  width: calc(100% - 32px);
+  max-width: 640px;
+  max-height: calc(100dvh - 48px);
+  padding: 0;
+  border: none;
+  border-radius: 18px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+dialog.import-dialog[open] {
+  animation: imp-pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+dialog.import-dialog::backdrop {
+  background: rgba(24, 24, 27, 0.45);
+  backdrop-filter: blur(4px);
+  animation: imp-fade-in 0.2s ease both;
+}
+.imp-panel {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 48px);
+}
+.imp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px 0;
+}
+.imp-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+.imp-steps {
+  display: flex;
+  gap: 18px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+  color: #a1a1aa;
+}
+.imp-steps li {
+  position: relative;
+  padding-bottom: 6px;
+  transition: color 0.2s ease;
+}
+.imp-steps li::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+.imp-steps li.is-on {
+  color: var(--ink);
+  font-weight: 600;
+}
+.imp-steps li.is-on::after {
+  transform: scaleX(1);
+}
+.imp-steps li.is-past {
+  color: var(--ink-soft);
+}
+.imp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 24px 22px;
+  overflow-y: auto;
+}
+.imp-fade {
+  animation: imp-slide 0.28s ease both;
+}
+.imp-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 16px;
+  border: 1.5px dashed var(--hairline);
+  border-radius: 14px;
+  background: var(--paper-alt);
+  text-align: center;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+.imp-drop.is-dragging {
+  border-color: var(--ink);
+  background: var(--paper);
+  transform: scale(1.01);
+}
+.imp-drop-icon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 4px;
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+.imp-drop.is-dragging .imp-drop-icon {
+  transform: translateY(-3px);
+  stroke: var(--ink);
+}
+.imp-drop-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  word-break: break-all;
+}
+.imp-drop-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.imp-drop-sub a {
+  color: var(--ink);
+}
+.imp-paste {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.imp-paste textarea,
+.imp-options input,
+.imp-options select {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+}
+.imp-paste textarea {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  resize: vertical;
+}
+.imp-paste textarea:focus,
+.imp-options input:focus,
+.imp-options select:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+.imp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.imp-panel button.btn-secondary {
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+}
+.imp-panel button.btn-secondary:hover:not(:disabled) {
+  background: var(--paper-alt);
+}
+.imp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.imp-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--paper-alt);
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+.imp-pill.is-good {
+  background: #ecfdf5;
+  color: var(--gated);
+}
+.imp-pill.is-bad {
+  background: #fef2f2;
+  color: var(--critical);
+}
+.imp-table-wrap {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+}
+.imp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+.imp-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.5rem 0.7rem;
+  background: var(--paper-alt);
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.imp-table td {
+  padding: 0.45rem 0.7rem;
+  border-top: 1px solid var(--hairline);
+}
+.imp-table th:first-child,
+.imp-table td:first-child {
+  width: 2rem;
+}
+.imp-table tbody tr {
+  animation: imp-row 0.3s ease both;
+}
+.imp-table tr.is-invalid td {
+  color: var(--ink-soft);
+}
+.imp-domain {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.imp-status {
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+.imp-status::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #a1a1aa;
+  vertical-align: 1px;
+}
+.imp-status.is-new::before {
+  background: var(--gated);
+}
+.imp-status.is-restore::before {
+  background: var(--warning);
+}
+.imp-status.is-invalid {
+  color: var(--critical);
+}
+.imp-status.is-invalid::before {
+  background: var(--critical);
+}
+.imp-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.imp-options label {
+  display: flex;
+  flex: 1;
+  min-width: 11rem;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.imp-quote {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  background: var(--paper-alt);
+  font-size: 0.84rem;
+  animation: imp-fade-in 0.2s ease both;
+}
+.imp-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 4px;
+  text-align: center;
+}
+.imp-done p {
+  margin: 0;
+}
+.imp-done-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.imp-check {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 6px;
+  fill: none;
+  stroke: var(--gated);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.imp-check circle {
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: imp-draw 0.5s ease forwards;
+}
+.imp-check path {
+  stroke-dasharray: 34;
+  stroke-dashoffset: 34;
+  animation: imp-draw 0.3s 0.4s ease forwards;
+}
+.imp-failed {
+  margin: 0;
+  padding: 0.6rem 0.9rem 0.6rem 1.9rem;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.82rem;
+}
+.imp-upsell {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid var(--ink);
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 160% at 100% 0%, var(--paper-alt) 0%, transparent 60%), var(--paper);
+  animation: imp-slide 0.35s 0.25s ease both;
+}
+.imp-upsell p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+.imp-upsell-title {
+  margin-bottom: 4px !important;
+  font-weight: 600;
+  font-size: 0.95rem !important;
+}
+.imp-confirm {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.imp-upsell > button,
+.imp-upsell > a {
+  flex-shrink: 0;
+}
+@media (max-width: 560px) {
+  .imp-head,
+  .imp-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .imp-upsell {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .imp-table .pf-muted,
+  .imp-table th:nth-child(3):not(:last-child) {
+    display: none;
+  }
+  .imp-status {
+    white-space: normal;
+    font-size: 0.72rem;
+  }
+  .imp-table td.imp-domain {
+    width: 58%;
+    font-size: 0.76rem;
+  }
+  .imp-table td,
+  .imp-table th {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .imp-actions > * {
+    flex: 1;
+  }
+}
+@keyframes imp-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes imp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes imp-slide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes imp-row {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes imp-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.import-dialog[open],
+  .imp-fade,
+  .imp-table tbody tr,
+  .imp-upsell,
+  .imp-quote {
+    animation: none;
+  }
+  .imp-check circle,
+  .imp-check path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}

@@ -191,3 +191,47 @@ export async function getReportBranding(
     brandWebsite: row.brandWebsite,
   };
 }
+
+export interface OrgSiteRef {
+  id: string;
+  url: string;
+  schedule: string;
+  archived: boolean;
+}
+
+/** Every site an org has, archived included, for matching an import against. */
+export async function listOrgSiteRefs(db: Database, orgId: string): Promise<OrgSiteRef[]> {
+  const rows = await db
+    .select({
+      id: sites.id,
+      url: sites.url,
+      schedule: sites.schedule,
+      archivedAt: sites.archivedAt,
+    })
+    .from(sites)
+    .where(eq(sites.orgId, orgId));
+  return rows.map((r) => ({
+    id: r.id,
+    url: r.url,
+    schedule: r.schedule,
+    archived: r.archivedAt !== null,
+  }));
+}
+
+/** The given sites that belong to this org, live only, in the order asked. */
+export async function getOrgSitesByIds(
+  db: Database,
+  orgId: string,
+  siteIds: readonly string[],
+): Promise<{ id: string; schedule: string }[]> {
+  if (siteIds.length === 0) return [];
+  const rows = await db
+    .select({ id: sites.id, schedule: sites.schedule })
+    .from(sites)
+    .where(and(eq(sites.orgId, orgId), inArray(sites.id, [...siteIds]), isNull(sites.archivedAt)));
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  return siteIds.flatMap((id) => {
+    const r = byId.get(id);
+    return r ? [r] : [];
+  });
+}
