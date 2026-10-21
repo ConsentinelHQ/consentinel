@@ -326,10 +326,7 @@ export function SiteImport({ label = "Import sites" }: { label?: string }) {
                   >
                     choose a file
                   </button>
-                  . Up to 200 sites.{" "}
-                  <a download href="/consentinel-sites-template.csv">
-                    Download template
-                  </a>
+                  . Any export works, up to 200 sites.
                 </p>
                 <input
                   accept=".csv,.tsv,.txt,.xlsx,text/csv,text/plain"
