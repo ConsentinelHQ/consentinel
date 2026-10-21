@@ -4774,3 +4774,22 @@ dialog.import-dialog::backdrop {
     stroke-dashoffset: 0;
   }
 }
+
+/* Inline link-style button in the import drop zone: matches site links */
+.imp-drop-sub .link-button,
+.imp-drop-sub .link-button:hover:not(:disabled) {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font-size: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--hairline);
+  transition: text-decoration-color 0.15s ease;
+}
+.imp-drop-sub .link-button:hover:not(:disabled) {
+  text-decoration-color: var(--ink);
+}
