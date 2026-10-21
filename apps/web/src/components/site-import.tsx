@@ -51,6 +51,17 @@ const STATUS_LABEL: Record<Status, string> = {
   invalid: "Can't import",
 };
 
+/** Body as JSON, or a server-error shape when the body isn't JSON (a crash page). */
+async function readJson<T>(res: Response): Promise<T & { error?: string }> {
+  try {
+    return (await res.json()) as T & { error?: string };
+  } catch {
+    return {
+      error: res.ok ? undefined : "Something broke on our end. We've been notified, try again.",
+    } as T & { error?: string };
+  }
+}
+
 function money(n: number): string {
   return `$${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
@@ -142,7 +153,7 @@ export function SiteImport({ label = "Import sites" }: { label?: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ mode: "preview", text }),
       });
-      const data = (await res.json()) as Preview & { error?: string };
+      const data = await readJson<Preview>(res);
       if (!res.ok) {
         setError(data.error ?? "Couldn't read that list.");
       } else {
@@ -170,7 +181,7 @@ export function SiteImport({ label = "Import sites" }: { label?: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ mode: "commit", rows, client, schedule }),
       });
-      const data = (await res.json()) as Done & { error?: string };
+      const data = await readJson<Done>(res);
       if (!res.ok) {
         setError(data.error ?? "Import failed.");
       } else {
@@ -193,7 +204,7 @@ export function SiteImport({ label = "Import sites" }: { label?: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ siteIds: done.overflow, schedule }),
       });
-      const data = (await res.json()) as { scheduled?: number; error?: string };
+      const data = await readJson<{ scheduled?: number }>(res);
       if (!res.ok) {
         setError(data.error ?? "Couldn't add sites to your plan.");
       } else {
@@ -228,7 +239,7 @@ export function SiteImport({ label = "Import sites" }: { label?: string }) {
           returnTo: "sites",
         }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const data = await readJson<{ url?: string }>(res);
       if (!res.ok || !data.url) {
         setError(data.error ?? "Couldn't open checkout.");
         setBusy(false);
