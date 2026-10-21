@@ -19,31 +19,6 @@ export async function gateFeature(
   };
 }
 
-const DOMAIN =
-  /(?:https?:\/\/)?((?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63})(?:[/:?#]\S*)?/i;
-
-/**
- * Pulls one domain per line out of pasted text or a CSV export. Takes the first
- * thing on each line that looks like a domain, so a "Client,Domain" spreadsheet
- * and a bare list both work. Emails are skipped: "jane@brand.com" isn't a site.
- */
-export function parseDomainList(text: string, max = 200): string[] {
-  const out = new Set<string>();
-  for (const line of text.split(/\r?\n/)) {
-    for (const cell of line.split(/[,;\t]/)) {
-      const value = cell.trim().replace(/^"|"$/g, "");
-      if (value === "" || value.includes("@")) continue;
-      const m = DOMAIN.exec(value);
-      if (m?.[1]) {
-        out.add(m[1].toLowerCase().replace(/^www\./, ""));
-        break;
-      }
-    }
-    if (out.size >= max) break;
-  }
-  return [...out];
-}
-
 /** Runs async work with a fixed number in flight. DNS checks per domain add up. */
 export async function mapLimit<T, R>(
   items: readonly T[],

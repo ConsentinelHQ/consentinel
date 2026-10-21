@@ -58,9 +58,20 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   // Per-site plans bill one unit per site, minimum one. Flat plans are a single unit.
+  // An import asks for exactly the sites it wants monitored, not every site on file.
+  const requestedQty =
+    typeof body === "object" && body !== null
+      ? (body as { quantity?: unknown }).quantity
+      : undefined;
   const quantity = PLANS[plan].perSite
-    ? Math.max(1, await countOrgSites(database, session.orgId))
+    ? typeof requestedQty === "number" && Number.isInteger(requestedQty)
+      ? Math.min(500, Math.max(1, requestedQty))
+      : Math.max(1, await countOrgSites(database, session.orgId))
     : 1;
+  const fromImport =
+    typeof body === "object" &&
+    body !== null &&
+    (body as { returnTo?: unknown }).returnTo === "sites";
 
   let customerId = state.stripeCustomerId;
   if (!customerId) {
@@ -83,8 +94,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     subscription_data: { metadata: { orgId: session.orgId } },
     allow_promotion_codes: true,
     billing_address_collection: "auto",
-    success_url: `${origin}/app/billing?checkout=success`,
-    cancel_url: `${origin}/app/billing?checkout=cancelled`,
+    success_url: fromImport
+      ? `${origin}/app/sites?checkout=success`
+      : `${origin}/app/billing?checkout=success`,
+    cancel_url: fromImport
+      ? `${origin}/app/sites?checkout=cancelled`
+      : `${origin}/app/billing?checkout=cancelled`,
   });
 
   if (!checkout.url) {

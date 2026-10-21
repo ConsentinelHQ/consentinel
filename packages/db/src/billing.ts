@@ -140,3 +140,15 @@ export async function shareTokenMatches(
     .limit(1);
   return row?.token != null && row.token === token;
 }
+
+/**
+ * Applied straight after we change seats in Stripe, so new slots work this
+ * request. The webhook overwrites it with Stripe's copy moments later.
+ */
+export async function setPlanQuantity(
+  db: Database,
+  orgId: string,
+  quantity: number,
+): Promise<void> {
+  await db.update(orgs).set({ planQuantity: quantity }).where(eq(orgs.id, orgId));
+}

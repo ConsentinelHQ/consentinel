@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listArchivedSitesForOrg, listSitesForOrg } from "@consentinel/db";
+import { Suspense } from "react";
 import { AddSiteForm } from "@/components/add-site-form";
+import { ImportResume, SiteImport } from "@/components/site-import";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 import { blockedLabel, displayHost } from "@/lib/format";
@@ -18,19 +20,26 @@ export default async function Dashboard() {
 
   return (
     <div className="wrap app-content">
-      <div className="app-head">
-        <h1>Sites</h1>
-        <p className="quiet">
-          Each site is scanned under both consent states. Add one to start tracking it.
-        </p>
+      <div className="app-head pf-head">
+        <div>
+          <h1>Sites</h1>
+          <p className="quiet">
+            Each site is scanned under both consent states. Add one, or import a whole list.
+          </p>
+        </div>
+        <SiteImport />
       </div>
+
+      <Suspense fallback={null}>
+        <ImportResume />
+      </Suspense>
 
       {sites.length === 0 ? (
         <div className="empty">
           <h2>No sites yet.</h2>
           <p className="quiet">
-            Add the domain you want watched. You can run a scan immediately, and set a schedule once
-            you’re on a monitoring plan.
+            Add the domain you want watched, or import a CSV or Excel file of every store you run.
+            You can scan right away and turn on monitoring when you’re ready.
           </p>
         </div>
       ) : (

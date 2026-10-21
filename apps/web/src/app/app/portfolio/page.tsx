@@ -1,14 +1,8 @@
 import type { Metadata } from "next";
-import {
-  can,
-  getBillingState,
-  isEntitled,
-  listPortfolio,
-  type PortfolioRow,
-} from "@consentinel/db";
+import { can, getBillingState, listPortfolio, type PortfolioRow } from "@consentinel/db";
 import { AgencyUpsell } from "@/components/agency-upsell";
 import { CountUp } from "@/components/count-up";
-import { PortfolioImport } from "@/components/portfolio-import";
+import { SiteImport } from "@/components/site-import";
 import { PortfolioTable, type PortfolioItem } from "@/components/portfolio-table";
 import { requireSession } from "@/lib/auth";
 import { blockedLabel, displayHost } from "@/lib/format";
@@ -99,15 +93,15 @@ export default async function Portfolio() {
               : "Every site you manage, ranked by risk."}
           </p>
         </div>
-        <PortfolioImport canSchedule={isEntitled(billing)} clients={clients} />
+        <SiteImport />
       </div>
 
       {items.length === 0 ? (
         <div className="empty">
           <h2>Import your first client.</h2>
           <p className="quiet">
-            Paste their domains or drop a CSV. Each store gets scanned with consent rejected and
-            with Global Privacy Control on.
+            Drop a CSV or Excel file with domain and client columns. Each store gets scanned with
+            consent rejected and with Global Privacy Control on.
           </p>
         </div>
       ) : (
