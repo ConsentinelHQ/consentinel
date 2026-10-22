@@ -1,7 +1,16 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { findContact } from "./contacts.js";
-import { MIN_VENDORS, byProminence, gather, joinNames, tier, type Evidence } from "./evidence.js";
+import {
+  MIN_VENDORS,
+  NOT_A_SITE,
+  byProminence,
+  cleanError,
+  gather,
+  joinNames,
+  tier,
+  type Evidence,
+} from "./evidence.js";
 import {
   appendRow,
   authorize,
@@ -161,13 +170,21 @@ async function run(args: string[]): Promise<Summary> {
 
     const ev = await gather(`https://${domain}`);
     if (typeof ev === "string") {
+      const reason = cleanError(ev);
+      // A domain that doesn't resolve is a bad input, not a prospect: keep it out of the sheet.
+      if (NOT_A_SITE.test(ev)) {
+        contacted.delete(domain);
+        record({ domain, action: "error", reason });
+        out.errors[domain] = reason;
+        continue;
+      }
       await appendRow(sheetId, tab, sheet.headers, {
         ...base(domain),
         Status: "Scan failed",
-        Notes: note(ev.slice(0, 200)),
+        Notes: note(reason),
       });
-      record({ domain, action: "skipped", reason: ev });
-      out.skipped[domain] = ev;
+      record({ domain, action: "skipped", reason });
+      out.skipped[domain] = reason;
       continue;
     }
     const t = tier(ev, minGpc);

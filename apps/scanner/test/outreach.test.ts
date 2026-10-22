@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { tier, type Evidence } from "../src/outreach/evidence.js";
+import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
 import { mime, normDomain } from "../src/outreach/google.js";
 import { addBusinessDays, sentToday, shouldPause, type Entry } from "../src/outreach/state.js";
 import { bullets, render } from "../src/outreach/template.js";
@@ -90,3 +90,13 @@ assert.equal(sentToday(ledger, now), 1);
 assert.equal(addBusinessDays(new Date("2026-10-23T12:00:00"), 5).getDate(), 30);
 
 console.log("outreach: all assertions passed");
+
+// Bad domains stay out of the sheet; notes are one clean line.
+const dns =
+  'page.goto: net::ERR_NAME_NOT_RESOLVED at https://x.com/\nCall log:\n\u001b[2m  - navigating to "https://x.com/"\u001b[22m\n';
+assert.equal(NOT_A_SITE.test(dns), true);
+assert.equal(NOT_A_SITE.test("The page made only 1 requests"), false);
+assert.equal(
+  cleanError(`scan failed: ${dns}`),
+  "scan failed: page.goto: net::ERR_NAME_NOT_RESOLVED at https://x.com/",
+);

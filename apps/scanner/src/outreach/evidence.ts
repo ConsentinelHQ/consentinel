@@ -109,3 +109,19 @@ export function joinNames(names: string[]): string {
   if (names.length <= 1) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1] ?? ""}`;
 }
+
+/** DNS and connection failures: the domain is wrong or dead, not a site we couldn't grade. */
+export const NOT_A_SITE =
+  /ERR_NAME_NOT_RESOLVED|ERR_CONNECTION_REFUSED|ERR_ADDRESS_UNREACHABLE|ENOTFOUND/;
+
+/** One line, no terminal colors or Playwright call logs. */
+export function cleanError(e: string): string {
+  return (
+    e
+      // eslint-disable-next-line no-control-regex -- stripping ANSI color codes
+      .replace(/\u001b\[[0-9;]*m/g, "")
+      .split("\n")[0]
+      ?.trim()
+      .slice(0, 200) ?? ""
+  );
+}
