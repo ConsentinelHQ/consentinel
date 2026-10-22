@@ -39,6 +39,7 @@ import {
   sentToday,
   shouldPause,
 } from "./state.js";
+import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
 
 /**
@@ -47,6 +48,8 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach run --domains a.com,b.com
  *   pnpm --filter @consentinel/scanner outreach run --file domains.txt --send
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --limit 5
+ *   pnpm --filter @consentinel/scanner outreach sync
+ *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
  *
@@ -342,6 +345,26 @@ async function main(): Promise<void> {
     case "run":
       console.log(JSON.stringify(await run(args)));
       break;
+    case "sync": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      console.log(JSON.stringify(await sync(sheetId, tab, await readSheet(sheetId, tab)), null, 2));
+      break;
+    }
+    case "mark": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const domain = flag(args, "--domain");
+      if (!domain) throw new Error("mark needs --domain");
+      const m: Mark = {};
+      for (const key of ["status", "next", "date", "note"] as const) {
+        const v = flag(args, `--${key}`);
+        if (v !== undefined) m[key] = v;
+      }
+      await mark(sheetId, tab, await readSheet(sheetId, tab), domain, m);
+      console.log(`marked ${domain}`);
+      break;
+    }
     case "status":
       console.log(JSON.stringify(await status(), null, 2));
       break;
@@ -358,7 +381,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b] [--file f] [--send] [--limit n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }

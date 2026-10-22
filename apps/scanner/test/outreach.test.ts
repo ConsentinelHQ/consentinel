@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { backlog, recentlyTried, sheetContact } from "../src/outreach/backlog.js";
+import { address, bouncedRecipients, extractText, stripQuoted } from "../src/outreach/mail.js";
+import { isAutoReply, isBulk } from "../src/outreach/sync.js";
 import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
 import { mime, normDomain, type SheetRow } from "../src/outreach/google.js";
 import { addBusinessDays, sentToday, shouldPause, type Entry } from "../src/outreach/state.js";
@@ -154,5 +156,50 @@ const tried = recentlyTried(
   30,
 );
 assert.deepEqual([...tried], ["thinx.com"]);
+
+// Reply parsing: body text, quoted history dropped, sender address.
+const b64 = (t: string): string => Buffer.from(t).toString("base64url");
+assert.equal(
+  extractText({
+    mimeType: "multipart/alternative",
+    parts: [
+      { mimeType: "text/html", body: { data: b64("<p>html</p>") } },
+      { mimeType: "text/plain", body: { data: b64("plain body") } },
+    ],
+  }),
+  "plain body",
+);
+assert.equal(
+  extractText({ mimeType: "text/html", body: { data: b64("Hi<br>there &amp; you</p>") } }).trim(),
+  "Hi\nthere & you",
+);
+assert.equal(
+  stripQuoted("Sure, send it over.\n\nOn Thu, Oct 22, 2026 Charlie wrote:\n> Hi Kevin\n> scan"),
+  "Sure, send it over.",
+);
+assert.equal(address("Kevin Ubert <Kevin.Ubert@olaplex.com>"), "kevin.ubert@olaplex.com");
+
+// Bounces: header first, Gmail's body wording as fallback.
+assert.deepEqual(
+  bouncedRecipients({ headers: [{ name: "X-Failed-Recipients", value: "A@b.com" }] }, ""),
+  ["a@b.com"],
+);
+assert.deepEqual(
+  bouncedRecipients(
+    {},
+    "Address not found\nYour message wasn't delivered to kfulk@bonobos.com because the address couldn't be found.",
+  ),
+  ["kfulk@bonobos.com"],
+);
+
+// Out-of-office replies don't count as replies.
+assert.equal(isAutoReply("auto-replied", "Re: Privacy issues"), true);
+assert.equal(isAutoReply("", "Automatic reply: Privacy issues on x.com"), true);
+assert.equal(isAutoReply("no", "Re: Privacy issues on x.com"), false);
+
+// Brand newsletters never count as replies.
+assert.equal(isBulk({ headers: [{ name: "List-Unsubscribe", value: "<mailto:u@x.com>" }] }), true);
+assert.equal(isBulk({ headers: [{ name: "Precedence", value: "bulk" }] }), true);
+assert.equal(isBulk({ headers: [{ name: "From", value: "Kevin <k@olaplex.com>" }] }), false);
 
 console.log("outreach: all assertions passed");
