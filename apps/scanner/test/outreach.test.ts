@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { backlog, sheetContact } from "../src/outreach/backlog.js";
+import { backlog, recentlyTried, sheetContact } from "../src/outreach/backlog.js";
 import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
 import { mime, normDomain, type SheetRow } from "../src/outreach/google.js";
 import { addBusinessDays, sentToday, shouldPause, type Entry } from "../src/outreach/state.js";
@@ -125,5 +125,22 @@ assert.equal(
     ?.firstName,
   "Elizabeth",
 );
+
+// A contact miss isn't retried for 30 days; a quota error is.
+const tried = recentlyTried(
+  [
+    {
+      at: "2026-10-22T10:00:00Z",
+      domain: "thinx.com",
+      action: "skipped",
+      reason: "anymail: not_found",
+    },
+    { at: "2026-10-22T10:00:00Z", domain: "q.com", action: "error", reason: "quota" },
+    { at: "2026-08-01T10:00:00Z", domain: "old.com", action: "skipped" },
+  ],
+  new Date("2026-10-22T12:00:00Z"),
+  30,
+);
+assert.deepEqual([...tried], ["thinx.com"]);
 
 console.log("outreach: all assertions passed");
