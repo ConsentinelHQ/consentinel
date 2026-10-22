@@ -40,6 +40,7 @@ import {
   shouldPause,
 } from "./state.js";
 import { followups } from "./followup.js";
+import { prep } from "./prep.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
 
@@ -51,6 +52,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --limit 5
  *   pnpm --filter @consentinel/scanner outreach sync
  *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
+ *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
@@ -364,6 +366,19 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(summary));
       break;
     }
+    case "prep": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const domain = flag(args, "--domain");
+      if (!domain) throw new Error("prep needs --domain");
+      const result = await prep(sheetId, tab, await readSheet(sheetId, tab), domain, {
+        from: cfg("OUTREACH_FROM"),
+        apiBase: cfg("OUTREACH_APP_URL", "https://www.getconsentinel.com"),
+        apiKey: cfg("OUTREACH_API_KEY"),
+      });
+      console.log(JSON.stringify(result));
+      break;
+    }
     case "mark": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -394,7 +409,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }

@@ -12,6 +12,7 @@ import {
   type Entry,
 } from "../src/outreach/state.js";
 import { dueForFollowUp, dueToClose, followUpEmail } from "../src/outreach/followup.js";
+import { firstNameFrom, reportReply } from "../src/outreach/prep.js";
 import { bullets, render } from "../src/outreach/template.js";
 
 const rejected: Evidence = {
@@ -267,5 +268,22 @@ const threaded = Buffer.from(
   "base64url",
 ).toString();
 assert.match(threaded, /\r\nIn-Reply-To: <abc@mail>\r\nReferences: <abc@mail>\r\n/);
+
+// Hot-lead reply: their first name, the link, threaded subject.
+assert.equal(firstNameFrom("Kevin Ubert <kevin@olaplex.com>"), "Kevin");
+assert.equal(firstNameFrom("kevin@olaplex.com"), "there");
+const rr = reportReply({
+  firstName: "Kevin",
+  domain: "olaplex.com",
+  reportUrl: "https://www.getconsentinel.com/report/abc?t=xyz",
+  subject: "Re: Privacy issues on olaplex.com",
+});
+assert.equal(rr.subject, "Re: Privacy issues on olaplex.com");
+assert.match(
+  rr.text,
+  /^Hi Kevin,\n\nThanks for getting back to me\. Here's the full report for olaplex\.com:\nhttps:\/\/www\.getconsentinel\.com\/report\/abc\?t=xyz\n/,
+);
+assert.match(rr.html, /<a href="https:\/\/www\.getconsentinel\.com\/report\/abc\?t=xyz">/);
+assert.doesNotMatch(rr.text, /—/);
 
 console.log("outreach: all assertions passed");
