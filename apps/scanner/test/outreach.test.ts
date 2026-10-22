@@ -44,6 +44,9 @@ assert.match(email.text, /Sephora \$1\.2M and Healthline \$1\.55M/);
 assert.match(email.text, /PO Box 1, Boonton NJ$/);
 assert.match(email.html, /<a href="https:\/\/www\.getconsentinel\.com\/">Consentinel<\/a>/);
 assert.equal((email.html.match(/<li>/g) ?? []).length, 3);
+const noAddr = render({ domain: "x.com", firstName: "A", ev: rejected, postalAddress: "" });
+assert.match(noAddr.text, /I won't email again\.$/);
+assert.doesNotMatch(noAddr.text + noAddr.html, /POSTAL ADDRESS/);
 assert.doesNotMatch(email.text, /—/, "no em dashes");
 
 // HTML escaping holds for hostile vendor names.

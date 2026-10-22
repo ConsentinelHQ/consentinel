@@ -17,7 +17,7 @@ export interface TemplateInput {
   domain: string;
   firstName: string;
   ev: Evidence;
-  /** CAN-SPAM: a real postal address must appear in every commercial email. */
+  /** Optional footer line. Empty leaves it out. */
   postalAddress: string;
 }
 
@@ -84,7 +84,7 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
     ...sig,
     "",
     optOut,
-    postalAddress,
+    ...(postalAddress.trim() ? [postalAddress.trim()] : []),
   ].join("\n");
 
   const p = (s: string): string => `<p>${s}</p>`;
@@ -102,7 +102,7 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
         .join("<br>")
         .replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`),
     ),
-    `<p style="color:#888;font-size:12px">${esc(optOut)}<br>${esc(postalAddress)}</p>`,
+    `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,
   ].join("\n");
 
   return { subject: `Privacy issues on ${domain}`, text, html };
