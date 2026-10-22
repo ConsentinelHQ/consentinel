@@ -40,6 +40,7 @@ import {
   shouldPause,
 } from "./state.js";
 import { followups } from "./followup.js";
+import { addToQueue, readQueue } from "./queue.js";
 import {
   draftLeads,
   fetchInbound,
@@ -62,6 +63,8 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
+ *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status
+ *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
@@ -150,6 +153,10 @@ async function run(args: string[]): Promise<Summary> {
         .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row }))
         .filter((t) => !handled.has(t.domain) && !tried.has(t.domain))
     : domains.map((domain) => ({ domain }));
+  // Discovery queue tops up whatever the backlog can't fill; dedupe happens in the loop.
+  if (fromSheet && args.includes("--then-queue")) {
+    for (const domain of readQueue()) if (!contacted.has(domain)) targets.push({ domain });
+  }
 
   // Bounce check before anything goes out. A paused run still drafts.
   if (sendMode && !paused()) {
@@ -389,6 +396,35 @@ async function main(): Promise<void> {
       console.log(JSON.stringify({ ...summary, ...inbound }, null, 2));
       break;
     }
+    case "queue": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const sheet = await readSheet(sheetId, tab);
+      const done = new Set([...sheet.domains, ...readLedger().map((e) => e.domain)]);
+      const [sub = "status", ...rest] = args;
+      if (sub === "add") {
+        const list = (flag(rest, "--domains") ?? rest.join(",")).split(/[\s,]+/);
+        const checks = await addToQueue(list, done);
+        console.log(
+          JSON.stringify({
+            accepted: checks.filter((c) => c.ok).map((c) => c.domain),
+            rejected: checks
+              .filter((c) => !c.ok)
+              .map((c) => ({ domain: c.input, reason: c.reason })),
+            pending: readQueue().filter((d) => !done.has(d)).length,
+          }),
+        );
+      } else {
+        const queued = readQueue();
+        console.log(
+          JSON.stringify({
+            queued: queued.length,
+            pending: queued.filter((d) => !done.has(d)).length,
+          }),
+        );
+      }
+      break;
+    }
     case "leads": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -473,7 +509,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
