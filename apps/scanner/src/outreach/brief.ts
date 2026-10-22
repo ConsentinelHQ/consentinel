@@ -121,7 +121,11 @@ export function renderBrief(b: BriefInput): string {
       return day !== null && day <= today && action && !CLOSED.has(r.values["Status"] ?? "");
     })
     .filter(
-      (r) => !/review .*draft|follow up|close if no reply/i.test(r.values["Next action"] ?? ""),
+      // Routine work the 2am job handles on its own.
+      (r) =>
+        !/review .*draft|follow up|close if no reply|mark dead/i.test(
+          r.values["Next action"] ?? "",
+        ),
     )
     .slice(0, 6)
     .map((r) => `${normDomain(r.values["Domain"] ?? "")} (${r.values["Next action"] ?? ""})`);
@@ -130,9 +134,15 @@ export function renderBrief(b: BriefInput): string {
   // Problems
   const warnings: string[] = [];
   if (typeof b.metrics !== "string" && b.metrics.failedCustomerScans.length) {
-    const f = b.metrics.failedCustomerScans
+    // One entry per site and reason, with a count, so a repeat failure reads once.
+    const grouped = new Map<string, number>();
+    for (const x of b.metrics.failedCustomerScans) {
+      const k = `${normDomain(x.url)} (${x.reason})`;
+      grouped.set(k, (grouped.get(k) ?? 0) + 1);
+    }
+    const f = [...grouped.entries()]
       .slice(0, 3)
-      .map((x) => `${normDomain(x.url)} (${x.reason})`);
+      .map(([k, n]) => (n > 1 ? `${k} x${String(n)}` : k));
     warnings.push(
       `${plural(b.metrics.failedCustomerScans.length, "customer scan")} failed: ${joinNames(f)}`,
     );
