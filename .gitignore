@@ -17,6 +17,7 @@ lerna-debug.log*
 *.pem
 *.key
 !.env.example
+!.env.outreach.example
 
 # Turborepo
 .turbo/
