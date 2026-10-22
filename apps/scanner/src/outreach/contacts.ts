@@ -40,7 +40,7 @@ interface AnymailResponse {
   person_job_title?: string | null;
 }
 
-async function anymail(domain: string, key: string): Promise<Contact | string> {
+async function anymail(domain: string, key: string, exclude: string[]): Promise<Contact | string> {
   const res = await fetch(ANYMAIL, {
     method: "POST",
     headers: { Authorization: key, "Content-Type": "application/json" },
@@ -50,6 +50,9 @@ async function anymail(domain: string, key: string): Promise<Contact | string> {
   const body = (await res.json()) as AnymailResponse;
   if (body.email_status !== "valid" || !body.valid_email) {
     return `anymail: ${body.email_status ?? "no result"}`;
+  }
+  if (exclude.includes(body.valid_email.toLowerCase())) {
+    return "anymail: only found an address that already bounced";
   }
   const fullName = body.person_full_name ?? "";
   return {
@@ -85,13 +88,18 @@ async function hunterGet<T>(path: string, params: Record<string, string>, key: s
   return body.data;
 }
 
-export async function hunter(domain: string, key: string): Promise<Contact | string> {
+export async function hunter(
+  domain: string,
+  key: string,
+  exclude: string[] = [],
+): Promise<Contact | string> {
   const { emails = [] } = await hunterGet<{ emails?: HunterEmail[] }>(
     "domain-search",
     { domain, limit: "10", type: "personal" },
     key,
   );
   const ranked = emails
+    .filter((e) => !exclude.includes(e.value.toLowerCase()))
     .map((e) => ({ e, tier: TITLE_TIERS.findIndex((re) => re.test(e.position ?? "")) }))
     .filter((x) => x.tier >= 0)
     .sort((a, b) => a.tier - b.tier || b.e.confidence - a.e.confidence);
@@ -121,17 +129,21 @@ export async function hunter(domain: string, key: string): Promise<Contact | str
  * Throws only on outages or quota errors, so the caller can retry the domain
  * on a later run instead of marking it done.
  */
-export async function findContact(domain: string): Promise<Contact | string> {
+/** `exclude`: addresses that already bounced, never returned again. */
+export async function findContact(
+  domain: string,
+  exclude: string[] = [],
+): Promise<Contact | string> {
   const reasons: string[] = [];
   const anymailKey = process.env["ANYMAIL_API_KEY"];
   if (anymailKey) {
-    const hit = await anymail(domain, anymailKey);
+    const hit = await anymail(domain, anymailKey, exclude);
     if (typeof hit !== "string") return hit;
     reasons.push(hit);
   }
   const hunterKey = process.env["HUNTER_API_KEY"];
   if (hunterKey) {
-    const hit = await hunter(domain, hunterKey);
+    const hit = await hunter(domain, hunterKey, exclude);
     if (typeof hit !== "string") return hit;
     reasons.push(hit);
   }

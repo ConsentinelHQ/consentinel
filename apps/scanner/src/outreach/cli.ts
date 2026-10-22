@@ -11,7 +11,14 @@ import {
   tier,
   type Evidence,
 } from "./evidence.js";
-import { RETRY_AFTER_DAYS, backlog, recentlyTried, sheetContact } from "./backlog.js";
+import {
+  RETRY_AFTER_DAYS,
+  backlog,
+  bouncedEmails,
+  bouncedRows,
+  recentlyTried,
+  sheetContact,
+} from "./backlog.js";
 import {
   appendRow,
   authorize,
@@ -42,6 +49,7 @@ import {
 } from "./state.js";
 import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
 import { followups } from "./followup.js";
+import { computeStats } from "./stats.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
   draftLeads,
@@ -68,6 +76,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
  *   pnpm --filter @consentinel/scanner outreach brief [--hours 24]
+ *   pnpm --filter @consentinel/scanner outreach stats
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
@@ -151,10 +160,19 @@ async function run(args: string[]): Promise<Summary> {
   // A backlog row that came up empty (no contact, failed rescan) waits a month before another try.
   const tried = recentlyTried(ledger, now, RETRY_AFTER_DAYS);
   // New domains must not be anywhere yet; backlog rows are in the sheet by definition.
-  const targets: { domain: string; row?: SheetRow }[] = fromSheet
-    ? backlog(sheet.rows)
-        .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row }))
-        .filter((t) => !handled.has(t.domain) && !tried.has(t.domain))
+  // Bounced rows first: a known-good prospect whose contact just needs replacing.
+  const recovering = fromSheet
+    ? bouncedRows(sheet.rows)
+        .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row, recover: true }))
+        .filter((t) => !tried.has(t.domain))
+    : [];
+  const targets: { domain: string; row?: SheetRow; recover?: boolean }[] = fromSheet
+    ? [
+        ...recovering,
+        ...backlog(sheet.rows)
+          .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row }))
+          .filter((t) => !handled.has(t.domain) && !tried.has(t.domain)),
+      ]
     : domains.map((domain) => ({ domain }));
   // Discovery queue tops up whatever the backlog can't fill; dedupe happens in the loop.
   if (fromSheet && args.includes("--then-queue")) {
@@ -195,7 +213,7 @@ async function run(args: string[]): Promise<Summary> {
   });
   const note = (s: string): string => `${today}: outreach bot - ${s}`;
 
-  for (const { domain, row } of targets) {
+  for (const { domain, row, recover } of targets) {
     /** New domains append a row; backlog rows update theirs and keep the old notes. */
     const write = async (fields: Row): Promise<void> => {
       if (!row) return appendRow(sheetId, tab, sheet.headers, fields);
@@ -256,9 +274,10 @@ async function run(args: string[]): Promise<Summary> {
       continue;
     }
 
-    let contact: Contact | string | null = row ? sheetContact(row.values) : null;
+    const exclude = row ? bouncedEmails(row.values) : [];
+    let contact: Contact | string | null = row && !recover ? sheetContact(row.values) : null;
     try {
-      contact ??= await findContact(domain);
+      contact ??= await findContact(domain, exclude);
     } catch (error) {
       // Quota or outage: leave it out of the sheet so a later run retries it.
       const reason = error instanceof Error ? error.message : String(error);
@@ -270,9 +289,8 @@ async function run(args: string[]): Promise<Summary> {
     if (typeof contact === "string") {
       await write({
         ...base(domain, ev),
-        Status: "Scanned - ready",
-        "Next action": "Find contact",
-        Notes: note(contact),
+        ...(recover ? {} : { Status: "Scanned - ready", "Next action": "Find contact" }),
+        Notes: note(recover ? `no replacement contact: ${contact}` : contact),
       });
       record({ domain, action: "skipped", reason: contact });
       out.skipped[domain] = contact;
@@ -290,6 +308,8 @@ async function run(args: string[]): Promise<Summary> {
       Title: contact.title,
       Email: contact.email,
       "Email check": `${contact.verified} (${contact.source})`,
+      // A replacement contact starts a fresh thread: old send dates belong to the bounced address.
+      ...(recover ? { "First email": "", "Follow-up": "" } : {}),
     };
     // Only proven addresses go out unattended; accept_all bounces burn a new domain.
     const canSend = sendMode && !pausedState && contact.verified === "valid" && sentCount < cap;
@@ -326,7 +346,9 @@ async function run(args: string[]): Promise<Summary> {
           Status: "Scanned - ready",
           "Next action": "Review Gmail draft and send",
           "Next action date": today,
-          Notes: note(`drafted (${why})`),
+          Notes: note(
+            `drafted (${why})${recover ? `, replacing bounced ${exclude.join(", ")}` : ""}`,
+          ),
         });
         out.drafted.push(domain);
         log(`       drafted for ${contact.email} (${why})`);
@@ -465,6 +487,12 @@ async function main(): Promise<void> {
       );
       break;
     }
+    case "stats": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      console.log(JSON.stringify(computeStats((await readSheet(sheetId, tab)).rows), null, 2));
+      break;
+    }
     case "leads": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -549,7 +577,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
