@@ -13,6 +13,7 @@ import {
 } from "../src/outreach/state.js";
 import { dueForFollowUp, dueToClose, followUpEmail } from "../src/outreach/followup.js";
 import { firstNameFrom, reportReply } from "../src/outreach/prep.js";
+import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.js";
 import { bullets, render } from "../src/outreach/template.js";
 
 const rejected: Evidence = {
@@ -285,5 +286,52 @@ assert.match(
 );
 assert.match(rr.html, /<a href="https:\/\/www\.getconsentinel\.com\/report\/abc\?t=xyz">/);
 assert.doesNotMatch(rr.text, /—/);
+
+// Inbound leads: consented leads past 12h, worth writing to, not ours, not already handled.
+const nowL = new Date("2026-10-22T12:00:00Z");
+const lead = (email: string, hoursAgo: number, extra: Partial<Lead> = {}): Lead => ({
+  email,
+  createdAt: new Date(nowL.getTime() - hoursAgo * 3_600_000).toISOString(),
+  url: "https://shop.example.com/",
+  critical: 6,
+  vendors: ["Klaviyo", "Meta", "TikTok"],
+  ...extra,
+});
+const sheetL = {
+  headers: [],
+  domains: new Set(["inpipeline.com"]),
+  rows: [{ rowNumber: 2, values: { Email: "known@x.com" } }],
+};
+assert.deepEqual(
+  pickLeads(
+    [
+      lead("ok@x.com", 20),
+      lead("fresh@x.com", 2),
+      lead("old@x.com", 24 * 20),
+      lead("clean@x.com", 20, { critical: 0 }),
+      lead("me@consentinelhq.com", 20),
+      lead("test@gmail.com", 20),
+      lead("known@x.com", 20),
+      lead("done@x.com", 20),
+      lead("prospect@x.com", 20, { url: "https://www.inpipeline.com/" }),
+    ],
+    {
+      now: nowL,
+      sheet: sheetL,
+      ledger: [
+        { at: "2026-10-21T00:00:00Z", domain: "d.com", action: "drafted", email: "done@x.com" },
+      ],
+      ignore: ["test@gmail.com"],
+    },
+  ).map((l) => l.email),
+  ["ok@x.com"],
+);
+assert.equal(isOwn("Charlie@GetConsentinel.com"), true);
+const le = leadEmail(lead("ok@x.com", 20), "");
+assert.equal(le.subject, "Your scan of shop.example.com");
+assert.match(le.text, /Your scan found 6 critical issues, including Meta, TikTok and Klaviyo\./);
+assert.match(le.text, /\$99\/month per site/);
+assert.match(le.html, /<a href="https:\/\/www\.getconsentinel\.com\/pricing">/);
+assert.doesNotMatch(le.text, /—/);
 
 console.log("outreach: all assertions passed");
