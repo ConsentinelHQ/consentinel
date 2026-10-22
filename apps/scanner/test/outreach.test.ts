@@ -114,6 +114,18 @@ const picked = backlog([
   r(7, { Domain: "f.com", Status: "Scanned - ready", Tier: "1", Notes: "Hold: rescan first" }),
   r(8, { Domain: "g.com", Status: "Scanned - ready", Tier: "1", "First email": "2026-10-01" }),
   r(9, { Domain: "h.com", Status: "Scanned - ready", Tier: "" }),
+  r(10, {
+    Domain: "i.com",
+    Status: "Scanned - ready",
+    Tier: "1",
+    "Next action": "Review Gmail draft and send",
+  }),
+  r(11, {
+    Domain: "j.com",
+    Status: "Scanned - ready",
+    Tier: "1",
+    Notes: "2026-10-22: outreach bot - drafted (draft mode)",
+  }),
 ]);
 assert.deepEqual(
   picked.map((p) => p.values["Domain"]),

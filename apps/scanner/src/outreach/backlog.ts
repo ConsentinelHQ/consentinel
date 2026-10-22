@@ -19,6 +19,9 @@ export function backlog(rows: SheetRow[]): SheetRow[] {
         !v["First email"] &&
         (t === 1 || t === 2) &&
         !HANDS_OFF.test(v["Notes"] ?? "") &&
+        // Already drafted by the bot: the sheet knows even when this machine's ledger doesn't.
+        !/review gmail draft/i.test(v["Next action"] ?? "") &&
+        !/outreach bot - (drafted|sent)/i.test(v["Notes"] ?? "") &&
         normDomain(v["Domain"] ?? "") !== ""
       );
     })
