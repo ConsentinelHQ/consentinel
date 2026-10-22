@@ -71,7 +71,7 @@ function draft(domain: string, ev: Evidence, firstName: string): { subject: stri
     domain,
     firstName,
     ev,
-    postalAddress: process.env["PROSPECT_POSTAL_ADDRESS"] ?? "[POSTAL ADDRESS]",
+    postalAddress: process.env["PROSPECT_POSTAL_ADDRESS"] ?? "",
   });
   return { subject, body: text };
 }

@@ -110,7 +110,6 @@ async function run(args: string[]): Promise<Summary> {
   const sheetId = cfg("OUTREACH_SHEET_ID");
   const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
   const postal = process.env["OUTREACH_POSTAL_ADDRESS"] ?? "";
-  if (sendMode && !postal) throw new Error("OUTREACH_POSTAL_ADDRESS is required to send");
 
   const inline = flag(args, "--domains")?.split(",") ?? [];
   const file = flag(args, "--file");
@@ -256,7 +255,7 @@ async function run(args: string[]): Promise<Summary> {
       domain,
       firstName: contact.firstName,
       ev,
-      postalAddress: postal || "[POSTAL ADDRESS]",
+      postalAddress: postal,
     });
     const contactCols = {
       Contact: contact.fullName,
