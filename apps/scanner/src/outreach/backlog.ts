@@ -1,5 +1,6 @@
 import type { Contact } from "./contacts.js";
 import { normDomain, type SheetRow } from "./google.js";
+import type { Entry } from "./state.js";
 
 /**
  * The sheet's own backlog: rows already scanned and marked "Scanned - ready"
@@ -41,4 +42,16 @@ export function sheetContact(v: Record<string, string>): Contact | null {
     verified: "valid",
     source: "sheet",
   };
+}
+
+export const RETRY_AFTER_DAYS = 30;
+
+/** Domains skipped within the window. Errors (quota, outage) are left out so they retry. */
+export function recentlyTried(ledger: Entry[], now: Date, days: number): Set<string> {
+  const since = now.getTime() - days * 86_400_000;
+  return new Set(
+    ledger
+      .filter((e) => e.action === "skipped" && new Date(e.at).getTime() >= since)
+      .map((e) => e.domain),
+  );
 }

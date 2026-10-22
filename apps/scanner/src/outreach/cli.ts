@@ -11,7 +11,7 @@ import {
   tier,
   type Evidence,
 } from "./evidence.js";
-import { backlog, sheetContact } from "./backlog.js";
+import { RETRY_AFTER_DAYS, backlog, recentlyTried, sheetContact } from "./backlog.js";
 import {
   appendRow,
   authorize,
@@ -126,11 +126,13 @@ async function run(args: string[]): Promise<Summary> {
     ledger.filter((e) => e.action === "sent" || e.action === "drafted").map((e) => e.domain),
   );
   const contacted = new Set([...sheet.domains, ...legacyDomains(), ...handled]);
+  // A backlog row that came up empty (no contact, failed rescan) waits a month before another try.
+  const tried = recentlyTried(ledger, now, RETRY_AFTER_DAYS);
   // New domains must not be anywhere yet; backlog rows are in the sheet by definition.
   const targets: { domain: string; row?: SheetRow }[] = fromSheet
     ? backlog(sheet.rows)
         .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row }))
-        .filter((t) => !handled.has(t.domain))
+        .filter((t) => !handled.has(t.domain) && !tried.has(t.domain))
     : domains.map((domain) => ({ domain }));
 
   // Bounce check before anything goes out. A paused run still drafts.
