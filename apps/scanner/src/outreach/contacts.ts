@@ -11,7 +11,7 @@ export interface Contact {
   title: string;
   /** "valid" is proven. "accept_all" means the server takes anything: never auto-send. */
   verified: "valid" | "accept_all";
-  source: "anymail" | "hunter";
+  source: "anymail" | "hunter" | "sheet";
 }
 
 /**

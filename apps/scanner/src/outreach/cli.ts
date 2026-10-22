@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { findContact } from "./contacts.js";
+import { findContact, type Contact } from "./contacts.js";
 import {
   MIN_VENDORS,
   NOT_A_SITE,
@@ -11,6 +11,7 @@ import {
   tier,
   type Evidence,
 } from "./evidence.js";
+import { backlog, sheetContact } from "./backlog.js";
 import {
   appendRow,
   authorize,
@@ -19,7 +20,9 @@ import {
   normDomain,
   readSheet,
   send,
+  updateRow,
   type Row,
+  type SheetRow,
 } from "./google.js";
 import {
   addBusinessDays,
@@ -43,8 +46,12 @@ import { render } from "./template.js";
  *
  *   pnpm --filter @consentinel/scanner outreach run --domains a.com,b.com
  *   pnpm --filter @consentinel/scanner outreach run --file domains.txt --send
+ *   pnpm --filter @consentinel/scanner outreach run --from-sheet --limit 5
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
+ *
+ * --from-sheet works the sheet's own "Scanned - ready" backlog (Tier 1 first),
+ * rescanning each row and updating it in place instead of adding a new one.
  *
  * Without --send it only writes Gmail drafts. Logs go to stderr; the last
  * stdout line is a JSON summary for whatever is driving this (OpenClaw).
@@ -109,15 +116,23 @@ async function run(args: string[]): Promise<Summary> {
   const file = flag(args, "--file");
   const fromFile = file ? readFileSync(resolve(repoRoot(), file), "utf8").split("\n") : [];
   const domains = [...new Set([...inline, ...fromFile].map(normDomain).filter(Boolean))];
+  const fromSheet = args.includes("--from-sheet");
+  if (fromSheet && domains.length)
+    throw new Error("use --from-sheet or --domains/--file, not both");
 
   const now = new Date();
   const ledger = readLedger();
   const sheet = await readSheet(sheetId, tab);
-  const contacted = new Set([
-    ...sheet.domains,
-    ...legacyDomains(),
-    ...ledger.filter((e) => e.action === "sent" || e.action === "drafted").map((e) => e.domain),
-  ]);
+  const handled = new Set(
+    ledger.filter((e) => e.action === "sent" || e.action === "drafted").map((e) => e.domain),
+  );
+  const contacted = new Set([...sheet.domains, ...legacyDomains(), ...handled]);
+  // New domains must not be anywhere yet; backlog rows are in the sheet by definition.
+  const targets: { domain: string; row?: SheetRow }[] = fromSheet
+    ? backlog(sheet.rows)
+        .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row }))
+        .filter((t) => !handled.has(t.domain))
+    : domains.map((domain) => ({ domain }));
 
   // Bounce check before anything goes out. A paused run still drafts.
   if (sendMode && !paused()) {
@@ -153,9 +168,23 @@ async function run(args: string[]): Promise<Summary> {
   });
   const note = (s: string): string => `${today}: outreach bot - ${s}`;
 
-  for (const domain of domains) {
+  for (const { domain, row } of targets) {
+    /** New domains append a row; backlog rows update theirs and keep the old notes. */
+    const write = async (fields: Row): Promise<void> => {
+      if (!row) return appendRow(sheetId, tab, sheet.headers, fields);
+      // Company and Domain are already right on an existing row.
+      const rest = Object.fromEntries(
+        Object.entries(fields).filter(([k]) => k !== "Company" && k !== "Domain"),
+      );
+      const prior = row.values["Notes"] ?? "";
+      const notes = String(fields["Notes"] ?? "");
+      await updateRow(sheetId, tab, sheet.headers, row.rowNumber, {
+        ...rest,
+        ...(notes ? { Notes: prior ? `${prior} | ${notes}` : notes } : {}),
+      });
+    };
     if (out.processed >= limit) break;
-    if (contacted.has(domain)) {
+    if (!row && contacted.has(domain)) {
       out.skipped[domain] = "already in sheet or ledger";
       continue;
     }
@@ -178,10 +207,10 @@ async function run(args: string[]): Promise<Summary> {
         out.errors[domain] = reason;
         continue;
       }
-      await appendRow(sheetId, tab, sheet.headers, {
-        ...base(domain),
-        Status: "Scan failed",
-        Notes: note(reason),
+      await write({
+        ...(row ? {} : base(domain)),
+        ...(row ? {} : { Status: "Scan failed" }),
+        Notes: note(row ? `rescan failed: ${reason}` : reason),
       });
       record({ domain, action: "skipped", reason });
       out.skipped[domain] = reason;
@@ -189,8 +218,8 @@ async function run(args: string[]): Promise<Summary> {
     }
     const t = tier(ev, minGpc);
     if (ev.firing.length < MIN_VENDORS || t === 3) {
-      const reason = `weak evidence: ${String(ev.firing.length)} nameable ad vendors (${ev.mode})`;
-      await appendRow(sheetId, tab, sheet.headers, {
+      const reason = `${row ? "rescan: " : ""}weak evidence: ${String(ev.firing.length)} nameable ad vendors (${ev.mode})`;
+      await write({
         ...base(domain, ev),
         Status: "Dead",
         Notes: note(reason),
@@ -200,9 +229,9 @@ async function run(args: string[]): Promise<Summary> {
       continue;
     }
 
-    let contact;
+    let contact: Contact | string | null = row ? sheetContact(row.values) : null;
     try {
-      contact = await findContact(domain);
+      contact ??= await findContact(domain);
     } catch (error) {
       // Quota or outage: leave it out of the sheet so a later run retries it.
       const reason = error instanceof Error ? error.message : String(error);
@@ -212,7 +241,7 @@ async function run(args: string[]): Promise<Summary> {
       continue;
     }
     if (typeof contact === "string") {
-      await appendRow(sheetId, tab, sheet.headers, {
+      await write({
         ...base(domain, ev),
         Status: "Scanned - ready",
         "Next action": "Find contact",
@@ -243,7 +272,7 @@ async function run(args: string[]): Promise<Summary> {
         const id = await send(from, contact.email, email);
         sentCount++;
         record({ domain, action: "sent", email: contact.email, messageId: id });
-        await appendRow(sheetId, tab, sheet.headers, {
+        await write({
           ...base(domain, ev),
           ...contactCols,
           Status: "Emailed",
@@ -264,7 +293,7 @@ async function run(args: string[]): Promise<Summary> {
               ? "accept_all address"
               : "daily cap";
         record({ domain, action: "drafted", email: contact.email, messageId: id, reason: why });
-        await appendRow(sheetId, tab, sheet.headers, {
+        await write({
           ...base(domain, ev),
           ...contactCols,
           Status: "Scanned - ready",
