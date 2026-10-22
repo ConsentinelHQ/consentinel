@@ -128,6 +128,12 @@ export async function send(from: string, to: string, email: Email): Promise<stri
   return r.id;
 }
 
+/** Drafts sitting in Gmail, up to 500. */
+export async function countDrafts(): Promise<number> {
+  const r = await google<{ drafts?: unknown[] }>(`${GMAIL}/drafts?maxResults=500`);
+  return r.drafts?.length ?? 0;
+}
+
 /** Bounce notices in the window. Counts any mailer-daemon mail: errs toward pausing. */
 export async function countBounces(since: Date): Promise<number> {
   const q = `from:(mailer-daemon OR postmaster) after:${String(Math.floor(since.getTime() / 1000))}`;

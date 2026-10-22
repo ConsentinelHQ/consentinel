@@ -15,6 +15,7 @@ import { dueForFollowUp, dueToClose, followUpEmail } from "../src/outreach/follo
 import { firstNameFrom, reportReply } from "../src/outreach/prep.js";
 import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.js";
 import { isStore, storeSignals } from "../src/outreach/queue.js";
+import { renderBrief, windowHours } from "../src/outreach/brief.js";
 import { bullets, render } from "../src/outreach/template.js";
 
 const rejected: Evidence = {
@@ -351,5 +352,78 @@ assert.equal(
   ),
   true,
 );
+
+// Morning brief: every line from data, problems called out, no emoji.
+const briefNow = new Date("2026-10-23T11:00:00Z"); // Fri 7am New York
+const brief = renderBrief({
+  now: briefNow,
+  hours: 24,
+  metrics: {
+    hours: 24,
+    users: { total: 12, new: 1 },
+    revenue: { estMrr: 1287, paying: 3, pastDue: 1, byPlan: { Monitor: 2, Growth: 1 } },
+    monitoredSites: 11,
+    scans: { public: { total: 9, failed: 1 }, scheduled: { total: 11, failed: 2 } },
+    failedCustomerScans: [
+      { url: "https://www.a.com/", trigger: "scheduled", reason: "blocked by cloudflare" },
+    ],
+    leads: { total: 2, consented: 1 },
+    inquiries: 1,
+  },
+  drafts: 7,
+  sheet: {
+    headers: [],
+    domains: new Set(),
+    rows: [
+      {
+        rowNumber: 2,
+        values: {
+          Domain: "olipop.com",
+          Status: "Meeting",
+          "Next action": "Send proposal",
+          "Next action date": "2026-10-22",
+        },
+      },
+      {
+        rowNumber: 3,
+        values: {
+          Domain: "x.com",
+          Status: "Emailed",
+          "Next action": "Follow up",
+          "Next action date": "2026-10-20",
+        },
+      },
+      { rowNumber: 4, values: { Domain: "y.com", Status: "Scanned - ready", Tier: "1" } },
+    ],
+  },
+  ledger: [
+    { at: "2026-10-23T06:05:00Z", domain: "y.com", action: "drafted", reason: "draft mode" },
+    { at: "2026-10-23T06:06:00Z", domain: "x.com", action: "drafted", reason: "follow-up" },
+  ],
+  queuePending: 14,
+  paused: null,
+  lastCronAt: new Date("2026-10-22T06:10:00Z"),
+});
+assert.match(brief, /^\*Consentinel - Fri, Oct 23\*/);
+assert.match(
+  brief,
+  /\$1,287 est\. MRR, 3 paying customers \(2 Monitor, 1 Growth\), \*1 past due\*/,
+);
+assert.match(
+  brief,
+  /1 signup \(12 total\), 9 free scans, 11 scheduled scans across 11 monitored sites/,
+);
+assert.match(
+  brief,
+  /7 drafts waiting in Gmail\. Last 24h: 1 first email, 1 follow-up, 0 lead notes drafted/,
+);
+assert.match(brief, /Backlog 1, discovery queue 14/);
+assert.match(brief, /\*Needs you:\* olipop\.com \(Send proposal\)$/m);
+assert.doesNotMatch(brief, /x\.com \(Follow up\)/);
+assert.match(brief, /a\.com \(blocked by cloudflare\)/);
+assert.match(brief, /2am outreach job didn't run/);
+assert.doesNotMatch(brief, /—/);
+assert.equal(windowHours(new Date("2026-10-26T11:00:00Z")), 72);
+assert.equal(windowHours(briefNow), 24);
 
 console.log("outreach: all assertions passed");
