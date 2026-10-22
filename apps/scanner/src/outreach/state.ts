@@ -101,6 +101,29 @@ export function nyDate(d: Date): string {
   return d.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
 }
 
+/**
+ * A sheet date as YYYY-MM-DD. Sheets shows dates however the cell is formatted
+ * ("2026-10-22", "10/22/2026", "2026-10-22 0:00:00"), so read them all.
+ */
+export function parseDay(value: string | undefined): string | null {
+  const v = (value ?? "").trim();
+  if (!v) return null;
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(v);
+  if (iso) return `${iso[1]}-${iso[2]!.padStart(2, "0")}-${iso[3]!.padStart(2, "0")}`;
+  const us = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(v);
+  if (us) {
+    const year = us[3]!.length === 2 ? `20${us[3]}` : us[3]!;
+    return `${year}-${us[1]!.padStart(2, "0")}-${us[2]!.padStart(2, "0")}`;
+  }
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : nyDate(d);
+}
+
+/** Noon on that day, so business-day math never trips over a timezone edge. */
+export function dayToDate(day: string): Date {
+  return new Date(`${day}T12:00:00`);
+}
+
 export function sentToday(ledger: Entry[], now: Date): number {
   const today = nyDate(now);
   return ledger.filter((e) => e.action === "sent" && nyDate(new Date(e.at)) === today).length;

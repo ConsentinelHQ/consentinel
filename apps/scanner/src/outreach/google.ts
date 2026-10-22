@@ -58,13 +58,19 @@ const b64 = (s: string): string => Buffer.from(s, "utf8").toString("base64");
 const header = (s: string): string => (/^[\x20-\x7e]*$/.test(s) ? s : `=?UTF-8?B?${b64(s)}?=`);
 
 /** RFC 5322 multipart/alternative, base64url for the Gmail API. */
-export function mime(from: string, to: string, email: Email): string {
+export function mime(
+  from: string,
+  to: string,
+  email: Email,
+  extra: Record<string, string> = {},
+): string {
   const boundary = `cs_${Math.random().toString(36).slice(2)}`;
   const replyTo = /<([^>]+)>/.exec(from)?.[1] ?? from;
   const msg = [
     `From: ${from}`,
     `To: ${to}`,
     `Subject: ${header(email.subject)}`,
+    ...Object.entries(extra).map(([k, v]) => `${k}: ${v}`),
     // Lets Gmail and Yahoo show a one-click unsubscribe instead of a spam button.
     `List-Unsubscribe: <mailto:${replyTo}?subject=unsubscribe>`,
     "MIME-Version: 1.0",
@@ -88,10 +94,28 @@ export function mime(from: string, to: string, email: Email): string {
 
 const GMAIL = "https://gmail.googleapis.com/gmail/v1/users/me";
 
-export async function createDraft(from: string, to: string, email: Email): Promise<string> {
+export interface Thread {
+  threadId: string;
+  /** Message-ID of the message being answered, for In-Reply-To and References. */
+  messageId: string;
+}
+
+/** A draft, optionally threaded under an earlier message so it reads as a reply. */
+export async function createDraft(
+  from: string,
+  to: string,
+  email: Email,
+  thread?: Thread,
+): Promise<string> {
+  const extra = thread ? { "In-Reply-To": thread.messageId, References: thread.messageId } : {};
   const r = await google<{ id: string }>(`${GMAIL}/drafts`, {
     method: "POST",
-    body: JSON.stringify({ message: { raw: mime(from, to, email) } }),
+    body: JSON.stringify({
+      message: {
+        raw: mime(from, to, email, extra),
+        ...(thread ? { threadId: thread.threadId } : {}),
+      },
+    }),
   });
   return r.id;
 }
