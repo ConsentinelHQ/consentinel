@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { backlog, sheetContact } from "../src/outreach/backlog.js";
 import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
-import { mime, normDomain } from "../src/outreach/google.js";
+import { mime, normDomain, type SheetRow } from "../src/outreach/google.js";
 import { addBusinessDays, sentToday, shouldPause, type Entry } from "../src/outreach/state.js";
 import { bullets, render } from "../src/outreach/template.js";
 
@@ -89,8 +90,6 @@ assert.equal(sentToday(ledger, now), 1);
 // Friday + 5 business days = next Friday.
 assert.equal(addBusinessDays(new Date("2026-10-23T12:00:00"), 5).getDate(), 30);
 
-console.log("outreach: all assertions passed");
-
 // Bad domains stay out of the sheet; notes are one clean line.
 const dns =
   'page.goto: net::ERR_NAME_NOT_RESOLVED at https://x.com/\nCall log:\n\u001b[2m  - navigating to "https://x.com/"\u001b[22m\n';
@@ -100,3 +99,28 @@ assert.equal(
   cleanError(`scan failed: ${dns}`),
   "scan failed: page.goto: net::ERR_NAME_NOT_RESOLVED at https://x.com/",
 );
+
+// Backlog: only untouched Tier 1/2 "Scanned - ready" rows, Tier 1 first, hand-flagged rows skipped.
+const r = (n: number, v: Record<string, string>): SheetRow => ({ rowNumber: n, values: v });
+const picked = backlog([
+  r(2, { Domain: "a.com", Status: "Scanned - ready", Tier: "2", Critical: "20" }),
+  r(3, { Domain: "b.com", Status: "Scanned - ready", Tier: "1", Critical: "5" }),
+  r(4, { Domain: "c.com", Status: "Scanned - ready", Tier: "1", Critical: "9" }),
+  r(5, { Domain: "d.com", Status: "Emailed", Tier: "1" }),
+  r(6, { Domain: "e.com", Status: "Scanned - ready", Tier: "3" }),
+  r(7, { Domain: "f.com", Status: "Scanned - ready", Tier: "1", Notes: "Hold: rescan first" }),
+  r(8, { Domain: "g.com", Status: "Scanned - ready", Tier: "1", "First email": "2026-10-01" }),
+  r(9, { Domain: "h.com", Status: "Scanned - ready", Tier: "" }),
+]);
+assert.deepEqual(
+  picked.map((p) => p.values["Domain"]),
+  ["c.com", "b.com", "a.com"],
+);
+assert.equal(sheetContact({ Email: "x@y.com", "Email check": "accept_all" }), null);
+assert.equal(
+  sheetContact({ Email: "x@y.com", "Email check": "valid (95%)", Contact: "Elizabeth Bell" })
+    ?.firstName,
+  "Elizabeth",
+);
+
+console.log("outreach: all assertions passed");

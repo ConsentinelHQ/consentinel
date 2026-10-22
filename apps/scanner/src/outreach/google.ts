@@ -118,9 +118,16 @@ const SHEETS = "https://sheets.googleapis.com/v4/spreadsheets";
 
 export type Row = Record<string, string | number>;
 
+/** One sheet row keyed by header, plus its 1-based row number. */
+export interface SheetRow {
+  rowNumber: number;
+  values: Record<string, string>;
+}
+
 export interface Sheet {
   headers: string[];
   domains: Set<string>;
+  rows: SheetRow[];
 }
 
 export const normDomain = (d: string): string =>
@@ -139,7 +146,44 @@ export async function readSheet(id: string, tab: string): Promise<Sheet> {
   const col = headers.findIndex((h) => h.trim().toLowerCase() === "domain");
   if (col < 0) throw new Error(`no "Domain" column in ${tab}`);
   const domains = new Set(rows.map((row) => normDomain(row[col] ?? "")).filter(Boolean));
-  return { headers, domains };
+  const keyed = rows.map((row, i) => ({
+    rowNumber: i + 2,
+    values: Object.fromEntries(headers.map((h, j) => [h, row[j] ?? ""])),
+  }));
+  return { headers, domains, rows: keyed };
+}
+
+function columnLetter(index: number): string {
+  let n = index + 1;
+  let out = "";
+  while (n > 0) {
+    const r = (n - 1) % 26;
+    out = String.fromCharCode(65 + r) + out;
+    n = Math.floor((n - 1) / 26);
+  }
+  return out;
+}
+
+/** Updates only the named cells, so dropdowns and untouched columns stay as they are. */
+export async function updateRow(
+  id: string,
+  tab: string,
+  headers: string[],
+  rowNumber: number,
+  row: Row,
+): Promise<void> {
+  const data = Object.entries(row)
+    .map(([key, value]) => ({ i: headers.indexOf(key), value }))
+    .filter(({ i }) => i >= 0)
+    .map(({ i, value }) => ({
+      range: `${tab}!${columnLetter(i)}${String(rowNumber)}`,
+      values: [[value]],
+    }));
+  if (data.length === 0) return;
+  await google(`${SHEETS}/${id}/values:batchUpdate`, {
+    method: "POST",
+    body: JSON.stringify({ valueInputOption: "USER_ENTERED", data }),
+  });
 }
 
 /** Writes by header name, so reordering sheet columns can't misfile data. */
