@@ -7,7 +7,9 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Only cancel superseded PR runs. A cancelled main run leaves failed checks on
+  # that commit, and Vercel then refuses to promote its deploy.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -137,4 +139,12 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --audit-level=high
+      # The npm audit endpoint times out now and then. A real advisory fails
+      # every attempt, so retrying only filters out network flakes.
+      - name: pnpm audit --audit-level=high
+        run: |
+          for i in 1 2 3; do
+            pnpm audit --audit-level=high && exit 0
+            echo "audit attempt $i failed, retrying in 20s"; sleep 20
+          done
+          exit 1
