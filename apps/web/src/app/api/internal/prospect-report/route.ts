@@ -1,8 +1,8 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getOrCreateShareToken, getScan } from "@consentinel/db";
 import { enqueueScan } from "@consentinel/queue";
+import { internalAuthorized as authorized } from "@/lib/internal-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { db, scanQueue } from "@/lib/server";
 
@@ -14,15 +14,6 @@ export const dynamic = "force-dynamic";
  * report. Authenticated by OUTREACH_API_KEY; with the key unset the route 404s.
  * Scans are site-less, so nothing lands in any org, dashboard or plan count.
  */
-
-function authorized(request: Request): boolean {
-  const key = process.env["OUTREACH_API_KEY"];
-  if (!key || key.length < 32) return false;
-  const given = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  const a = Buffer.from(given);
-  const b = Buffer.from(key);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 const notFound = (): NextResponse => NextResponse.json({ error: "Not found." }, { status: 404 });
 

@@ -40,6 +40,14 @@ import {
   shouldPause,
 } from "./state.js";
 import { followups } from "./followup.js";
+import {
+  draftLeads,
+  fetchInbound,
+  inboundSince,
+  isOwn,
+  pickLeads,
+  saveInboundSince,
+} from "./inbound.js";
 import { prep } from "./prep.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
@@ -53,6 +61,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach sync
  *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
+ *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
@@ -352,7 +361,62 @@ async function main(): Promise<void> {
     case "sync": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
-      console.log(JSON.stringify(await sync(sheetId, tab, await readSheet(sheetId, tab)), null, 2));
+      const sheet = await readSheet(sheetId, tab);
+      const summary = await sync(sheetId, tab, sheet);
+      const key = process.env["OUTREACH_API_KEY"];
+      let inbound = {};
+      if (key) {
+        // Inbound is a bonus: a failure here must not hide the replies above.
+        try {
+          const now = new Date();
+          const got = await fetchInbound(
+            cfg("OUTREACH_APP_URL", "https://www.getconsentinel.com"),
+            key,
+            inboundSince(),
+          );
+          const ignore = (process.env["OUTREACH_IGNORE_EMAILS"] ?? "").split(",");
+          inbound = {
+            inquiries: got.inquiries.filter((i) => !isOwn(i.email, ignore)),
+            prospectScans: got.leads
+              .filter((l) => l.url && sheet.domains.has(normDomain(l.url)))
+              .map((l) => ({ domain: normDomain(l.url ?? ""), email: l.email, at: l.createdAt })),
+          };
+          saveInboundSince(now);
+        } catch (error) {
+          inbound = { inboundError: error instanceof Error ? error.message : String(error) };
+        }
+      }
+      console.log(JSON.stringify({ ...summary, ...inbound }, null, 2));
+      break;
+    }
+    case "leads": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const sheet = await readSheet(sheetId, tab);
+      const now = new Date();
+      const got = await fetchInbound(
+        cfg("OUTREACH_APP_URL", "https://www.getconsentinel.com"),
+        cfg("OUTREACH_API_KEY"),
+        new Date(now.getTime() - 14 * 86_400_000),
+      );
+      const picked = pickLeads(got.leads, {
+        now,
+        sheet,
+        ledger: readLedger(),
+        ignore: (process.env["OUTREACH_IGNORE_EMAILS"] ?? "").split(","),
+      });
+      const drafted = await draftLeads(sheetId, tab, sheet, picked, {
+        from: cfg("OUTREACH_FROM"),
+        postalAddress: process.env["OUTREACH_POSTAL_ADDRESS"] ?? "",
+        limit: Number(flag(args, "--limit") ?? "10"),
+      });
+      console.log(
+        JSON.stringify({
+          drafted,
+          consentedLeads: got.leads.length,
+          withoutConsent: got.leadsWithoutConsent,
+        }),
+      );
       break;
     }
     case "followups": {
@@ -409,7 +473,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
