@@ -5,7 +5,7 @@ import { byProminence, joinNames, type Evidence } from "./evidence.js";
  * bullets comes straight from Evidence, so nothing here is model-written.
  */
 
-const SITE = "https://www.consentinelhq.com/";
+const SITE = "https://www.getconsentinel.com/";
 
 export interface Email {
   subject: string;
@@ -63,7 +63,7 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
   const offer =
     "I'd love to share the full report with you if you're interested. We also offer ongoing monitoring that rescans your site daily and alerts you if something new starts firing.";
   const close = "Happy to connect if interested - just wanted to make you aware of these gaps.";
-  const sig = ["Thank you,", "Charlie Buckley", "Founder, Consentinel", "consentinelhq.com"];
+  const sig = ["Thank you,", "Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
   const optOut = "If you'd rather not hear from me, just reply and I won't email again.";
 
   const text = [
@@ -100,7 +100,7 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
       sig
         .map(esc)
         .join("<br>")
-        .replace("consentinelhq.com", `<a href="${SITE}">consentinelhq.com</a>`),
+        .replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`),
     ),
     `<p style="color:#888;font-size:12px">${esc(optOut)}<br>${esc(postalAddress)}</p>`,
   ].join("\n");

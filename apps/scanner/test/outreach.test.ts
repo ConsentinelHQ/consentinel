@@ -41,7 +41,7 @@ assert.match(email.text, /I ran a scan on chomps\.com/);
 assert.doesNotMatch(email.text, /manual scan/);
 assert.match(email.text, /Sephora \$1\.2M and Healthline \$1\.55M/);
 assert.match(email.text, /PO Box 1, Boonton NJ$/);
-assert.match(email.html, /<a href="https:\/\/www\.consentinelhq\.com\/">Consentinel<\/a>/);
+assert.match(email.html, /<a href="https:\/\/www\.getconsentinel\.com\/">Consentinel<\/a>/);
 assert.equal((email.html.match(/<li>/g) ?? []).length, 3);
 assert.doesNotMatch(email.text, /—/, "no em dashes");
 

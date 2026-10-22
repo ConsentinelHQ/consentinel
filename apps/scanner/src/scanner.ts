@@ -148,7 +148,7 @@ function registrableHost(url: string): string | null {
  */
 export const IDENTIFIED_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) " +
-  "Chrome/141.0.0.0 Safari/537.36 Consentinel/1.0 (+https://www.consentinelhq.com/bot)";
+  "Chrome/141.0.0.0 Safari/537.36 Consentinel/1.0 (+https://www.getconsentinel.com/bot)";
 
 async function newCapturedContext(
   targetUrl: string,
