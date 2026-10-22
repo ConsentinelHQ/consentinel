@@ -14,13 +14,20 @@ export interface Contact {
   source: "anymail" | "hunter";
 }
 
-/** Earlier tiers win; within a tier, higher Hunter confidence wins. */
+/**
+ * Earlier tiers win; within a tier, higher Hunter confidence wins. People who
+ * own the site as a product come first: the broken opt-out is their bug.
+ */
 const TITLE_TIERS = [
-  /e-?commerce|digital/i,
-  /growth/i,
-  /marketing|\bcmo\b/i,
+  /e-?commerce|digital product|product|engineering|technology|\bcto\b|web/i,
+  /privacy|legal|counsel|compliance/i,
+  /digital|growth/i,
   /founder|\bceo\b|president|owner/i,
+  /marketing|\bcmo\b/i,
 ];
+
+/** Anymail decision-maker categories, tried in order. Same priority as above. */
+const ANYMAIL_ROLES = ["engineering", "it", "ceo", "marketing"];
 
 const ANYMAIL = "https://api.anymailfinder.com/v5.1/find-email/decision-maker";
 const HUNTER = "https://api.hunter.io/v2";
@@ -37,8 +44,7 @@ async function anymail(domain: string, key: string): Promise<Contact | string> {
   const res = await fetch(ANYMAIL, {
     method: "POST",
     headers: { Authorization: key, "Content-Type": "application/json" },
-    // Tried in order: marketing owns the tags, the founder owns the risk.
-    body: JSON.stringify({ domain, decision_maker_category: ["marketing", "ceo"] }),
+    body: JSON.stringify({ domain, decision_maker_category: ANYMAIL_ROLES }),
   });
   if (!res.ok) throw new Error(`Anymail returned ${String(res.status)}`);
   const body = (await res.json()) as AnymailResponse;
