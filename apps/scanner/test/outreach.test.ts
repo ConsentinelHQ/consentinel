@@ -426,4 +426,58 @@ assert.doesNotMatch(brief, /—/);
 assert.equal(windowHours(new Date("2026-10-26T11:00:00Z")), 72);
 assert.equal(windowHours(briefNow), 24);
 
+// Hand-written "mark Dead" next actions close on their date.
+assert.deepEqual(
+  dueToClose(
+    [
+      fr(2, {
+        Domain: "rothys.com",
+        Status: "Followed up",
+        "Next action": "No reply by Oct 20: mark Dead",
+        "Next action date": "10/20/2026",
+      }),
+      fr(3, {
+        Domain: "later.com",
+        Status: "Emailed",
+        "Next action": "mark Dead",
+        "Next action date": "2026-10-30",
+      }),
+      fr(4, {
+        Domain: "meet.com",
+        Status: "Meeting",
+        "Next action": "mark Dead",
+        "Next action date": "2026-10-01",
+      }),
+    ],
+    "2026-10-22",
+  ).map((d) => d.values["Domain"]),
+  ["rothys.com"],
+);
+
+// Repeat failures for one site read once, with a count.
+const failBrief = renderBrief({
+  now: briefNow,
+  hours: 24,
+  metrics: {
+    hours: 24,
+    users: { total: 1, new: 0 },
+    revenue: { estMrr: 0, paying: 0, pastDue: 0, byPlan: {} },
+    monitoredSites: 1,
+    scans: {},
+    failedCustomerScans: [
+      { url: "https://www.metagenics.com/", trigger: "scheduled", reason: "blocked by cloudflare" },
+      { url: "https://www.metagenics.com/", trigger: "scheduled", reason: "blocked by cloudflare" },
+    ],
+    leads: { total: 0, consented: 0 },
+    inquiries: 0,
+  },
+  drafts: 0,
+  sheet: { headers: [], domains: new Set(), rows: [] },
+  ledger: [],
+  queuePending: 0,
+  paused: null,
+  lastCronAt: briefNow,
+});
+assert.match(failBrief, /2 customer scans failed: metagenics\.com \(blocked by cloudflare\) x2$/m);
+
 console.log("outreach: all assertions passed");

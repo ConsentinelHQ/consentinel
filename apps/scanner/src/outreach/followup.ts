@@ -75,9 +75,19 @@ export function dueForFollowUp(rows: SheetRow[], today: string): SheetRow[] {
   });
 }
 
-/** Followed up, and nothing back 10 business days later. */
+/**
+ * Followed up, and nothing back 10 business days later. Also any open row whose
+ * hand-written next action says to mark it Dead once its date has passed.
+ */
 export function dueToClose(rows: SheetRow[], today: string): SheetRow[] {
   return rows.filter(({ values: v }) => {
+    if (
+      ["Emailed", "Followed up"].includes(v["Status"] ?? "") &&
+      /mark dead/i.test(v["Next action"] ?? "")
+    ) {
+      const when = parseDay(v["Next action date"]);
+      if (when && when <= today) return true;
+    }
     if (v["Status"] !== "Followed up") return false;
     const followed = parseDay(v["Follow-up"]);
     if (!followed) return false;
