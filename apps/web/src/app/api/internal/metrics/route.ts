@@ -7,9 +7,9 @@ import {
   gt,
   inquiries,
   isEntitled,
-  isNull,
   isPaidPlan,
   leads,
+  orgMembers,
   orgs,
   scans,
   sites,
@@ -25,6 +25,7 @@ export const dynamic = "force-dynamic";
 /**
  * Morning brief numbers. Read-only aggregates over the last `hours` (default 24,
  * max 168). Revenue is an estimate at list price: annual plans count as monthly.
+ * Test accounts are left out throughout (see isInternal).
  */
 export async function GET(request: Request): Promise<NextResponse> {
   if (!internalAuthorized(request))
@@ -36,69 +37,82 @@ export async function GET(request: Request): Promise<NextResponse> {
   const database = db();
   const count = sql<number>`count(*)::int`;
 
-  const [
-    [userTotals],
-    [newUsers],
-    orgRows,
-    scanRows,
-    failed,
-    [leadCounts],
-    [inquiryCount],
-    [monitored],
-  ] = await Promise.all([
-    database.select({ n: count }).from(users),
-    database.select({ n: count }).from(users).where(gt(users.createdAt, since)),
-    database
-      .select({
-        orgId: orgs.id,
-        name: orgs.name,
-        plan: orgs.plan,
-        planStatus: orgs.planStatus,
-        planQuantity: orgs.planQuantity,
-        createdAt: orgs.createdAt,
-      })
-      .from(orgs),
-    database
-      .select({ trigger: scans.trigger, status: scans.status, n: count })
-      .from(scans)
-      .where(gt(scans.queuedAt, since))
-      .groupBy(scans.trigger, scans.status),
-    database
-      .select({
-        url: scans.url,
-        error: scans.error,
-        blockedBy: scans.blockedBy,
-        trigger: scans.trigger,
-      })
-      .from(scans)
-      .where(
-        and(
-          gt(scans.queuedAt, since),
-          eq(scans.status, "failed"),
-          sql`${scans.siteId} is not null`,
-        ),
-      )
-      .orderBy(desc(scans.queuedAt))
-      .limit(10),
-    database
-      .select({
-        n: count,
-        consented: sql<number>`count(*) filter (where ${leads.contactConsent})::int`,
-      })
-      .from(leads)
-      .where(gt(leads.createdAt, since)),
-    database.select({ n: count }).from(inquiries).where(gt(inquiries.createdAt, since)),
-    database
-      .select({ n: count })
-      .from(sites)
-      .where(and(isNull(sites.archivedAt), sql`${sites.schedule} <> 'off'`)),
-  ]);
+  // Our own domains plus METRICS_EXCLUDE_EMAILS, and every org those people belong to.
+  const extra = (process.env["METRICS_EXCLUDE_EMAILS"] ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isInternal = (email: string): boolean => {
+    const e = email.toLowerCase();
+    return /@(consentinelhq\.com|getconsentinel\.com)$/.test(e) || extra.includes(e);
+  };
+
+  const [userRows, memberRows, orgRows, siteRows, scanRows, failedRows, leadRows, inquiryRows] =
+    await Promise.all([
+      database.select({ id: users.id, email: users.email, createdAt: users.createdAt }).from(users),
+      database.select({ orgId: orgMembers.orgId, userId: orgMembers.userId }).from(orgMembers),
+      database
+        .select({
+          orgId: orgs.id,
+          plan: orgs.plan,
+          planStatus: orgs.planStatus,
+          planQuantity: orgs.planQuantity,
+        })
+        .from(orgs),
+      database
+        .select({
+          id: sites.id,
+          orgId: sites.orgId,
+          schedule: sites.schedule,
+          archivedAt: sites.archivedAt,
+        })
+        .from(sites),
+      database
+        .select({ trigger: scans.trigger, status: scans.status, siteId: scans.siteId })
+        .from(scans)
+        .where(gt(scans.queuedAt, since)),
+      database
+        .select({
+          url: scans.url,
+          error: scans.error,
+          blockedBy: scans.blockedBy,
+          trigger: scans.trigger,
+          siteId: scans.siteId,
+        })
+        .from(scans)
+        .where(
+          and(
+            gt(scans.queuedAt, since),
+            eq(scans.status, "failed"),
+            sql`${scans.siteId} is not null`,
+          ),
+        )
+        .orderBy(desc(scans.queuedAt))
+        .limit(50),
+      database
+        .select({
+          n: count,
+          consented: sql<number>`count(*) filter (where ${leads.contactConsent})::int`,
+        })
+        .from(leads)
+        .where(gt(leads.createdAt, since)),
+      database.select({ n: count }).from(inquiries).where(gt(inquiries.createdAt, since)),
+    ]);
+
+  const internalUsers = new Set(userRows.filter((u) => isInternal(u.email)).map((u) => u.id));
+  const internalOrgs = new Set(
+    memberRows.filter((m) => internalUsers.has(m.userId)).map((m) => m.orgId),
+  );
+  const internalSites = new Set(siteRows.filter((s) => internalOrgs.has(s.orgId)).map((s) => s.id));
+  const realScan = (siteId: string | null): boolean => !siteId || !internalSites.has(siteId);
+  const realUsers = userRows.filter((u) => !internalUsers.has(u.id));
 
   let mrr = 0;
   let paying = 0;
   let pastDue = 0;
   const byPlan: Record<string, number> = {};
   for (const o of orgRows) {
+    if (internalOrgs.has(o.orgId)) continue;
     if (o.planStatus === "past_due" || o.planStatus === "unpaid") pastDue++;
     const entitled = isEntitled({
       orgId: o.orgId,
@@ -119,23 +133,33 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const scansByTrigger: Record<string, { total: number; failed: number }> = {};
   for (const r of scanRows) {
+    if (!realScan(r.siteId)) continue;
     const t = (scansByTrigger[r.trigger] ??= { total: 0, failed: 0 });
-    t.total += r.n;
-    if (r.status === "failed") t.failed += r.n;
+    t.total += 1;
+    if (r.status === "failed") t.failed += 1;
   }
 
   return NextResponse.json({
     hours,
-    users: { total: userTotals?.n ?? 0, new: newUsers?.n ?? 0 },
+    users: {
+      total: realUsers.length,
+      new: realUsers.filter((u) => u.createdAt > since).length,
+    },
     revenue: { estMrr: mrr, paying, pastDue, byPlan },
-    monitoredSites: monitored?.n ?? 0,
+    monitoredSites: siteRows.filter(
+      (s) => !internalSites.has(s.id) && s.archivedAt === null && s.schedule !== "off",
+    ).length,
     scans: scansByTrigger,
-    failedCustomerScans: failed.map((f) => ({
-      url: f.url,
-      trigger: f.trigger,
-      reason: f.blockedBy ? `blocked by ${f.blockedBy}` : (f.error ?? "failed").slice(0, 120),
-    })),
-    leads: { total: leadCounts?.n ?? 0, consented: leadCounts?.consented ?? 0 },
-    inquiries: inquiryCount?.n ?? 0,
+    failedCustomerScans: failedRows
+      .filter((f) => realScan(f.siteId))
+      .slice(0, 10)
+      .map((f) => ({
+        url: f.url,
+        trigger: f.trigger,
+        reason: f.blockedBy ? `blocked by ${f.blockedBy}` : (f.error ?? "failed").slice(0, 120),
+      })),
+    leads: { total: leadRows[0]?.n ?? 0, consented: leadRows[0]?.consented ?? 0 },
+    inquiries: inquiryRows[0]?.n ?? 0,
+    excluded: { users: internalUsers.size, orgs: internalOrgs.size },
   });
 }
