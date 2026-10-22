@@ -14,6 +14,7 @@ import {
 import { dueForFollowUp, dueToClose, followUpEmail } from "../src/outreach/followup.js";
 import { firstNameFrom, reportReply } from "../src/outreach/prep.js";
 import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.js";
+import { isStore, storeSignals } from "../src/outreach/queue.js";
 import { bullets, render } from "../src/outreach/template.js";
 
 const rejected: Evidence = {
@@ -333,5 +334,22 @@ assert.match(le.text, /Your scan found 6 critical issues, including Meta, TikTok
 assert.match(le.text, /\$99\/month per site/);
 assert.match(le.html, /<a href="https:\/\/www\.getconsentinel\.com\/pricing">/);
 assert.doesNotMatch(le.text, /—/);
+
+// Discovery: a store needs a platform plus one more signal, or three generic ones.
+const shopify = storeSignals(
+  '<script src="https://cdn.shopify.com/s/files/x.js"></script><a href="/cart">Cart</a>',
+);
+assert.deepEqual(shopify, ["shopify", "cart"]);
+assert.equal(isStore(shopify), true);
+assert.equal(isStore(storeSignals('<a href="/cart">Cart</a>')), false);
+assert.equal(isStore(storeSignals("<p>We are a law firm.</p>")), false);
+assert.equal(
+  isStore(
+    storeSignals(
+      '<a href="/cart">x</a><button>Add to bag</button>{"@type": "Product"}<a href="/checkout">',
+    ),
+  ),
+  true,
+);
 
 console.log("outreach: all assertions passed");
