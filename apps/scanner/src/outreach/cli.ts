@@ -16,6 +16,7 @@ import {
   appendRow,
   authorize,
   countBounces,
+  countDrafts,
   createDraft,
   normDomain,
   readSheet,
@@ -39,6 +40,7 @@ import {
   sentToday,
   shouldPause,
 } from "./state.js";
+import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
 import { followups } from "./followup.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
@@ -65,6 +67,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
+ *   pnpm --filter @consentinel/scanner outreach brief [--hours 24]
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
@@ -428,6 +431,40 @@ async function main(): Promise<void> {
       }
       break;
     }
+    case "brief": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const now = new Date();
+      const hours = Number(flag(args, "--hours") ?? windowHours(now));
+      const key = process.env["OUTREACH_API_KEY"];
+      const [sheet, metrics, drafts] = await Promise.all([
+        readSheet(sheetId, tab),
+        key
+          ? fetchMetrics(
+              cfg("OUTREACH_APP_URL", "https://www.getconsentinel.com"),
+              key,
+              hours,
+            ).catch((e: unknown) => (e instanceof Error ? e.message : String(e)))
+          : Promise.resolve("OUTREACH_API_KEY not set"),
+        countDrafts().catch((e: unknown) => (e instanceof Error ? e.message : String(e))),
+      ]);
+      const ledger = readLedger();
+      const done = new Set([...sheet.domains, ...ledger.map((e) => e.domain)]);
+      console.log(
+        renderBrief({
+          now,
+          hours,
+          metrics,
+          drafts,
+          sheet,
+          ledger,
+          queuePending: readQueue().filter((d) => !done.has(d)).length,
+          paused: paused(),
+          lastCronAt: lastCronAt(),
+        }),
+      );
+      break;
+    }
     case "leads": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -512,7 +549,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
