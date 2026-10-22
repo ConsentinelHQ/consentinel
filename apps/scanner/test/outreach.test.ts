@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
-import { backlog, recentlyTried, sheetContact } from "../src/outreach/backlog.js";
+import {
+  backlog,
+  bouncedEmails,
+  bouncedRows,
+  recentlyTried,
+  sheetContact,
+} from "../src/outreach/backlog.js";
 import { address, bouncedRecipients, extractText, stripQuoted } from "../src/outreach/mail.js";
 import { isAutoReply, isBulk } from "../src/outreach/sync.js";
 import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
@@ -16,6 +22,7 @@ import { firstNameFrom, reportReply } from "../src/outreach/prep.js";
 import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.js";
 import { isStore, storeSignals } from "../src/outreach/queue.js";
 import { renderBrief, windowHours } from "../src/outreach/brief.js";
+import { computeStats } from "../src/outreach/stats.js";
 import { bullets, render } from "../src/outreach/template.js";
 
 const rejected: Evidence = {
@@ -479,5 +486,75 @@ const failBrief = renderBrief({
   lastCronAt: briefNow,
 });
 assert.match(failBrief, /2 customer scans failed: metagenics\.com \(blocked by cloudflare\) x2$/m);
+
+// Bounce recovery: retry with a new person, never a dead address, give up after two.
+const bounceRow = (n: number, v: Record<string, string>): SheetRow => ({ rowNumber: n, values: v });
+const bRows = [
+  bounceRow(2, {
+    Domain: "burrow.com",
+    Status: "Emailed",
+    Email: "mark.simmons@burrow.com",
+    "Email check": "bounced",
+    "Next action": "Find new contact",
+    Notes: "2026-10-22: outreach bot - bounced: mark.simmons@burrow.com",
+  }),
+  bounceRow(3, {
+    Domain: "twice.com",
+    Status: "Emailed",
+    Email: "b@twice.com",
+    "Email check": "bounced",
+    "Next action": "Find new contact",
+    Notes: "x | outreach bot - bounced: a@twice.com | outreach bot - bounced: b@twice.com",
+  }),
+  bounceRow(4, {
+    Domain: "fine.com",
+    Status: "Emailed",
+    Email: "c@fine.com",
+    "Email check": "valid",
+  }),
+  bounceRow(5, {
+    Domain: "met.com",
+    Status: "Meeting",
+    Email: "d@met.com",
+    "Email check": "bounced",
+    "Next action": "Find new contact",
+  }),
+];
+assert.deepEqual(
+  bouncedRows(bRows).map((r) => r.values["Domain"]),
+  ["burrow.com"],
+);
+assert.deepEqual(bouncedEmails(bRows[1]!.values).sort(), ["a@twice.com", "b@twice.com"]);
+
+// Content stats: only sites with findings, vendor shares over that population.
+const st = computeStats([
+  bounceRow(2, {
+    "Scan mode": "gpc",
+    Critical: "14",
+    Segment: "Beverage",
+    "Key finding": "Meta, TikTok fire under GPC",
+  }),
+  bounceRow(3, {
+    "Scan mode": "rejected",
+    Critical: "6",
+    Segment: "Apparel",
+    "Key finding": "DoubleClick fires after reject",
+  }),
+  bounceRow(4, {
+    "Scan mode": "GPC",
+    Critical: "",
+    Segment: "Apparel",
+    "Key finding": "Meta Pixel fires under GPC",
+  }),
+  bounceRow(5, { "Scan mode": "gpc", Status: "Scan failed", "Key finding": "Meta" }),
+  bounceRow(6, { "Scan mode": "", "Key finding": "Meta" }),
+]);
+assert.equal(st.sites, 3);
+assert.equal(st.afterReject, 1);
+assert.equal(st.underGpc, 2);
+assert.equal(st.medianCritical, 10);
+assert.deepEqual(st.vendors[0], { vendor: "Meta", sites: 2, share: 67 });
+assert.deepEqual(st.bySegment[0], { segment: "Apparel", sites: 2 });
+assert.match(st.population, /never state what share of all sites leak/);
 
 console.log("outreach: all assertions passed");

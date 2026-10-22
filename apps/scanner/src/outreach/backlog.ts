@@ -58,3 +58,30 @@ export function recentlyTried(ledger: Entry[], now: Date, days: number): Set<str
       .map((e) => e.domain),
   );
 }
+
+/** Every address on this row that has bounced: the current one plus any in the notes. */
+export function bouncedEmails(v: Record<string, string>): string[] {
+  const found = new Set<string>();
+  if (/bounced/i.test(v["Email check"] ?? "") && v["Email"]?.includes("@")) {
+    found.add(v["Email"].trim().toLowerCase());
+  }
+  for (const m of (v["Notes"] ?? "").matchAll(/bounced:\s*([^\s|,;]+@[^\s|,;]+)/gi)) {
+    if (m[1]) found.add(m[1].toLowerCase());
+  }
+  return [...found];
+}
+
+/** Two dead addresses at one company is enough; past that a human should look. */
+export const MAX_BOUNCES = 2;
+
+/** Rows whose contact bounced and still need a new person, under the bounce limit. */
+export function bouncedRows(rows: SheetRow[]): SheetRow[] {
+  return rows.filter(({ values: v }) => {
+    if (["Dead", "Customer", "Meeting", "Proposal", "Replied"].includes(v["Status"] ?? ""))
+      return false;
+    if (!/bounced/i.test(v["Email check"] ?? "")) return false;
+    if (!/find new contact/i.test(v["Next action"] ?? "")) return false;
+    if (HANDS_OFF.test(v["Notes"] ?? "") && !/bounced/i.test(v["Notes"] ?? "")) return false;
+    return bouncedEmails(v).length < MAX_BOUNCES && normDomain(v["Domain"] ?? "") !== "";
+  });
+}
