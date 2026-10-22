@@ -114,7 +114,7 @@ function Connected({ connection }: { connection: JiraState }) {
   const router = useRouter();
   const [auto, setAuto] = useState(connection.autoCreate);
   const [token, setToken] = useState(connection.hookToken);
-  const [origin, setOrigin] = useState("https://www.consentinelhq.com");
+  const [origin, setOrigin] = useState("https://www.getconsentinel.com");
   const [show, setShow] = useState(false);
   const [dialog, setDialog] = useState<"rotate" | "disconnect" | null>(null);
   const [busy, setBusy] = useState(false);

@@ -17,7 +17,7 @@ export function DeployHookPanel({
   entitled: boolean;
 }) {
   const [current, setCurrent] = useState(token);
-  const [origin, setOrigin] = useState("https://www.consentinelhq.com");
+  const [origin, setOrigin] = useState("https://www.getconsentinel.com");
   const [show, setShow] = useState(false);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);

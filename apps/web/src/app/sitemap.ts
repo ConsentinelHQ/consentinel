@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = "https://www.consentinelhq.com";
+const BASE = "https://www.getconsentinel.com";
 
 /** Public marketing pages only. App, API, and scan reports stay out of search. */
 export default function sitemap(): MetadataRoute.Sitemap {

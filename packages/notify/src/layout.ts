@@ -15,7 +15,7 @@ export interface EmailLayout {
 }
 
 export function appUrl(): string {
-  return (process.env["APP_URL"] ?? "https://www.consentinelhq.com").replace(/\/$/, "");
+  return (process.env["APP_URL"] ?? "https://www.getconsentinel.com").replace(/\/$/, "");
 }
 
 export function renderEmail(layout: EmailLayout): { html: string; text: string } {
@@ -42,7 +42,7 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
       </td></tr>
       <tr><td style="padding:20px 4px 0;color:#6e6e73;font-size:12px;line-height:1.6">
         ${esc(layout.reason)}${manage}<br>
-        Consentinel &middot; <a href="${esc(base)}" style="color:#6e6e73">consentinelhq.com</a>
+        Consentinel &middot; <a href="${esc(base)}" style="color:#6e6e73">getconsentinel.com</a>
       </td></tr>
     </table>
   </td></tr>
