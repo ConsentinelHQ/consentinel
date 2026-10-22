@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import type { GmailPart } from "./mail.js";
 import type { Email } from "./template.js";
 
 /**
@@ -110,6 +111,36 @@ export async function countBounces(since: Date): Promise<number> {
     `${GMAIL}/messages?maxResults=100&q=${encodeURIComponent(q)}`,
   );
   return r.messages?.length ?? 0;
+}
+
+export interface Message {
+  id: string;
+  threadId: string;
+  at: Date;
+  payload: GmailPart;
+}
+
+/** Message ids matching a Gmail search, newest first. */
+export async function search(q: string, max = 20): Promise<string[]> {
+  const r = await google<{ messages?: { id: string }[] }>(
+    `${GMAIL}/messages?maxResults=${String(max)}&q=${encodeURIComponent(q)}`,
+  );
+  return (r.messages ?? []).map((m) => m.id);
+}
+
+export async function getMessage(id: string): Promise<Message> {
+  const r = await google<{
+    id: string;
+    threadId: string;
+    internalDate: string;
+    payload: GmailPart;
+  }>(`${GMAIL}/messages/${id}?format=full`);
+  return {
+    id: r.id,
+    threadId: r.threadId,
+    at: new Date(Number(r.internalDate)),
+    payload: r.payload,
+  };
 }
 
 // ---------- Sheets ----------
