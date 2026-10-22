@@ -229,6 +229,16 @@ button:disabled {
   border-bottom: 1px solid var(--hairline);
 }
 
+.specimen-id {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.specimen-id .scan-when {
+  margin: 0;
+  font-size: 0.75rem;
+}
 .specimen-url {
   font-family: var(--font-mono);
   font-size: 0.82rem;
@@ -1461,10 +1471,11 @@ dialog.confirm .confirm-body {
 
 /* Report stakes line and shared-report CTA */
 .stakes {
-  margin-top: 1rem;
+  margin: 1rem auto 0;
   color: #3f3f46;
   font-size: 15px;
   max-width: 62ch;
+  text-align: center;
 }
 .report-cta {
   margin-top: 4rem;
