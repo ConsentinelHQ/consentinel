@@ -63,7 +63,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
- *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status
+ *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
@@ -414,6 +414,9 @@ async function main(): Promise<void> {
             pending: readQueue().filter((d) => !done.has(d)).length,
           }),
         );
+      } else if (sub === "known") {
+        // Everything already worked or queued, so research can skip it up front.
+        console.log([...new Set([...done, ...readQueue()])].sort().join("\n"));
       } else {
         const queued = readQueue();
         console.log(
@@ -509,7 +512,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
