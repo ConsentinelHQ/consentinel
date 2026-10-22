@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getMessage, normDomain, search, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { address, bouncedRecipients, extractText, header, stripQuoted } from "./mail.js";
-import { addBusinessDays, nyDate, repoRoot } from "./state.js";
+import { addBusinessDays, nyDate, parseDay, repoRoot } from "./state.js";
 
 /**
  * Keeps the sheet in step with Gmail. Deterministic: it records what happened
@@ -35,6 +35,7 @@ export interface Reply {
 
 export interface SyncSummary {
   markedEmailed: string[];
+  followedUp: string[];
   replies: Reply[];
   autoReplies: string[];
   bounces: { domain: string; email: string }[];
@@ -77,7 +78,13 @@ const note = (s: string): string => `${nyDate(new Date())}: outreach bot - ${s}`
 
 export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<SyncSummary> {
   const seen = loadSeen();
-  const out: SyncSummary = { markedEmailed: [], replies: [], autoReplies: [], bounces: [] };
+  const out: SyncSummary = {
+    markedEmailed: [],
+    followedUp: [],
+    replies: [],
+    autoReplies: [],
+    bounces: [],
+  };
   const today = nyDate(new Date());
   const withEmail = sheet.rows.filter((r) => (r.values["Email"] ?? "").includes("@"));
   const byEmail = new Map(withEmail.map((r) => [r.values["Email"]!.trim().toLowerCase(), r]));
@@ -118,9 +125,26 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
     }
     if (!row.values["First email"] || !domain) continue;
 
+    // 1b. A follow-up Charlie sent from a bot draft (or by hand): the second sent message.
+    if (row.values["Status"] === "Emailed" && !row.values["Follow-up"]) {
+      const sent = await search(`in:sent to:${email}`, 10);
+      if (sent.length >= 2) {
+        const latest = await getMessage(sent[0]!);
+        await update(row, {
+          Status: "Followed up",
+          "Follow-up": nyDate(latest.at),
+          "Next action": "Close if no reply",
+          "Next action date": nyDate(addBusinessDays(latest.at, 10)),
+          Notes: note("follow-up sent"),
+        });
+        out.followedUp.push(domain);
+      }
+    }
+
     // 2. Anyone at the company writing back, not only the person emailed, after the first email.
-    const since = Math.floor(new Date(`${row.values["First email"]}T00:00:00`).getTime() / 1000);
-    if (!Number.isFinite(since)) continue;
+    const firstDay = parseDay(row.values["First email"]);
+    if (!firstDay) continue;
+    const since = Math.floor(new Date(`${firstDay}T00:00:00`).getTime() / 1000);
     const ids = await search(`from:@${domain} -in:sent after:${String(since)}`, 10);
     for (const id of ids.reverse()) {
       if (seen.has(id)) continue;

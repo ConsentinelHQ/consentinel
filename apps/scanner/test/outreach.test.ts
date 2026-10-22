@@ -4,7 +4,14 @@ import { address, bouncedRecipients, extractText, stripQuoted } from "../src/out
 import { isAutoReply, isBulk } from "../src/outreach/sync.js";
 import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
 import { mime, normDomain, type SheetRow } from "../src/outreach/google.js";
-import { addBusinessDays, sentToday, shouldPause, type Entry } from "../src/outreach/state.js";
+import {
+  addBusinessDays,
+  parseDay,
+  sentToday,
+  shouldPause,
+  type Entry,
+} from "../src/outreach/state.js";
+import { dueForFollowUp, dueToClose, followUpEmail } from "../src/outreach/followup.js";
 import { bullets, render } from "../src/outreach/template.js";
 
 const rejected: Evidence = {
@@ -201,5 +208,64 @@ assert.equal(isAutoReply("no", "Re: Privacy issues on x.com"), false);
 assert.equal(isBulk({ headers: [{ name: "List-Unsubscribe", value: "<mailto:u@x.com>" }] }), true);
 assert.equal(isBulk({ headers: [{ name: "Precedence", value: "bulk" }] }), true);
 assert.equal(isBulk({ headers: [{ name: "From", value: "Kevin <k@olaplex.com>" }] }), false);
+
+// Sheet dates in any format Sheets shows them.
+assert.equal(parseDay("2026-10-22"), "2026-10-22");
+assert.equal(parseDay("10/2/2026"), "2026-10-02");
+assert.equal(parseDay("2026-10-22 0:00:00"), "2026-10-22");
+assert.equal(parseDay(""), null);
+
+// Follow-ups: 5 business days after the first email, once, never on flagged or bounced rows.
+const fr = (n: number, v: Record<string, string>): SheetRow => ({ rowNumber: n, values: v });
+const base = { Status: "Emailed", Email: "a@x.com", "First email": "2026-10-15" };
+const due = dueForFollowUp(
+  [
+    fr(2, { ...base, Domain: "due.com" }),
+    fr(3, { ...base, Domain: "early.com", "First email": "2026-10-20" }),
+    fr(4, { ...base, Domain: "done.com", "Follow-up": "2026-10-21" }),
+    fr(5, { ...base, Domain: "floyd.com", Notes: "already emailed, do NOT email again" }),
+    fr(6, { ...base, Domain: "bounce.com", "Email check": "bounced" }),
+    fr(7, { ...base, Domain: "drafted.com", "Next action": "Review follow-up draft" }),
+    fr(8, { ...base, Domain: "us.com", "First email": "10/15/2026" }),
+    fr(9, { ...base, Domain: "replied.com", Status: "Replied" }),
+  ],
+  "2026-10-22",
+);
+assert.deepEqual(
+  due.map((d) => d.values["Domain"]),
+  ["due.com", "us.com"],
+);
+assert.deepEqual(
+  dueToClose(
+    [
+      fr(2, { Domain: "old.com", Status: "Followed up", "Follow-up": "2026-10-01" }),
+      fr(3, { Domain: "new.com", Status: "Followed up", "Follow-up": "2026-10-20" }),
+      fr(4, { Domain: "met.com", Status: "Meeting", "Follow-up": "2026-10-01" }),
+    ],
+    "2026-10-22",
+  ).map((d) => d.values["Domain"]),
+  ["old.com"],
+);
+const fu = followUpEmail({
+  domain: "olaplex.com",
+  firstName: "Kevin",
+  subject: "Privacy issues on olaplex.com",
+  postalAddress: "",
+});
+assert.equal(fu.subject, "Re: Privacy issues on olaplex.com");
+assert.match(fu.text, /^Hi Kevin,\n\nFollowing up on my email about olaplex\.com/);
+assert.match(fu.text, /I won't email again\.$/);
+assert.doesNotMatch(fu.text, /—/);
+assert.equal(
+  followUpEmail({ domain: "x.com", firstName: "", subject: "Re: hi", postalAddress: "" }).subject,
+  "Re: hi",
+);
+
+// Threaded drafts carry the reply headers.
+const threaded = Buffer.from(
+  mime("C <c@x.com>", "a@b.com", fu, { "In-Reply-To": "<abc@mail>", References: "<abc@mail>" }),
+  "base64url",
+).toString();
+assert.match(threaded, /\r\nIn-Reply-To: <abc@mail>\r\nReferences: <abc@mail>\r\n/);
 
 console.log("outreach: all assertions passed");

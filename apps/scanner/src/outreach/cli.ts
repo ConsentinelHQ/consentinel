@@ -39,6 +39,7 @@ import {
   sentToday,
   shouldPause,
 } from "./state.js";
+import { followups } from "./followup.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
 
@@ -49,6 +50,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach run --file domains.txt --send
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --limit 5
  *   pnpm --filter @consentinel/scanner outreach sync
+ *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
  *   pnpm --filter @consentinel/scanner outreach status
  *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
@@ -351,6 +353,17 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(await sync(sheetId, tab, await readSheet(sheetId, tab)), null, 2));
       break;
     }
+    case "followups": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const summary = await followups(sheetId, tab, await readSheet(sheetId, tab), {
+        from: cfg("OUTREACH_FROM"),
+        postalAddress: process.env["OUTREACH_POSTAL_ADDRESS"] ?? "",
+        limit: Number(flag(args, "--limit") ?? "5"),
+      });
+      console.log(JSON.stringify(summary));
+      break;
+    }
     case "mark": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -381,7 +394,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
