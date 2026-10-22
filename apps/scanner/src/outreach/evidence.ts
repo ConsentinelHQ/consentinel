@@ -1,0 +1,111 @@
+import { canonicalVendor, type ScanResult } from "@consentinel/shared";
+import { scan } from "../index.js";
+
+/** Fewer than this and the email is a shrug, not a finding. */
+export const MIN_VENDORS = 2;
+
+export type Mode = "rejected" | "gpc";
+
+export interface Evidence {
+  mode: Mode;
+  critical: number;
+  gated: number;
+  /** Advertising vendors firing, most findings first. */
+  firing: string[];
+}
+
+interface Tally {
+  critical: number;
+  gated: Set<string>;
+  firing: Map<string, number>;
+}
+
+function tally(result: ScanResult): Tally {
+  const self = result.cmp.detected ? canonicalVendor(result.cmp.detected.name) : null;
+  const gated = new Set(result.correctlyGated.map((g) => canonicalVendor(g.vendor)));
+  const firing = new Map<string, number>();
+  for (const f of result.findings) {
+    if (f.severity !== "critical" || !/advert|marketing/i.test(f.category)) continue;
+    const v = canonicalVendor(f.vendor);
+    // The store's own platform is not a third party it chose to add.
+    if (v === self || /^shopify\b/i.test(v)) continue;
+    firing.set(v, (firing.get(v) ?? 0) + 1);
+  }
+  return { critical: result.counts.critical, gated, firing };
+}
+
+/**
+ * Some tags fire on one page load and not the next. Untuckit's Google Ads was
+ * gated in one run and firing in the next, so a single sample cannot support a
+ * named claim. Name a vendor only if it fired in every run and was gated in
+ * none; count a vendor as stopped only if it was gated in every run.
+ */
+export function evaluate(mode: Mode, results: ScanResult[]): Evidence {
+  const runs = results.map(tally);
+  const first = runs[0];
+  if (!first) return { mode, critical: 0, gated: 0, firing: [] };
+  const everGated = new Set(runs.flatMap((r) => [...r.gated]));
+  const firing = [...first.firing.keys()]
+    .filter((v) => runs.every((r) => r.firing.has(v)) && !everGated.has(v))
+    .map((v) => ({ v, n: runs.reduce((sum, r) => sum + (r.firing.get(v) ?? 0), 0) }))
+    .sort((a, b) => b.n - a.n)
+    .map(({ v }) => v);
+  return {
+    mode,
+    critical: Math.min(...runs.map((r) => r.critical)),
+    gated: [...first.gated].filter((v) => runs.every((r) => r.gated.has(v))).length,
+    firing,
+  };
+}
+
+/** A clicked reject is the stronger claim; GPC only when no reject was possible. */
+export async function gather(url: string): Promise<Evidence | string> {
+  try {
+    const normal = await scan(url);
+    if (normal.consentAttempt?.performed) {
+      return evaluate("rejected", [normal, await scan(url)]);
+    }
+    const a = await scan(url, { gpc: true });
+    const b = await scan(url, { gpc: true });
+    return evaluate("gpc", [a, b]);
+  } catch (error) {
+    return `scan failed: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
+/**
+ * Tier rules from the outreach sheet: 1 = fired after a clicked reject,
+ * 2 = enough vendors ignore GPC to be worth a lookup credit, 3 = too light.
+ */
+export function tier(ev: Evidence, minGpcVendors: number): 1 | 2 | 3 {
+  if (ev.mode === "rejected") return 1;
+  return ev.firing.length >= minGpcVendors ? 2 : 3;
+}
+
+/**
+ * Names a marketing lead recognizes instantly go first. Finding count is a
+ * poor proxy for alarm: 3 Attentive findings land softer than 1 Meta Pixel.
+ */
+const PROMINENT = [
+  "Meta",
+  "Google Ads",
+  "TikTok",
+  "Amazon Advertising",
+  "Pinterest",
+  "Snap",
+  "Reddit",
+];
+
+export function byProminence(vendors: string[]): string[] {
+  const rank = (v: string): number => {
+    const i = PROMINENT.indexOf(v);
+    return i === -1 ? PROMINENT.length : i;
+  };
+  // Stable sort keeps finding-count order among the rest.
+  return [...vendors].sort((a, b) => rank(a) - rank(b));
+}
+
+export function joinNames(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1] ?? ""}`;
+}

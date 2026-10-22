@@ -6,10 +6,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
-    "test": "tsx test/signatures.test.ts && tsx test/engine.test.ts && tsx test/worker.test.ts && tsx test/pii.test.ts && tsx test/jira.test.ts",
+    "test": "tsx test/signatures.test.ts && tsx test/engine.test.ts && tsx test/worker.test.ts && tsx test/pii.test.ts && tsx test/jira.test.ts && tsx test/outreach.test.ts",
     "scan": "tsx src/cli.ts",
     "start": "node dist/main.js",
-    "dev": "tsx watch src/main.ts"
+    "dev": "tsx watch src/main.ts",
+    "outreach": "tsx --env-file-if-exists=../../.env.outreach src/outreach/cli.ts"
   },
   "dependencies": {
     "@consentinel/db": "workspace:*",
