@@ -17,6 +17,7 @@ lerna-debug.log*
 *.pem
 *.key
 !.env.example
+!.env.outreach.example
 
 # Turborepo
 .turbo/
@@ -62,3 +63,6 @@ Thumbs.db
 prospects*
 domains*.txt
 .env.production
+
+# Outreach run state (ledger, pause flag)
+.outreach/

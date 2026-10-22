@@ -1,0 +1,324 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { findContact } from "./contacts.js";
+import { MIN_VENDORS, byProminence, gather, joinNames, tier, type Evidence } from "./evidence.js";
+import {
+  appendRow,
+  authorize,
+  countBounces,
+  createDraft,
+  normDomain,
+  readSheet,
+  send,
+  type Row,
+} from "./google.js";
+import {
+  addBusinessDays,
+  legacyDomains,
+  nyDate,
+  pause,
+  paused,
+  readLedger,
+  record,
+  repoRoot,
+  resume,
+  resumedAt,
+  sentSince,
+  sentToday,
+  shouldPause,
+} from "./state.js";
+import { render } from "./template.js";
+
+/**
+ * Daily outreach: scan -> evidence -> contact -> email -> sheet.
+ *
+ *   pnpm --filter @consentinel/scanner outreach run --domains a.com,b.com
+ *   pnpm --filter @consentinel/scanner outreach run --file domains.txt --send
+ *   pnpm --filter @consentinel/scanner outreach status
+ *   pnpm --filter @consentinel/scanner outreach pause|resume|auth
+ *
+ * Without --send it only writes Gmail drafts. Logs go to stderr; the last
+ * stdout line is a JSON summary for whatever is driving this (OpenClaw).
+ */
+
+const BOUNCE_WINDOW_DAYS = 14;
+
+const log = (s: string): void => {
+  process.stderr.write(s + "\n");
+};
+
+function cfg(name: string, fallback?: string): string {
+  const v = process.env[name] ?? fallback;
+  if (v === undefined) throw new Error(`${name} not set (see .env.outreach.example)`);
+  return v;
+}
+
+function flag(args: string[], name: string): string | undefined {
+  const i = args.indexOf(name);
+  return i >= 0 ? args[i + 1] : undefined;
+}
+
+function company(domain: string): string {
+  const stem = domain.split(".")[0] ?? domain;
+  return stem.charAt(0).toUpperCase() + stem.slice(1);
+}
+
+function keyFinding(ev: Evidence): string {
+  const named = joinNames(byProminence(ev.firing).slice(0, 3));
+  return `${named} fire ${ev.mode === "rejected" ? "after reject" : "under GPC"} (${String(ev.firing.length)} ad vendors)`;
+}
+
+function bounceSince(now: Date): Date {
+  const window = new Date(now.getTime() - BOUNCE_WINDOW_DAYS * 86_400_000);
+  const resumed = resumedAt();
+  return resumed && resumed > window ? resumed : window;
+}
+
+interface Summary {
+  processed: number;
+  sent: string[];
+  drafted: string[];
+  skipped: Record<string, string>;
+  errors: Record<string, string>;
+  paused: string | null;
+  sentToday: number;
+  cap: number;
+}
+
+async function run(args: string[]): Promise<Summary> {
+  const sendMode = args.includes("--send");
+  const limit = Number(flag(args, "--limit") ?? "10");
+  const cap = Number(cfg("OUTREACH_DAILY_CAP", "5"));
+  const minGpc = Number(cfg("OUTREACH_MIN_GPC_VENDORS", "8"));
+  const from = cfg("OUTREACH_FROM");
+  const sheetId = cfg("OUTREACH_SHEET_ID");
+  const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+  const postal = process.env["OUTREACH_POSTAL_ADDRESS"] ?? "";
+  if (sendMode && !postal) throw new Error("OUTREACH_POSTAL_ADDRESS is required to send");
+
+  const inline = flag(args, "--domains")?.split(",") ?? [];
+  const file = flag(args, "--file");
+  const fromFile = file ? readFileSync(resolve(repoRoot(), file), "utf8").split("\n") : [];
+  const domains = [...new Set([...inline, ...fromFile].map(normDomain).filter(Boolean))];
+
+  const now = new Date();
+  const ledger = readLedger();
+  const sheet = await readSheet(sheetId, tab);
+  const contacted = new Set([
+    ...sheet.domains,
+    ...legacyDomains(),
+    ...ledger.filter((e) => e.action === "sent" || e.action === "drafted").map((e) => e.domain),
+  ]);
+
+  // Bounce check before anything goes out. A paused run still drafts.
+  if (sendMode && !paused()) {
+    const since = bounceSince(now);
+    const bounces = await countBounces(since);
+    const sends = sentSince(ledger, since);
+    if (shouldPause(sends, bounces)) {
+      pause(`${String(bounces)} bounces on ${String(sends)} sends since ${since.toISOString()}`);
+    }
+  }
+  const pausedState = paused();
+  let sentCount = sentToday(ledger, now);
+
+  const out: Summary = {
+    processed: 0,
+    sent: [],
+    drafted: [],
+    skipped: {},
+    errors: {},
+    paused: pausedState?.reason ?? null,
+    sentToday: sentCount,
+    cap,
+  };
+  const today = nyDate(now);
+  const base = (domain: string, ev?: Evidence): Row => ({
+    Company: company(domain),
+    Domain: domain,
+    "Scan mode": ev?.mode ?? "",
+    Critical: ev?.critical ?? "",
+    Stopped: ev?.gated ?? "",
+    "Key finding": ev && ev.firing.length ? keyFinding(ev) : "",
+    Tier: ev ? tier(ev, minGpc) : "",
+  });
+  const note = (s: string): string => `${today}: outreach bot - ${s}`;
+
+  for (const domain of domains) {
+    if (out.processed >= limit) break;
+    if (contacted.has(domain)) {
+      out.skipped[domain] = "already in sheet or ledger";
+      continue;
+    }
+    // A capped send run stops before spending scan time or lookup credits.
+    if (sendMode && !pausedState && sentCount >= cap) {
+      out.skipped[domain] = "daily cap reached";
+      continue;
+    }
+    out.processed++;
+    contacted.add(domain);
+    log(`scan   ${domain}`);
+
+    const ev = await gather(`https://${domain}`);
+    if (typeof ev === "string") {
+      await appendRow(sheetId, tab, sheet.headers, {
+        ...base(domain),
+        Status: "Scan failed",
+        Notes: note(ev.slice(0, 200)),
+      });
+      record({ domain, action: "skipped", reason: ev });
+      out.skipped[domain] = ev;
+      continue;
+    }
+    const t = tier(ev, minGpc);
+    if (ev.firing.length < MIN_VENDORS || t === 3) {
+      const reason = `weak evidence: ${String(ev.firing.length)} nameable ad vendors (${ev.mode})`;
+      await appendRow(sheetId, tab, sheet.headers, {
+        ...base(domain, ev),
+        Status: "Dead",
+        Notes: note(reason),
+      });
+      record({ domain, action: "skipped", reason });
+      out.skipped[domain] = reason;
+      continue;
+    }
+
+    let contact;
+    try {
+      contact = await findContact(domain);
+    } catch (error) {
+      // Quota or outage: leave it out of the sheet so a later run retries it.
+      const reason = error instanceof Error ? error.message : String(error);
+      contacted.delete(domain);
+      record({ domain, action: "error", reason });
+      out.errors[domain] = reason;
+      continue;
+    }
+    if (typeof contact === "string") {
+      await appendRow(sheetId, tab, sheet.headers, {
+        ...base(domain, ev),
+        Status: "Scanned - ready",
+        "Next action": "Find contact",
+        Notes: note(contact),
+      });
+      record({ domain, action: "skipped", reason: contact });
+      out.skipped[domain] = contact;
+      continue;
+    }
+
+    const email = render({
+      domain,
+      firstName: contact.firstName,
+      ev,
+      postalAddress: postal || "[POSTAL ADDRESS]",
+    });
+    const contactCols = {
+      Contact: contact.fullName,
+      Title: contact.title,
+      Email: contact.email,
+      "Email check": `${contact.verified} (${contact.source})`,
+    };
+    // Only proven addresses go out unattended; accept_all bounces burn a new domain.
+    const canSend = sendMode && !pausedState && contact.verified === "valid" && sentCount < cap;
+
+    try {
+      if (canSend) {
+        const id = await send(from, contact.email, email);
+        sentCount++;
+        record({ domain, action: "sent", email: contact.email, messageId: id });
+        await appendRow(sheetId, tab, sheet.headers, {
+          ...base(domain, ev),
+          ...contactCols,
+          Status: "Emailed",
+          "First email": today,
+          "Next action": "Follow up",
+          "Next action date": nyDate(addBusinessDays(now, 5)),
+          Notes: note("sent"),
+        });
+        out.sent.push(domain);
+        log(`       sent to ${contact.email}`);
+      } else {
+        const id = await createDraft(from, contact.email, email);
+        const why = !sendMode
+          ? "draft mode"
+          : pausedState
+            ? "paused"
+            : contact.verified !== "valid"
+              ? "accept_all address"
+              : "daily cap";
+        record({ domain, action: "drafted", email: contact.email, messageId: id, reason: why });
+        await appendRow(sheetId, tab, sheet.headers, {
+          ...base(domain, ev),
+          ...contactCols,
+          Status: "Scanned - ready",
+          "Next action": "Review Gmail draft and send",
+          "Next action date": today,
+          Notes: note(`drafted (${why})`),
+        });
+        out.drafted.push(domain);
+        log(`       drafted for ${contact.email} (${why})`);
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      record({ domain, action: "error", email: contact.email, reason });
+      out.errors[domain] = reason;
+    }
+  }
+  out.sentToday = sentCount;
+  return out;
+}
+
+async function status(): Promise<object> {
+  const now = new Date();
+  const ledger = readLedger();
+  const since = bounceSince(now);
+  return {
+    paused: paused(),
+    sentToday: sentToday(ledger, now),
+    cap: Number(cfg("OUTREACH_DAILY_CAP", "5")),
+    bounceWindow: {
+      since: since.toISOString(),
+      sends: sentSince(ledger, since),
+      bounces: await countBounces(since),
+    },
+    totals: {
+      sent: ledger.filter((e) => e.action === "sent").length,
+      drafted: ledger.filter((e) => e.action === "drafted").length,
+    },
+    last: ledger.slice(-5),
+  };
+}
+
+async function main(): Promise<void> {
+  const [cmd = "", ...args] = process.argv.slice(2);
+  switch (cmd) {
+    case "run":
+      console.log(JSON.stringify(await run(args)));
+      break;
+    case "status":
+      console.log(JSON.stringify(await status(), null, 2));
+      break;
+    case "pause":
+      pause(args.join(" ") || "paused by hand");
+      console.log("paused");
+      break;
+    case "resume":
+      resume();
+      console.log("resumed; bounces before now are ignored");
+      break;
+    case "auth":
+      await authorize();
+      break;
+    default:
+      console.error(
+        "usage: outreach run [--domains a,b] [--file f] [--send] [--limit n] | status | pause | resume | auth",
+      );
+      process.exit(2);
+  }
+  process.exit(0);
+}
+
+main().catch((e: unknown) => {
+  console.error(e instanceof Error ? e.message : e);
+  process.exit(1);
+});
