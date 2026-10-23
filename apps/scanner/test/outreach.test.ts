@@ -1,3 +1,4 @@
+import type { ScanResult } from "@consentinel/shared";
 import assert from "node:assert/strict";
 import {
   backlog,
@@ -24,6 +25,8 @@ import { isStore, storeSignals } from "../src/outreach/queue.js";
 import { renderBrief, windowHours } from "../src/outreach/brief.js";
 import { computeStats } from "../src/outreach/stats.js";
 import { bullets, render } from "../src/outreach/template.js";
+import { DRAFTED, SENT, dueForRetouch, retouchEmail } from "../src/outreach/retouch.js";
+import { gpcIgnoredInAll } from "../src/outreach/evidence.js";
 
 const rejected: Evidence = {
   mode: "rejected",
@@ -563,5 +566,70 @@ assert.equal(st.medianCritical, 10);
 assert.deepEqual(st.vendors[0], { vendor: "Meta", sites: 2, share: 67 });
 assert.deepEqual(st.bySegment[0], { segment: "Apparel", sites: 2 });
 assert.match(st.population, /never state what share of all sites leak/);
+
+// GPC re-touch: who qualifies.
+const rt = (n: number, v: Record<string, string>): SheetRow => ({
+  rowNumber: n,
+  values: {
+    Email: `a${String(n)}@x${String(n)}.com`,
+    Domain: `x${String(n)}.com`,
+    "First email": "2026-10-01",
+    ...v,
+  },
+});
+const closed = "2026-10-20: outreach bot - closed, no reply after follow-up";
+const retouchDue = dueForRetouch(
+  [
+    rt(2, { Status: "Dead", Notes: closed }),
+    rt(3, { Status: "Followed up", "Follow-up": "2026-10-08" }),
+    rt(4, { Status: "Followed up", "Follow-up": "2026-10-21" }), // too recent
+    rt(5, { Status: "Dead", Notes: `${closed} | 2026-10-21: reply from a@x5.com` }),
+    rt(6, { Status: "Dead", Notes: "2026-10-20: not interested" }), // closed by a person
+    rt(7, { Status: "Dead", Notes: `${closed} | 2026-10-23: outreach bot - ${DRAFTED}` }),
+    rt(8, { Status: "Followed up", "Follow-up": "2026-10-08", "Email check": "bounced" }),
+    rt(9, { Status: "Emailed" }), // normal follow-up still pending
+    rt(10, { Status: "Followed up", "Follow-up": "2026-10-08", Notes: `x | ${SENT}` }),
+    rt(11, {
+      Status: "Dead",
+      Notes: `${closed} | 2026-10-23: outreach bot - gpc re-touch skipped, 1 vendors`,
+    }),
+  ],
+  "2026-10-23",
+).map((x) => x.rowNumber);
+assert.deepEqual(retouchDue, [2, 3]);
+
+const re = retouchEmail({
+  domain: "chomps.com",
+  firstName: "Pat",
+  subject: "Privacy issues on chomps.com",
+  gpcIgnored: ["Taboola", "Amazon Advertising", "Klaviyo", "Meta"],
+  postalAddress: "",
+});
+assert.equal(re.subject, "Re: Privacy issues on chomps.com");
+assert.match(re.text, /^Hi Pat,\n/);
+assert.match(
+  re.text,
+  /One more finding on chomps\.com since my last note\. With Global Privacy Control turned on .*4 ad vendors still fire, including Meta, Amazon Advertising and Taboola\./,
+);
+assert.match(re.text, /Starting January 1, every browser has to offer that setting/);
+assert.match(re.html, /href="https:\/\/www\.getconsentinel\.com\/"/);
+assert.doesNotMatch(re.text, /\u2014/);
+
+// Vendors must ignore GPC in every run; Shopify and the site's CMP never count.
+const scanWith = (ignoredBy: string[]): ScanResult =>
+  ({
+    cmp: {
+      detected: { id: "c", name: "CookieYes", confidence: "high" },
+      consentMode: { present: false, defaultState: null },
+    },
+    gpcCheck: { mode: "separate-pass", ignoredBy, stoppedBy: [], acknowledged: false },
+  }) as unknown as ScanResult;
+assert.deepEqual(
+  gpcIgnoredInAll([
+    scanWith(["Amazon Advertising", "Klaviyo", "Shopify", "CookieYes"]),
+    scanWith(["Amazon Advertising", "Shopify"]),
+  ]),
+  ["Amazon Advertising"],
+);
 
 console.log("outreach: all assertions passed");
