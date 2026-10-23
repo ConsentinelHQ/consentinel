@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getMessage, normDomain, search, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { address, bouncedRecipients, extractText, header, stripQuoted } from "./mail.js";
+import { DRAFTED as RETOUCH_DRAFTED, SENT as RETOUCH_SENT } from "./retouch.js";
 import { addBusinessDays, nyDate, parseDay, repoRoot } from "./state.js";
 
 /**
@@ -136,6 +137,29 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
           "Next action": "Close if no reply",
           "Next action date": nyDate(addBusinessDays(latest.at, 10)),
           Notes: note("follow-up sent"),
+        });
+        out.followedUp.push(domain);
+      }
+    }
+
+    // 1c. A GPC re-touch Charlie sent: the third sent message. Reopens a closed row
+    // so it closes again on the usual timer if nobody answers.
+    const notes = row.values["Notes"] ?? "";
+    if (notes.includes(RETOUCH_DRAFTED) && !notes.includes(RETOUCH_SENT)) {
+      const sent = await search(`in:sent to:${email}`, 10);
+      if (sent.length >= 3) {
+        const latest = await getMessage(sent[0]!);
+        const open = ["Followed up", "Dead"].includes(row.values["Status"] ?? "");
+        await update(row, {
+          ...(open
+            ? {
+                Status: "Followed up",
+                "Follow-up": nyDate(latest.at),
+                "Next action": "Close if no reply",
+                "Next action date": nyDate(addBusinessDays(latest.at, 10)),
+              }
+            : {}),
+          Notes: note(RETOUCH_SENT),
         });
         out.followedUp.push(domain);
       }

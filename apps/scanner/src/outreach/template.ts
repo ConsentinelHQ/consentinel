@@ -24,7 +24,7 @@ export interface TemplateInput {
 /** The deadline that makes this urgent: AB 566, effective January 1, 2027. */
 const DEADLINE = "which every browser has to offer starting January 1";
 
-function stillFire(list: string[]): string {
+export function stillFire(list: string[]): string {
   const n = list.length;
   const named = joinNames(byProminence(list).slice(0, 3));
   return n <= 3

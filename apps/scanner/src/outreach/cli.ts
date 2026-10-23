@@ -49,6 +49,7 @@ import {
 } from "./state.js";
 import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
 import { followups } from "./followup.js";
+import { retouch } from "./retouch.js";
 import { computeStats } from "./stats.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
@@ -71,6 +72,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --limit 5
  *   pnpm --filter @consentinel/scanner outreach sync
  *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
+ *   pnpm --filter @consentinel/scanner outreach retouch [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
@@ -534,6 +536,17 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(summary));
       break;
     }
+    case "retouch": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const summary = await retouch(sheetId, tab, await readSheet(sheetId, tab), {
+        from: cfg("OUTREACH_FROM"),
+        postalAddress: process.env["OUTREACH_POSTAL_ADDRESS"] ?? "",
+        limit: Number(flag(args, "--limit") ?? "5"),
+      });
+      console.log(JSON.stringify(summary));
+      break;
+    }
     case "prep": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -577,7 +590,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | retouch [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }

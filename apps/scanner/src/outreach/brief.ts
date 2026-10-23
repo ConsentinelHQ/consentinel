@@ -94,7 +94,7 @@ export function renderBrief(b: BriefInput): string {
   const recent = b.ledger.filter((e) => Date.parse(e.at) >= since);
   const drafted = recent.filter((e) => e.action === "drafted");
   const firsts = drafted.filter((e) => !e.reason || !/follow-up|inbound/.test(e.reason)).length;
-  const followUps = drafted.filter((e) => e.reason === "follow-up").length;
+  const followUps = drafted.filter((e) => /^follow-up/.test(e.reason ?? "")).length;
   const leadNotes = drafted.filter((e) => e.reason === "inbound lead").length;
   const sent = recent.filter((e) => e.action === "sent").length;
   lines.push(
