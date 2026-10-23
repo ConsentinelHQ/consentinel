@@ -4991,3 +4991,206 @@ dialog.import-dialog::backdrop {
     display: none;
   }
 }
+
+/* ---------- /gpc: AB 566 browser deadline ---------- */
+.deadline-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.deadline-kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.deadline-head h2 {
+  margin-top: 0.4rem;
+  max-width: 22ch;
+}
+.countdown {
+  display: flex;
+  gap: 0.6rem;
+}
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.4rem;
+  padding: 0.7rem 0.6rem 0.55rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -22px rgb(0 0 0 / 0.5);
+}
+.countdown-num {
+  font-family: var(--font-mono);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  animation: countdown-tick 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.countdown-label {
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.countdown-date,
+.countdown-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  background: var(--paper-alt);
+  border-radius: 14px;
+}
+.countdown-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--critical);
+}
+.browser-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.browser-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
+  animation: browser-in 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.browser-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px -24px rgb(0 0 0 / 0.35);
+}
+.browser-name {
+  font-weight: 600;
+  font-size: 1.02rem;
+}
+.browser-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.browser-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.browser-card.native .browser-status {
+  color: var(--gated);
+}
+.browser-card.native .browser-dot {
+  background: var(--gated);
+}
+.browser-card.extension .browser-status,
+.browser-card.none .browser-status {
+  color: var(--warning);
+}
+.browser-card.extension .browser-dot,
+.browser-card.none .browser-dot {
+  background: var(--warning);
+  animation: gpc-pulse 1.8s ease-out infinite;
+}
+.browser-note {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.faq {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--hairline);
+}
+.faq-item {
+  border-bottom: 1px solid var(--hairline);
+}
+.faq-item summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item summary::after {
+  content: "+";
+  font-weight: 400;
+  color: var(--ink-soft);
+  transition: transform 200ms ease;
+}
+.faq-item[open] summary::after {
+  transform: rotate(45deg);
+}
+.faq-item p {
+  margin: 0 0 1rem;
+  max-width: 64ch;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  animation: gpc-test-in 320ms ease both;
+}
+@keyframes countdown-tick {
+  from {
+    opacity: 0.2;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes browser-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 640px) {
+  .browser-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .countdown-unit {
+    min-width: 3.6rem;
+  }
+  .countdown-num {
+    font-size: 1.5rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .countdown-num,
+  .browser-card,
+  .browser-dot,
+  .faq-item p {
+    animation: none !important;
+  }
+  .browser-card:hover {
+    transform: none;
+  }
+}
