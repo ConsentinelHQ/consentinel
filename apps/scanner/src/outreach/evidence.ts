@@ -26,6 +26,8 @@ function tally(result: ScanResult): Tally {
   const firing = new Map<string, number>();
   for (const f of result.findings) {
     if (f.severity !== "critical" || !/advert|marketing/i.test(f.category)) continue;
+    // Separate-pass GPC findings aren't evidence for the mode this email claims.
+    if (f.type === "gpc-signal-ignored" || f.type === "gpc-not-acknowledged") continue;
     const v = canonicalVendor(f.vendor);
     // The store's own platform is not a third party it chose to add.
     if (v === self || /^shopify\b/i.test(v)) continue;

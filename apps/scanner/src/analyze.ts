@@ -9,6 +9,7 @@ import {
   type ConsentState,
   type Evidence,
   type Finding,
+  type GpcCheck,
   type ScanResult,
   type Severity,
 } from "@consentinel/shared";
@@ -21,11 +22,13 @@ import {
 } from "./signatures.js";
 import { classifyCookie } from "./cookies.js";
 import { CMP_REGISTRY_VERSION } from "./cmp/registry.js";
-import type { RawScan, CapturedRequest } from "./scanner.js";
+import type { RawScan, CapturedRequest, OptOutAcknowledgment } from "./scanner.js";
 import { remediationFor } from "./remediation.js";
 import { canonicalVendor } from "@consentinel/shared";
 
-export const ENGINE_VERSION = "0.2.0";
+// 0.3.0: separate GPC pass. Alerting only diffs same-version scans, so the new
+// findings don't email every customer as a regression.
+export const ENGINE_VERSION = "0.3.0";
 
 const EMAIL_RE = /[A-Za-z0-9._%+-]+(?:@|%40)[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
@@ -312,9 +315,15 @@ export function analyze(raw: RawScan): ScanResult {
     });
   }
 
+  // 3b) Global Privacy Control, tested on its own with no banner click.
+  const gpcCheck = analyzeGpc(raw, grantedHits, gpc, findings, nextId, now);
+
   // 4) Diff: tags that appeared ONLY after consent - the legitimate, well-behaved set.
   // A vendor that set cookies under denial did not stop, whatever its requests did.
-  const flagged = new Set(findings.map((f) => canonicalVendor(f.vendor)));
+  // GPC findings don't disqualify a vendor that waited for a consent click.
+  const flagged = new Set(
+    findings.filter((f) => !GPC_TYPES.has(f.type)).map((f) => canonicalVendor(f.vendor)),
+  );
   const correctlyGated = grantedHits
     .filter(
       (h) =>
@@ -327,6 +336,7 @@ export function analyze(raw: RawScan): ScanResult {
   const sorted = sortFindings(findings);
   const counts = countBySeverity(sorted);
 
+  // Headline counts the denied pass only, so it means what it always meant.
   const headlineCount = sorted.filter(
     (f) => f.type === "tracker-fires-pre-consent" || f.type === "consent-signal-ignored",
   ).length;
@@ -350,10 +360,7 @@ export function analyze(raw: RawScan): ScanResult {
     signatureLibraryVersion: SIGNATURE_LIBRARY_VERSION,
     cmpRegistryVersion: CMP_REGISTRY_VERSION,
     cmp,
-    headline:
-      headlineCount === 0
-        ? `No trackers fired ${when}`
-        : `${headlineCount} tracker${headlineCount === 1 ? "" : "s"} firing ${when}`,
+    headline: headlineFor(headlineCount, when, gpcCheck),
     counts,
     findings: sorted,
     correctlyGated,
@@ -374,7 +381,186 @@ export function analyze(raw: RawScan): ScanResult {
         ? { selector: raw.deniedPass.interaction.selector }
         : {}),
     },
+    ...(gpcCheck ? { gpcCheck } : {}),
   };
+}
+
+function headlineFor(count: number, when: string, check: GpcCheck | null): string {
+  if (count > 0) return `${String(count)} tracker${count === 1 ? "" : "s"} firing ${when}`;
+  // Clean on the reject test but not on GPC: lead with what's actually wrong.
+  const n = check?.mode === "separate-pass" ? check.ignoredBy.length : 0;
+  if (n > 0)
+    return `${String(n)} ${n === 1 ? "ad vendor ignores" : "ad vendors ignore"} Global Privacy Control`;
+  return `No trackers fired ${when}`;
+}
+
+const GPC_TYPES: ReadonlySet<string> = new Set(["gpc-signal-ignored", "gpc-not-acknowledged"]);
+
+/**
+ * Advertising only. Under the CCPA, GPC opts the visitor out of sale and
+ * sharing - cross-context behavioral advertising. Analytics firing with the
+ * signal on is not a sale on its own, and flagging it would cry wolf.
+ */
+function isSaleOrShare(category: string): boolean {
+  return category === "advertising";
+}
+
+function analyzeGpc(
+  raw: RawScan,
+  grantedHits: ClassifiedHit[],
+  deniedWasGpc: boolean,
+  findings: Finding[],
+  nextId: (t: string) => string,
+  now: string,
+): GpcCheck | null {
+  const grantedAds = new Set(
+    grantedHits
+      .filter((h) => h.sig.consentRequired && isSaleOrShare(h.sig.category))
+      .map((h) => canonicalVendor(h.sig.vendor)),
+  );
+
+  // Fallback scans already observed the denied pass under GPC. Summarize those
+  // findings instead of re-emitting them.
+  if (deniedWasGpc) {
+    const ignoredBy = uniqueSorted(
+      findings
+        .filter((f) => f.observedUnder === "gpc" && isSaleOrShare(f.category))
+        .map((f) => canonicalVendor(f.vendor)),
+    );
+    const ack = raw.deniedPass.acknowledgment ?? { shown: false };
+    pushAckFinding(findings, ignoredBy, ack, nextId, now);
+    return summary("denied-pass", ignoredBy, grantedAds, ack);
+  }
+
+  const pass = raw.gpcPass;
+  if (!pass) return null;
+
+  // One finding per vendor: a request is the stronger proof, a cookie the fallback.
+  const byVendor = new Map<string, { vendor: string; evidence: Evidence; viaCookie: boolean }>();
+  for (const h of classifyPass(pass.requests)) {
+    if (!h.sig.consentRequired || !isSaleOrShare(h.sig.category)) continue;
+    const v = canonicalVendor(h.sig.vendor);
+    if (byVendor.has(v)) continue;
+    byVendor.set(v, {
+      vendor: h.sig.vendor,
+      viaCookie: false,
+      evidence: {
+        kind: "request",
+        url: h.request.url,
+        method: h.request.method,
+        resourceType: h.request.resourceType,
+      },
+    });
+  }
+  for (const c of pass.cookies) {
+    const byDomain = classify(`https://${c.domain.replace(/^\./, "")}/`);
+    const sig = classifyCookie(c.name) ?? byDomain;
+    if (!sig?.consentRequired || !isSaleOrShare(sig.category)) continue;
+    const v = canonicalVendor(sig.vendor);
+    if (byVendor.has(v)) continue;
+    const pageHost = safeHost(raw.url);
+    byVendor.set(v, {
+      vendor: sig.vendor,
+      viaCookie: true,
+      evidence: {
+        kind: "cookie",
+        name: c.name,
+        domain: c.domain,
+        firstParty: pageHost !== null && c.domain.replace(/^\./, "") === pageHost,
+        expires: c.expires,
+      },
+    });
+  }
+
+  for (const { vendor, evidence, viaCookie } of byVendor.values()) {
+    findings.push({
+      id: nextId("gpc"),
+      schemaVersion: FINDING_SCHEMA_VERSION,
+      type: "gpc-signal-ignored",
+      severity: severityFor("gpc-signal-ignored"),
+      vendor,
+      category: "advertising",
+      title: `${vendor} ignores Global Privacy Control`,
+      detail: viaCookie
+        ? `With Global Privacy Control on and no banner click, ${vendor} set an advertising cookie. ` +
+          `In California and other states, that signal is a valid opt-out of sale and sharing.`
+        : `With Global Privacy Control on and no banner click, ${vendor} loaded and sent data. ` +
+          `In California and other states, that signal is a valid opt-out of sale and sharing.`,
+      remediation:
+        `Turn on Global Privacy Control support in your consent platform so the signal opts the ` +
+        `visitor out of advertising, then make sure ${canonicalVendor(vendor)} is blocked by it rather ` +
+        `than loaded directly from your theme or tag manager.`,
+      evidence,
+      observedUnder: "gpc",
+      firstSeenAt: now,
+      compliance: [],
+    });
+  }
+
+  const ignoredBy = uniqueSorted([...byVendor.keys()]);
+  const ack = pass.acknowledgment ?? { shown: false };
+  pushAckFinding(findings, ignoredBy, ack, nextId, now);
+  return summary("separate-pass", ignoredBy, grantedAds, ack);
+}
+
+/**
+ * California's regulations require showing whether the signal was processed.
+ * Only raised when advertising is present: a site with no sale or share has
+ * nothing to opt out of.
+ */
+function pushAckFinding(
+  findings: Finding[],
+  ignoredBy: string[],
+  ack: OptOutAcknowledgment,
+  nextId: (t: string) => string,
+  now: string,
+): void {
+  if (ack.shown || ignoredBy.length === 0) return;
+  findings.push({
+    id: nextId("gpcack"),
+    schemaVersion: FINDING_SCHEMA_VERSION,
+    type: "gpc-not-acknowledged",
+    severity: severityFor("gpc-not-acknowledged"),
+    vendor: "Opt-out confirmation",
+    category: "unknown",
+    title: "No opt-out confirmation shown for Global Privacy Control",
+    detail:
+      "The browser sent Global Privacy Control, and the page didn't show that the opt-out was " +
+      "processed. California's regulations require sites to display whether they honored the " +
+      'signal, for example "Opt-Out Request Honored".',
+    remediation:
+      'Show a visible "Opt-Out Request Honored" message, or the equivalent toggle state, when ' +
+      "your site receives Global Privacy Control. Most consent platforms have a setting for it.",
+    evidence: {
+      kind: "cmp",
+      platform: "Global Privacy Control",
+      bannerShown: false,
+      detail: "Signal sent; no opt-out confirmation text found on the page",
+    },
+    observedUnder: "gpc",
+    firstSeenAt: now,
+    compliance: [],
+  });
+}
+
+function summary(
+  mode: GpcCheck["mode"],
+  ignoredBy: string[],
+  grantedAds: Set<string>,
+  ack: OptOutAcknowledgment,
+): GpcCheck {
+  const ignored = new Set(ignoredBy);
+  return {
+    mode,
+    ignoredBy,
+    stoppedBy: uniqueSorted([...grantedAds].filter((v) => !ignored.has(v))),
+    acknowledged: ack.shown,
+    ...(ack.text ? { acknowledgment: ack.text } : {}),
+  };
+}
+
+function uniqueSorted(items: string[]): string[] {
+  return [...new Set(items)].sort((a, b) => a.localeCompare(b));
 }
 
 function describe(category: string): string {

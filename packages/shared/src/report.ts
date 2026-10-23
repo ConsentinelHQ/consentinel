@@ -1,5 +1,5 @@
 import { canonicalVendor, isUnattributed, SEVERITY_RANK } from "./severity.js";
-import { type Finding, type ScanResult, type Severity } from "./finding.js";
+import { type Finding, type GpcCheck, type ScanResult, type Severity } from "./finding.js";
 
 /**
  * The free tier shows enough to be credible and concerning, and withholds the part
@@ -37,6 +37,8 @@ export interface FreeReport {
    * for a consent choice, and the copy has to say so.
    */
   gpc?: boolean;
+  /** The separate Global Privacy Control test. Absent on older scans. */
+  gpcCheck?: GpcCheck;
   scanId: string;
   url: string;
   scannedAt: string;
@@ -178,6 +180,8 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     severity: Severity;
     type: string;
     fires: boolean;
+    /** Ran with Global Privacy Control on, in the separate GPC pass. */
+    ignoresGpc: boolean;
     cookies: string[];
     otherTitles: string[];
     evidence: string[];
@@ -199,6 +203,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
         severity: f.severity,
         type: f.type,
         fires: false,
+        ignoresGpc: false,
         cookies: [],
         otherTitles: [],
         evidence: [],
@@ -219,7 +224,9 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     if (f.remediation && !g.remediation.includes(f.remediation)) g.remediation.push(f.remediation);
 
     const cookie = /cookie "([^"]+)"/.exec(f.title)?.[1];
-    if (cookie) {
+    if (f.type === "gpc-signal-ignored") {
+      g.ignoresGpc = true;
+    } else if (cookie) {
       if (!g.cookies.includes(cookie)) g.cookies.push(cookie);
     } else if (f.type === "tracker-fires-pre-consent" || f.type === "consent-signal-ignored") {
       g.fires = true;
@@ -266,15 +273,24 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
         g.cookies.length === 1 ? `sets 1 cookie` : `sets ${String(g.cookies.length)} cookies`,
       );
     }
-    const action = parts.length > 0 ? parts.join(" and ") : "was observed";
+    const preConsent = parts.length > 0;
+    // A row that is only one standalone finding reads as that finding.
+    const single = !preConsent && !g.ignoresGpc && g.otherTitles.length === 1;
+    const title = preConsent
+      ? `${g.vendor} ${parts.join(" and ")} before consent${g.ignoresGpc ? ", and ignores Global Privacy Control" : ""}`
+      : g.ignoresGpc
+        ? `${g.vendor} ignores Global Privacy Control`
+        : single
+          ? (g.otherTitles[0] ?? `${g.vendor} was observed before consent`)
+          : `${g.vendor} was observed before consent`;
 
     return {
       id: g.id,
       type: g.type,
       severity: g.severity,
       vendor: g.vendor,
-      title: `${g.vendor} ${action} before consent`,
-      detail: [...g.cookies, ...g.otherTitles],
+      title,
+      detail: single ? [...g.cookies] : [...g.cookies, ...g.otherTitles],
       evidence: g.evidence,
       // One vendor's findings usually share a fix. Keep them distinct if not.
       remediation: remediationWithChain(g.vendor, g.remediation.join(" "), g.causedBy, triggersOf),
@@ -312,16 +328,29 @@ function evidenceLine(f: Finding): string | null {
   }
 }
 
+/** Separate-pass GPC findings sit beside a reject test; they don't make the report a GPC report. */
+const GPC_PASS_TYPES: ReadonlySet<string> = new Set(["gpc-signal-ignored", "gpc-not-acknowledged"]);
+
 function observedUnderGpc(result: ScanResult): boolean {
-  return result.findings.some((f) => f.observedUnder === "gpc");
+  return result.findings.some((f) => f.observedUnder === "gpc" && !GPC_PASS_TYPES.has(f.type));
+}
+
+function withGpcCheck(report: FreeReport, result: ScanResult): FreeReport {
+  return result.gpcCheck ? { ...report, gpcCheck: result.gpcCheck } : report;
 }
 
 export function toFreeReport(result: ScanResult): FreeReport {
-  return adaptForGpc(withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) }));
+  return withGpcCheck(
+    adaptForGpc(withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) })),
+    result,
+  );
 }
 
 export function toFullReport(result: ScanResult): FreeReport {
-  return adaptForGpc(withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) }));
+  return withGpcCheck(
+    adaptForGpc(withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) })),
+    result,
+  );
 }
 
 /** Children point at the parent; parents list what fixing them also clears. */

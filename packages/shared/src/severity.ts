@@ -18,6 +18,10 @@ export const SEVERITY_BY_TYPE: Record<FindingType, Severity> = {
   // countries and a no-banner CCPA rule to the US. Graded critical, this listed
   // every CMP as a critical "vendor". The violations are the trackers that fire.
   "consent-banner-absent": "info",
+  // A sale or share after an opt-out. What the Sephora and Healthline settlements were about.
+  "gpc-signal-ignored": "critical",
+  // California requires showing whether the signal was processed. Text match only, so info.
+  "gpc-not-acknowledged": "info",
 };
 
 export const SEVERITY_RANK: Record<Severity, number> = { critical: 0, warning: 1, info: 2 };
