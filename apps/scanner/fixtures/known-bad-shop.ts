@@ -5,6 +5,9 @@ import type { AddressInfo } from "node:net";
 //   Under REJECT (and by default): GA4 (gcs=G100 + email leak), gtag.js, and Meta Pixel
 //   all fire -> violations. Cookies _ga/_fbp set pre-consent -> warnings.
 //   Under ACCEPT: TikTok pixel fires -> legitimate, must be "correctlyGated", not flagged.
+//   Under GPC with no click: Pinterest respects the reject button but not the signal
+//   -> gpc-signal-ignored. Criteo honors both -> stoppedBy. The page confirms the
+//   signal with "Opt-Out Request Honored".
 const PAGE = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Northvale Outfitters</title></head>
 <body>
@@ -46,6 +49,21 @@ const PAGE = `<!doctype html>
       new Image().src = 'https://www.clarity.ms/tag/late123';
     }, 1200);
 
+    // CCPA-model sale tags: run by default, stop on a reject click. Pinterest
+    // never reads the signal; Criteo does.
+    var rejected = false;
+    var gpcOn = navigator.globalPrivacyControl === true;
+    setTimeout(function () {
+      if (rejected) return;
+      new Image().src = 'https://ct.pinterest.com/v3/?tid=2612345678&event=init';
+      if (!gpcOn) new Image().src = 'https://sslwidget.criteo.com/event?a=12345&v=5';
+    }, 2000);
+    if (gpcOn) {
+      var ack = document.createElement('p');
+      ack.textContent = 'Opt-Out Request Honored';
+      document.body.appendChild(ack);
+    }
+
     // Fires ONLY after Accept (the legitimate, gated path):
     document.getElementById('onetrust-accept-btn-handler').addEventListener('click', function () {
       new Image().src = 'https://www.redditstatic.com/ads/pixel.js';
@@ -53,6 +71,7 @@ const PAGE = `<!doctype html>
     });
     // Reject simply closes the banner; nothing new fires.
     document.getElementById('onetrust-reject-all-handler').addEventListener('click', function () {
+      rejected = true;
       document.getElementById('onetrust-banner-sdk').style.display = 'none';
     });
   </script>

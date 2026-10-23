@@ -48,7 +48,11 @@ export type FindingType =
   | "dead-tag"
   | "duplicate-tag"
   /** CMP is installed but showed no banner - often geo-targeting that exempts US visitors. */
-  | "consent-banner-absent";
+  | "consent-banner-absent"
+  /** Advertising ran with Global Privacy Control on and no banner click. */
+  | "gpc-signal-ignored"
+  /** GPC was sent and advertising was present, but the page showed no opt-out confirmation. */
+  | "gpc-not-acknowledged";
 
 /** Privacy/security regimes a finding can be evaluated against. */
 export type Jurisdiction =
@@ -166,4 +170,21 @@ export interface ScanResult {
     reason?: string;
     selector?: string;
   };
+  /**
+   * The Global Privacy Control test, run as its own pass with no banner click.
+   * Absent on scans from engines before 0.3.0, or when the pass was blocked.
+   */
+  gpcCheck?: GpcCheck;
+}
+
+export interface GpcCheck {
+  /** "separate-pass": its own pass. "denied-pass": the denied pass sent GPC. */
+  mode: "separate-pass" | "denied-pass";
+  /** Advertising vendors that ran with the signal on, canonical names. */
+  ignoredBy: string[];
+  /** Advertising vendors that ran after accept but not with the signal on. */
+  stoppedBy: string[];
+  /** The page showed a visible opt-out confirmation. */
+  acknowledged: boolean;
+  acknowledgment?: string;
 }

@@ -104,7 +104,7 @@ under two simultaneous real scans.
 | `DATABASE_URL_POOLED`            | production pooled | -                 | Route handlers only          |
 | `REDIS_URL`                      | production        | production        | Same instance, both sides    |
 | `SCAN_CONCURRENCY`               | -                 | `1`               | Raise after watching memory  |
-| `SCAN_TIMEOUT_MS`                | -                 | `90000`           |                              |
+| `SCAN_TIMEOUT_MS`                | -                 | `120000`          | Four browser passes per scan |
 | `SCAN_MAX_ATTEMPTS`              | -                 | `3`               |                              |
 | `ALLOW_PRIVATE_SCAN_TARGETS`     | `false`           | `false`           | **See below**                |
 | `SENTRY_DSN`                     | set               | set               | Separate projects, same org  |

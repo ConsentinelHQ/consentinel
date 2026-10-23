@@ -1,5 +1,6 @@
 "use client";
 
+import { GpcPanel } from "./gpc-panel";
 import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
@@ -95,9 +96,10 @@ export function ScanResultView({
   if (state.kind === "loading") {
     return (
       <>
-        <h1>Loading your site twice.</h1>
+        <h1>Loading your site three times.</h1>
         <p className="lede" style={{ marginTop: "1.25rem" }}>
-          Once refusing consent, once accepting it. This takes a minute or two.
+          Once refusing consent, once accepting it, and once with the browser’s opt-out signal on.
+          This takes a minute or two.
         </p>
         <ScanProgress status={state.status} />
       </>
@@ -174,6 +176,8 @@ function Report({
             )}
           </ul>
         </div>
+
+        {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
 
         {!branded && (
           <div className="gate">
@@ -344,6 +348,8 @@ function Report({
           </details>
         )}
       </div>
+
+      {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
 
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}

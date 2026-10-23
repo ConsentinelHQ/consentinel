@@ -6,7 +6,7 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1).default("redis://127.0.0.1:6379"),
   SCAN_CONCURRENCY: z.coerce.number().int().positive().default(2),
-  SCAN_TIMEOUT_MS: z.coerce.number().int().positive().default(90_000),
+  SCAN_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
   // Below this many requests a page did not really load. Lowered only by tests,
   // whose fixtures are deliberately tiny.
   SCAN_MIN_REQUESTS: z.coerce.number().int().positive().default(12),

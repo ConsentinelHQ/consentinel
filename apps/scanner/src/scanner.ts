@@ -54,6 +54,19 @@ export interface ScanOptions {
    * change what a reject-click scan observes.
    */
   gpc?: boolean;
+  /**
+   * Run a separate pass with Global Privacy Control on and no banner click: the
+   * visitor whose browser opts out for them. On by default. Skipped when the
+   * denied pass already sent GPC, since that pass is the same observation.
+   */
+  gpcPass?: boolean;
+}
+
+/** Visible confirmation that the opt-out signal was processed. */
+export interface OptOutAcknowledgment {
+  shown: boolean;
+  /** The matched text, trimmed, when shown. */
+  text?: string;
 }
 
 export interface CapturedRequest {
@@ -106,6 +119,8 @@ export interface PassResult {
   mainResponse?: MainResponse;
   /** Whether this pass sent Global Privacy Control. */
   gpc?: boolean;
+  /** GPC passes only: whether the page confirmed the opt-out. */
+  acknowledgment?: OptOutAcknowledgment;
 }
 
 export interface RawScan {
@@ -116,6 +131,44 @@ export interface RawScan {
   deniedPass: PassResult;
   /** Page in its consent-GRANTED state - tells us what is legitimately gated. */
   grantedPass: PassResult;
+  /** GPC on, no click. Absent when skipped. */
+  gpcPass?: PassResult;
+}
+
+/**
+ * Wording CMPs and sites use to confirm a processed opt-out signal. The CPPA
+ * names "Opt-Out Request Honored" as a compliant display; the rest are the
+ * variants seen in the wild. Deterministic text match, no inference.
+ */
+const ACK_PATTERNS: readonly RegExp[] = [
+  /opt[- ]?out (?:request|preference)(?: signal)?s? (?:has been |was |is )?(?:honou?red|received|processed|applied|recognized)/i,
+  /(?:global privacy control|gpc)(?: signal)? (?:has been |was |is )?(?:detected|honou?red|recognized|received|respected|applied)/i,
+  /we (?:detected|received|honou?red|recognized) (?:your |a )?(?:global privacy control|gpc|opt[- ]?out (?:preference )?signal)/i,
+  /your (?:opt[- ]?out|privacy) (?:choice|preference|request|signal) (?:has been|was|is) (?:honou?red|applied|received|processed|respected)/i,
+];
+
+export function matchAcknowledgment(text: string): OptOutAcknowledgment {
+  // innerText keeps layout whitespace; the patterns expect single spaces.
+  const flat = text.replace(/\s+/g, " ");
+  for (const re of ACK_PATTERNS) {
+    const m = re.exec(flat);
+    if (m) return { shown: true, text: m[0].trim() };
+  }
+  return { shown: false };
+}
+
+/** Visible text of every frame, so a CMP that confirms inside an iframe still counts. */
+async function detectAcknowledgment(page: Page): Promise<OptOutAcknowledgment> {
+  const texts: string[] = [];
+  for (const frame of page.frames()) {
+    try {
+      const t = await frame.evaluate(() => document.body?.innerText ?? "");
+      texts.push(t.slice(0, 200_000));
+    } catch {
+      // Detached or cross-origin frame gone mid-read. Skip it.
+    }
+  }
+  return matchAcknowledgment(texts.join("\n"));
 }
 
 interface CapturedContext {
@@ -426,6 +479,8 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     interaction: deniedInteraction,
     ...(deniedResponse ? { mainResponse: deniedResponse } : {}),
     gpc: opts.gpc === true,
+    // When this pass is the GPC observation, check it for a confirmation too.
+    ...(opts.gpc ? { acknowledgment: await detectAcknowledgment(a.page) } : {}),
     ...(seeded ? { seeded } : {}),
   };
   await a.browser.close();
@@ -454,7 +509,27 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   };
   await b.browser.close();
 
-  return { url, cmp, consentMode, deniedPass, grantedPass };
+  // --- Pass C: Global Privacy Control on, no click ---
+  // The visitor whose browser opts out for them. From 2027 California requires
+  // every browser to offer this, so most opt-outs will arrive this way.
+  const runGpc = (opts.gpcPass ?? process.env["CONSENTINEL_GPC_PASS"] !== "0") && !opts.gpc;
+  let gpcPass: PassResult | undefined;
+  if (runGpc) {
+    const c = await newCapturedContext(url, opts, true);
+    const gpcResponse = await gotoCapturing(c.page, url);
+    await provokeLateTags(c.page, c.requests);
+    gpcPass = {
+      requests: c.requests,
+      cookies: await snapshotCookies(c.context, c.setters),
+      interaction: { kind: "none", reason: "Global Privacy Control only - no banner interaction" },
+      ...(gpcResponse ? { mainResponse: gpcResponse } : {}),
+      gpc: true,
+      acknowledgment: await detectAcknowledgment(c.page),
+    };
+    await c.browser.close();
+  }
+
+  return { url, cmp, consentMode, deniedPass, grantedPass, ...(gpcPass ? { gpcPass } : {}) };
 }
 
 async function gotoWithFallback<R>(

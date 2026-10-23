@@ -114,8 +114,44 @@ async function main(): Promise<void> {
       !result.findings.some((f) => JSON.stringify(f.evidence).includes("OptanonConsent")),
     ],
     [
-      "findings observedUnder = rejected",
-      result.findings.every((f) => f.observedUnder === "rejected"),
+      "findings observedUnder = rejected (GPC pass aside)",
+      result.findings
+        .filter((f) => !f.type.startsWith("gpc-"))
+        .every((f) => f.observedUnder === "rejected"),
+    ],
+    // The GPC pass: no click, signal on.
+    ["GPC pass ran", result.gpcCheck?.mode === "separate-pass"],
+    [
+      "Pinterest flagged for ignoring GPC",
+      result.findings.some(
+        (f) =>
+          f.type === "gpc-signal-ignored" &&
+          f.vendor === "Pinterest Tag" &&
+          f.severity === "critical" &&
+          f.observedUnder === "gpc",
+      ),
+    ],
+    [
+      "Pinterest still counted as waiting for the reject click",
+      gated.has("Pinterest Tag") && !flagged.has("Pinterest Tag"),
+    ],
+    [
+      "Criteo honored GPC, not flagged",
+      !result.findings.some((f) => f.vendor === "Criteo") &&
+        (result.gpcCheck?.stoppedBy.includes("Criteo") ?? false),
+    ],
+    [
+      "analytics under GPC NOT flagged as a sale",
+      !result.findings.some((f) => f.type === "gpc-signal-ignored" && f.category !== "advertising"),
+    ],
+    [
+      "opt-out confirmation detected",
+      result.gpcCheck?.acknowledged === true &&
+        !result.findings.some((f) => f.type === "gpc-not-acknowledged"),
+    ],
+    [
+      "headline counts the reject pass only",
+      result.headline.startsWith(`${String(flagged.size)} tracker`),
     ],
     ["every finding carries evidence", result.findings.every((f) => !!f.evidence)],
     [

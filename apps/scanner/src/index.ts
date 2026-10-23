@@ -77,5 +77,22 @@ export async function scan(url: string, opts: ScanOptions = {}): Promise<ScanRes
     );
   }
 
+  // A blocked or empty GPC pass would read as "every tag stopped". Drop it and
+  // report GPC as untested instead.
+  const g = raw.gpcPass;
+  if (g) {
+    const blocked = Boolean(
+      g.mainResponse &&
+      detectBlock({
+        status: g.mainResponse.status,
+        headers: g.mainResponse.headers,
+        cookieNames: g.cookies.map((c) => c.name),
+        title: g.mainResponse.title,
+      }),
+    );
+    const thin = !assessCredibility(g.requests.length, 0, opts.minRequests).credible;
+    if (blocked || thin) delete raw.gpcPass;
+  }
+
   return analyze(raw);
 }

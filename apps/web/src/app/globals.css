@@ -4804,3 +4804,190 @@ dialog.import-dialog::backdrop {
 .imp-drop-sub .link-button:hover:not(:disabled) {
   text-decoration-color: var(--ink);
 }
+
+/* ---------- report: browser opt-out (GPC) test ---------- */
+.gpc-test {
+  position: relative;
+  max-width: 44rem;
+  margin: 2rem auto 0;
+  padding: 1.4rem;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px -32px rgb(0 0 0 / 0.2);
+  text-align: left;
+  overflow: hidden;
+  animation: gpc-test-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* A signal sweeping across the card: the browser sending it to every tag. */
+.gpc-test::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 40%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gated), transparent);
+  animation: gpc-test-sweep 2.8s ease-in-out 600ms infinite;
+}
+.gpc-test-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.gpc-test-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.gpc-test-signal {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gated);
+  animation: gpc-pulse 1.6s ease-out infinite;
+}
+.gpc-test-title {
+  margin: 0.35rem 0 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+.gpc-test-verdict {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--critical);
+  white-space: nowrap;
+}
+.gpc-test-verdict.pass {
+  color: var(--gated);
+}
+.gpc-test-lede {
+  margin: 0.9rem 0 0;
+  max-width: 60ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.gpc-test-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+.gpc-test-col {
+  padding: 0.9rem 1rem;
+  background: var(--paper-alt);
+  border-radius: 12px;
+}
+.gpc-test-col-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.gpc-test-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gpc-test-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.85rem;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  animation: gpc-test-chip 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.gpc-test-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.gpc-test-chip.bad .gpc-test-dot {
+  background: var(--critical);
+}
+.gpc-test-chip.good .gpc-test-dot {
+  background: var(--gated);
+}
+.gpc-test-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.gpc-test-ack {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin: 1.1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+.gpc-test-ack-mark {
+  font-weight: 700;
+  color: var(--critical);
+}
+.gpc-test-ack.ok .gpc-test-ack-mark {
+  color: var(--gated);
+}
+@keyframes gpc-test-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes gpc-test-chip {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes gpc-test-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(260%);
+  }
+}
+@media (max-width: 560px) {
+  .gpc-test-head {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .gpc-test-cols {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gpc-test,
+  .gpc-test-chip,
+  .gpc-test::before,
+  .gpc-test-signal {
+    animation: none !important;
+  }
+  .gpc-test::before {
+    display: none;
+  }
+}
