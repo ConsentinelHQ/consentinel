@@ -21,33 +21,46 @@ export interface TemplateInput {
   postalAddress: string;
 }
 
+/** The deadline that makes this urgent: AB 566, effective January 1, 2027. */
+const DEADLINE = "which every browser has to offer starting January 1";
+
+function stillFire(list: string[]): string {
+  const n = list.length;
+  const named = joinNames(byProminence(list).slice(0, 3));
+  return n <= 3
+    ? `${String(n)} ad vendors still fire: ${named}`
+    : `${String(n)} ad vendors still fire, including ${named}`;
+}
+
 export function bullets(ev: Evidence): [string, string, string] {
-  const n = ev.firing.length;
-  const named = joinNames(byProminence(ev.firing).slice(0, 3));
-  const vendors =
-    n <= 3
-      ? `${String(n)} ad vendors still fire: ${named}`
-      : `${String(n)} ad vendors still fire, including ${named}`;
+  const vendors = stillFire(ev.firing);
   const plural = ev.gated === 1 ? "vendor correctly" : "vendors correctly";
   // evaluate() only names vendors that fired in both runs, so this is literal.
   const repeat = `We ran the scan twice and the same vendors fired both times, with ${String(ev.critical)} critical findings in total`;
   if (ev.mode === "rejected") {
+    const gpc = ev.gpcIgnored ?? [];
     return [
       `After declining cookies, ${vendors}`,
       ev.gated > 0
         ? `${String(ev.gated)} other ${plural} ${ev.gated === 1 ? "waits" : "wait"} for consent, so the banner is working - these just aren't connected to it`
         : "None of the tags we saw changed behavior after the reject click",
-      repeat,
+      // The dated hook beats the repeat-run line when we have it.
+      gpc.length >= MIN_GPC_BULLET
+        ? `With Global Privacy Control on (the browser opt-out setting California requires sites to honor, ${DEADLINE}), ${stillFire(gpc)}`
+        : repeat,
     ];
   }
   return [
-    `With Global Privacy Control turned on (the browser opt-out signal California requires sites to honor), ${vendors}`,
+    `With Global Privacy Control turned on (the browser opt-out signal California requires sites to honor, ${DEADLINE}), ${vendors}`,
     ev.gated > 0
       ? `${String(ev.gated)} other ${plural} ${ev.gated === 1 ? "stops" : "stop"}, so the signal is being read - these just aren't connected to it`
       : "None of them stopped when the signal was on",
     repeat,
   ];
 }
+
+/** One vendor ignoring GPC reads as a shrug; two is a pattern. */
+const MIN_GPC_BULLET = 2;
 
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

@@ -12,6 +12,11 @@ export interface Evidence {
   gated: number;
   /** Advertising vendors firing, most findings first. */
   firing: string[];
+  /**
+   * Reject-mode scans only: ad vendors that ignored Global Privacy Control in
+   * every run. Empty when GPC wasn't tested or everything stopped.
+   */
+  gpcIgnored?: string[];
 }
 
 interface Tally {
@@ -60,12 +65,33 @@ export function evaluate(mode: Mode, results: ScanResult[]): Evidence {
   };
 }
 
+/**
+ * Vendors that ignored GPC in every run, same bar as `evaluate`. The store's
+ * own platform and the CMP are left out, as they are for firing vendors.
+ */
+export function gpcIgnoredInAll(results: ScanResult[]): string[] {
+  const sets = results.map((r) => {
+    const self = r.cmp.detected ? canonicalVendor(r.cmp.detected.name) : null;
+    return new Set(
+      (r.gpcCheck?.mode === "separate-pass" ? r.gpcCheck.ignoredBy : [])
+        .map(canonicalVendor)
+        .filter((v) => v !== self && !/^shopify\b/i.test(v)),
+    );
+  });
+  const [first, ...rest] = sets;
+  if (!first) return [];
+  return [...first].filter((v) => rest.every((s) => s.has(v)));
+}
+
 /** A clicked reject is the stronger claim; GPC only when no reject was possible. */
 export async function gather(url: string): Promise<Evidence | string> {
   try {
     const normal = await scan(url);
     if (normal.consentAttempt?.performed) {
-      return evaluate("rejected", [normal, await scan(url)]);
+      const runs = [normal, await scan(url)];
+      const ev = evaluate("rejected", runs);
+      const gpcIgnored = gpcIgnoredInAll(runs);
+      return gpcIgnored.length > 0 ? { ...ev, gpcIgnored } : ev;
     }
     const a = await scan(url, { gpc: true });
     const b = await scan(url, { gpc: true });

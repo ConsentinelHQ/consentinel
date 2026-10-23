@@ -47,6 +47,13 @@ assert.match(
 );
 assert.equal(bullets(gpc)[1], "None of them stopped when the signal was on");
 assert.match(bullets({ ...rejected, gated: 1 })[1], /^1 other vendor correctly waits/);
+// GPC hook replaces the repeat-run line only with two or more vendors.
+assert.match(bullets({ ...rejected, gpcIgnored: ["Meta"] })[2], /twice/);
+assert.equal(
+  bullets({ ...rejected, gpcIgnored: ["Taboola", "Amazon Advertising", "Klaviyo", "Meta"] })[2],
+  "With Global Privacy Control on (the browser opt-out setting California requires sites to honor, which every browser has to offer starting January 1), 4 ad vendors still fire, including Meta, Amazon Advertising and Taboola",
+);
+assert.match(bullets(gpc)[0], /starting January 1\), 2 ad vendors still fire/);
 
 // Template: his wording, no "manual scan", link, opt-out and postal address present.
 const email = render({
