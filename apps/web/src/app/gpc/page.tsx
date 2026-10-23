@@ -1,16 +1,63 @@
 import type { Metadata } from "next";
 import { CountUp } from "@/components/count-up";
+import { DeadlineCountdown } from "@/components/deadline-countdown";
 import { ScanForm } from "@/components/scan-form";
 import { StatCard } from "@/components/stat-card";
 import { StripeGradient } from "@/components/stripe-gradient";
 
 export const metadata: Metadata = {
-  title: "Global Privacy Control requirements by state (2026) - Consentinel",
+  title: "Global Privacy Control in 2027: AB 566 and every state law",
   description:
-    "Which US states legally require websites to honor Global Privacy Control, when each requirement took effect, the enforcement record so far, and what honoring the signal actually means for your tags.",
+    "From January 1, 2027, California's Opt Me Out Act (AB 566) requires every browser to offer Global Privacy Control. Which states require sites to honor it, which browsers send it today, the enforcement record, and how to check your tags.",
+  alternates: { canonical: "/gpc" },
 };
 
-const REVIEWED = "October 4, 2026";
+const REVIEWED = "October 23, 2026";
+
+type Browser = { name: string; today: "native" | "extension" | "none"; note: string };
+
+// Status as of the review date. Sources linked under the grid.
+const BROWSERS: Browser[] = [
+  { name: "Firefox", today: "native", note: "Setting in Privacy & Security" },
+  { name: "Brave", today: "native", note: "On by default" },
+  { name: "DuckDuckGo", today: "native", note: "On by default" },
+  { name: "Chrome", today: "extension", note: "Extension only today" },
+  { name: "Edge", today: "extension", note: "Extension only today" },
+  { name: "Safari", today: "none", note: "No built-in setting today" },
+];
+
+const FAQ: { q: string; a: string }[] = [
+  {
+    q: "What does the Opt Me Out Act (AB 566) require?",
+    a: "From January 1, 2027, any business that develops or maintains a browser must include an easy-to-find setting that sends an opt-out preference signal, such as Global Privacy Control, to every site the visitor uses. It amends the CCPA and was signed on October 8, 2025.",
+  },
+  {
+    q: "Does AB 566 put new obligations on my website?",
+    a: "No new ones. California already requires businesses that sell or share personal information to treat the signal as a valid opt-out. What changes is volume: once Chrome, Edge, and Safari offer the setting, far more visitors will send it.",
+  },
+  {
+    q: "Do I have to show that I honored the signal?",
+    a: 'Yes, in California. Regulations effective January 1, 2026 require displaying whether the opt-out preference signal was processed. The California Privacy Protection Agency cites an "Opt-Out Request Honored" message as a compliant way to do it.',
+  },
+  {
+    q: "Does SB 690 change any of this?",
+    a: "No. SB 690, signed September 30, 2026, ends private lawsuits under CIPA's pen register provision from January 1, 2027. It doesn't change the duty to honor Global Privacy Control, and it leaves CIPA's wiretap provision, the basis of most website tracking suits, untouched.",
+  },
+  {
+    q: "How do I check whether my site honors it?",
+    a: "Load the page with Global Privacy Control on, don't touch the banner, and watch which advertising tags still load or set cookies. Consentinel does this on every scan and lists each vendor that ignored the signal, with the request that proves it.",
+  },
+];
+
+const FAQ_LD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map(({ q, a }) => ({
+    "@type": "Question",
+    name: q,
+    acceptedAnswer: { "@type": "Answer", text: a },
+  })),
+};
 const BRAND = ["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"];
 
 type Row = {
@@ -100,8 +147,9 @@ export default function GpcPage() {
           <h1>Global Privacy Control: which states require it.</h1>
           <p className="lede">
             At least twelve US states now require websites to treat the Global Privacy Control
-            signal as a valid opt-out of sale and targeted advertising. Here is each one, when it
-            took effect, and what honoring the signal actually takes.
+            signal as a valid opt-out of sale and targeted advertising. From January 1, 2027, every
+            browser has to offer it. Here is each state, the browser deadline, and what honoring the
+            signal actually takes.
           </p>
           <div className="gpc-stats">
             <StatCard
@@ -177,6 +225,84 @@ export default function GpcPage() {
           <p className="quiet" style={{ marginTop: "1.5rem" }}>
             Last reviewed {REVIEWED}. This is a reference, not legal advice.
           </p>
+        </div>
+      </section>
+
+      <section className="deadline">
+        <div data-reveal className="wrap">
+          <div className="deadline-head">
+            <div>
+              <span className="deadline-kicker">California Opt Me Out Act, AB 566</span>
+              <h2 id="browsers">Every browser has to offer it by January 1, 2027.</h2>
+            </div>
+            <DeadlineCountdown />
+          </div>
+          <p className="lede" style={{ marginTop: "1rem" }}>
+            Until now, honoring the signal was easy to get wrong without anyone noticing, because
+            few visitors sent it. Most browsers didn&apos;t offer it. California&apos;s new law
+            changes that: browsers must include an easy-to-find setting that sends an opt-out signal
+            to every site. Chrome, Edge, and Safari together carry most US traffic, and none of them
+            sends the signal natively today.
+          </p>
+
+          <ul className="browser-grid">
+            {BROWSERS.map((b, i) => (
+              <li
+                className={`browser-card ${b.today}`}
+                key={b.name}
+                style={{ animationDelay: `${String(i * 80)}ms` }}
+              >
+                <span className="browser-name">{b.name}</span>
+                <span className="browser-status">
+                  <span aria-hidden="true" className="browser-dot" />
+                  {b.today === "native" ? "Sends it today" : "Required by Jan 1"}
+                </span>
+                <span className="browser-note">{b.note}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="quiet" style={{ marginTop: "1rem" }}>
+            Sources:{" "}
+            <a
+              href="https://calmatters.digitaldemocracy.org/bills/ca_202520260ab566"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              AB 566 bill text and status
+            </a>
+            ,{" "}
+            <a
+              href="https://iapp.org/news/a/california-governor-signs-new-law-requiring-in-browser-opt-out-preference-signal"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              IAPP
+            </a>
+            ,{" "}
+            <a
+              href="https://www.cookiebot.com/en/global-privacy-control/"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              browser support, July 2026
+            </a>
+            . Browser support changes; check each vendor&apos;s release notes.
+          </p>
+
+          <ul className="limits">
+            <li>
+              <strong>Opt-outs stop being rare.</strong> A tag that ignores the signal today affects
+              a few privacy-minded visitors. In 2027 it could affect a large share of your traffic.
+            </li>
+            <li>
+              <strong>The failure is silent.</strong> Your banner can work perfectly and still let
+              ad tags run, because the signal arrives without anyone clicking anything.
+            </li>
+            <li>
+              <strong>You have to show it worked.</strong> California requires sites to display
+              whether they processed the signal, for example &quot;Opt-Out Request Honored&quot;.
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -302,18 +428,41 @@ export default function GpcPage() {
         </div>
       </section>
 
+      <section>
+        <div data-reveal className="wrap">
+          <h2 id="faq">Questions</h2>
+          <div className="faq">
+            {FAQ.map(({ q, a }) => (
+              <details className="faq-item" key={q}>
+                <summary>{q}</summary>
+                <p>{a}</p>
+              </details>
+            ))}
+          </div>
+          <p className="quiet" style={{ marginTop: "1rem" }}>
+            Last reviewed {REVIEWED}. This is a reference, not legal advice.
+          </p>
+        </div>
+      </section>
+
       <section className="tinted">
         <div data-reveal className="wrap center">
-          <h2>Check whether your site honors it.</h2>
+          <h2>Check your site before January 1.</h2>
           <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>
-            Consentinel loads your page with Global Privacy Control on and reports every tracker
-            that fired anyway, with the request that proves it.
+            Consentinel loads your page with Global Privacy Control on, without touching the banner,
+            and lists every ad vendor that ran anyway, with the request that proves it. It also
+            checks whether your site confirms the opt-out.
           </p>
           <div style={{ marginTop: "1.5rem" }}>
             <ScanForm />
           </div>
         </div>
       </section>
+      <script
+        // Static, server-built JSON. No user input reaches it.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_LD) }}
+        type="application/ld+json"
+      />
     </main>
   );
 }
