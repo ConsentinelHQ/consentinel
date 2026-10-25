@@ -548,12 +548,12 @@ async function main(): Promise<void> {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
       const sheet = await readSheet(sheetId, tab);
-      if (args[1] === "need") {
+      if (args[0] === "need") {
         const limit = Number(flag(args, "--limit") ?? "10");
         console.log(JSON.stringify(needList(sheet.rows, nyDate(new Date()), limit)));
         break;
       }
-      if (args[1] === "set") {
+      if (args[0] === "set") {
         const result = await setContact(sheetId, tab, sheet, {
           domain: flag(args, "--domain") ?? "",
           name: flag(args, "--name") ?? "",
