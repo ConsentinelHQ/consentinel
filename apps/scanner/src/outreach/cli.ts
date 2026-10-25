@@ -50,6 +50,7 @@ import {
 import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
 import { followups } from "./followup.js";
 import { retouch } from "./retouch.js";
+import { RESEARCHED, needList, setContact } from "./research.js";
 import { computeStats } from "./stats.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
@@ -73,6 +74,8 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach sync
  *   pnpm --filter @consentinel/scanner outreach followups [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach retouch [--limit 5]
+ *   pnpm --filter @consentinel/scanner outreach contacts need [--limit 10]
+ *   pnpm --filter @consentinel/scanner outreach contacts set --domain d --name "First Last" --title t --source url
  *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
@@ -173,7 +176,12 @@ async function run(args: string[]): Promise<Summary> {
         ...recovering,
         ...backlog(sheet.rows)
           .map((row) => ({ domain: normDomain(row.values["Domain"] ?? ""), row }))
-          .filter((t) => !handled.has(t.domain) && !tried.has(t.domain)),
+          // A contact found by research gets its draft on the next run, not in a month.
+          .filter(
+            (t) =>
+              !handled.has(t.domain) &&
+              (!tried.has(t.domain) || t.row.values["Email check"] === RESEARCHED),
+          ),
       ]
     : domains.map((domain) => ({ domain }));
   // Discovery queue tops up whatever the backlog can't fill; dedupe happens in the loop.
@@ -536,6 +544,29 @@ async function main(): Promise<void> {
       console.log(JSON.stringify(summary));
       break;
     }
+    case "contacts": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const sheet = await readSheet(sheetId, tab);
+      if (args[1] === "need") {
+        const limit = Number(flag(args, "--limit") ?? "10");
+        console.log(JSON.stringify(needList(sheet.rows, nyDate(new Date()), limit)));
+        break;
+      }
+      if (args[1] === "set") {
+        const result = await setContact(sheetId, tab, sheet, {
+          domain: flag(args, "--domain") ?? "",
+          name: flag(args, "--name") ?? "",
+          title: flag(args, "--title") ?? "",
+          source: flag(args, "--source") ?? "",
+        });
+        console.log(JSON.stringify(result));
+        break;
+      }
+      throw new Error(
+        "usage: outreach contacts need [--limit n] | contacts set --domain d --name n --title t --source url",
+      );
+    }
     case "retouch": {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
@@ -590,7 +621,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | retouch [--limit n] | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | retouch [--limit n] | contacts need [--limit n] | contacts set --domain d --name n --title t --source url | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
