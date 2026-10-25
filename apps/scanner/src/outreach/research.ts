@@ -44,7 +44,12 @@ export function needsContact(rows: SheetRow[], today: string): SheetRow[] {
     if (!/^find contact$/i.test((v["Next action"] ?? "").trim())) return false;
     if ((v["Email"] ?? "").includes("@")) return false;
     const notes = v["Notes"] ?? "";
-    if (HANDS_OFF.test(notes)) return false;
+    // The bot's own research notes ("skipped", "not found") aren't a person's hands-off flag.
+    const human = notes
+      .split("|")
+      .filter((part) => !part.includes(`outreach bot - ${TRIED}`))
+      .join("|");
+    if (HANDS_OFF.test(human)) return false;
     if (triedNames(notes).length >= MAX_NAMES) return false;
     const last = parseDay(lastTried(notes) ?? "");
     if (last && new Date(`${last}T12:00:00Z`).getTime() > cutoff) return false;
@@ -61,9 +66,35 @@ export function needList(rows: SheetRow[], today: string, limit: number): Need[]
     }));
 }
 
+/** Research found nobody solid: log it so the row waits RETRY_DAYS instead of nightly. */
+export async function skipContact(
+  sheetId: string,
+  tab: string,
+  sheet: Sheet,
+  input: { domain: string; reason: string },
+): Promise<SetResult> {
+  const domain = normDomain(input.domain);
+  const today = nyDate(new Date());
+  const row = needsContact(sheet.rows, today).find(
+    (r) => normDomain(r.values["Domain"] ?? "") === domain,
+  );
+  if (!row) return { domain, status: "rejected", reason: "not a row that needs a contact" };
+  const reason =
+    input.reason
+      .replace(/[|\s]+/g, " ")
+      .trim()
+      .slice(0, 120) || "no fitting person";
+  const prior = row.values["Notes"] ?? "";
+  const n = `${today}: outreach bot - ${TRIED} skipped: ${reason}`;
+  await updateRow(sheetId, tab, sheet.headers, row.rowNumber, {
+    Notes: prior ? `${prior} | ${n}` : n,
+  });
+  return { domain, status: "skipped", reason };
+}
+
 export type SetResult =
   | { domain: string; status: "found"; email: string }
-  | { domain: string; status: "not found" | "rejected"; reason: string };
+  | { domain: string; status: "not found" | "rejected" | "skipped"; reason: string };
 
 /** Plain name: letters, hyphens, apostrophes, periods. Two to four words. */
 export function cleanName(name: string): string | null {
