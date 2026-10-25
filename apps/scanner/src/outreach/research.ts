@@ -37,7 +37,11 @@ function lastTried(notes: string): string | null {
 }
 
 /** Never-emailed backlog rows whose automatic lookup came up empty. */
-export function needsContact(rows: SheetRow[], today: string): SheetRow[] {
+/**
+ * `sameRun`: attempts logged today don't start the wait, so a run can try a
+ * second person or log a skip after a first name came back unverified.
+ */
+export function needsContact(rows: SheetRow[], today: string, sameRun = false): SheetRow[] {
   const cutoff = new Date(`${today}T12:00:00Z`).getTime() - RETRY_DAYS * 86_400_000;
   return rows.filter(({ values: v }) => {
     if (v["Status"] !== "Scanned - ready" || v["First email"]) return false;
@@ -52,7 +56,8 @@ export function needsContact(rows: SheetRow[], today: string): SheetRow[] {
     if (HANDS_OFF.test(human)) return false;
     if (triedNames(notes).length >= MAX_NAMES) return false;
     const last = parseDay(lastTried(notes) ?? "");
-    if (last && new Date(`${last}T12:00:00Z`).getTime() > cutoff) return false;
+    if (last && !(sameRun && last === today) && new Date(`${last}T12:00:00Z`).getTime() > cutoff)
+      return false;
     return normDomain(v["Domain"] ?? "") !== "";
   });
 }
@@ -75,7 +80,7 @@ export async function skipContact(
 ): Promise<SetResult> {
   const domain = normDomain(input.domain);
   const today = nyDate(new Date());
-  const row = needsContact(sheet.rows, today).find(
+  const row = needsContact(sheet.rows, today, true).find(
     (r) => normDomain(r.values["Domain"] ?? "") === domain,
   );
   if (!row) return { domain, status: "rejected", reason: "not a row that needs a contact" };
@@ -111,7 +116,7 @@ export async function setContact(
 ): Promise<SetResult> {
   const domain = normDomain(input.domain);
   const today = nyDate(new Date());
-  const row = needsContact(sheet.rows, today).find(
+  const row = needsContact(sheet.rows, today, true).find(
     (r) => normDomain(r.values["Domain"] ?? "") === domain,
   );
   if (!row) return { domain, status: "rejected", reason: "not a row that needs a contact" };

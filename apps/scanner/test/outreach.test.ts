@@ -27,7 +27,7 @@ import { computeStats } from "../src/outreach/stats.js";
 import { bullets, render } from "../src/outreach/template.js";
 import { DRAFTED, SENT, dueForRetouch, retouchEmail } from "../src/outreach/retouch.js";
 import { gpcIgnoredInAll } from "../src/outreach/evidence.js";
-import { RESEARCHED, cleanName, needList } from "../src/outreach/research.js";
+import { RESEARCHED, cleanName, needList, needsContact } from "../src/outreach/research.js";
 import { wantedTitle } from "../src/outreach/contacts.js";
 
 const rejected: Evidence = {
@@ -680,6 +680,14 @@ const skipped = needList(
   10,
 );
 assert.deepEqual(skipped, []);
+// Within the same run, a row tried today stays open for a second name or a skip.
+const today1 = [
+  cr(2, {
+    Notes: "2026-10-25: outreach bot - contact research: Ann Lee (VP Ecommerce) not found, x",
+  }),
+];
+assert.equal(needsContact(today1, "2026-10-25").length, 0);
+assert.equal(needsContact(today1, "2026-10-25", true).length, 1);
 assert.deepEqual(
   needList(
     [cr(2, { Notes: "2026-09-01: outreach bot - contact research skipped: no lead found" })],
