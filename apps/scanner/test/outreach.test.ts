@@ -673,5 +673,20 @@ assert.equal(wantedTitle("VP, Ecommerce"), true);
 assert.equal(wantedTitle("Director of Growth"), true);
 assert.equal(wantedTitle("Customer Service Associate"), false);
 assert.match(RESEARCHED, /^valid\b/);
+// A logged skip makes the row wait, and isn't counted as a tried name.
+const skipped = needList(
+  [cr(2, { Notes: "2026-10-20: outreach bot - contact research skipped: no lead found" })],
+  "2026-10-25",
+  10,
+);
+assert.deepEqual(skipped, []);
+assert.deepEqual(
+  needList(
+    [cr(2, { Notes: "2026-09-01: outreach bot - contact research skipped: no lead found" })],
+    "2026-10-25",
+    10,
+  )[0]?.tried,
+  [],
+);
 
 console.log("outreach: all assertions passed");

@@ -50,7 +50,7 @@ import {
 import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
 import { followups } from "./followup.js";
 import { retouch } from "./retouch.js";
-import { RESEARCHED, needList, setContact } from "./research.js";
+import { RESEARCHED, needList, setContact, skipContact } from "./research.js";
 import { computeStats } from "./stats.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
@@ -76,6 +76,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach retouch [--limit 5]
  *   pnpm --filter @consentinel/scanner outreach contacts need [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach contacts set --domain d --name "First Last" --title t --source url
+ *   pnpm --filter @consentinel/scanner outreach contacts skip --domain d --reason "why"
  *   pnpm --filter @consentinel/scanner outreach prep --domain a.com
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
@@ -563,8 +564,16 @@ async function main(): Promise<void> {
         console.log(JSON.stringify(result));
         break;
       }
+      if (args[0] === "skip") {
+        const result = await skipContact(sheetId, tab, sheet, {
+          domain: flag(args, "--domain") ?? "",
+          reason: flag(args, "--reason") ?? "",
+        });
+        console.log(JSON.stringify(result));
+        break;
+      }
       throw new Error(
-        "usage: outreach contacts need [--limit n] | contacts set --domain d --name n --title t --source url",
+        "usage: outreach contacts need [--limit n] | contacts set --domain d --name n --title t --source url | contacts skip --domain d --reason r",
       );
     }
     case "retouch": {
