@@ -18,7 +18,7 @@ export interface Contact {
  * Earlier tiers win; within a tier, higher Hunter confidence wins. People who
  * own the site as a product come first: the broken opt-out is their bug.
  */
-const TITLE_TIERS = [
+export const TITLE_TIERS = [
   /e-?commerce|digital product|product|engineering|technology|\bcto\b|web/i,
   /privacy|legal|counsel|compliance/i,
   /digital|growth/i,
@@ -30,6 +30,7 @@ const TITLE_TIERS = [
 const ANYMAIL_ROLES = ["engineering", "it", "ceo", "marketing"];
 
 const ANYMAIL = "https://api.anymailfinder.com/v5.1/find-email/decision-maker";
+const ANYMAIL_PERSON = "https://api.anymailfinder.com/v5.1/find-email/person";
 const HUNTER = "https://api.hunter.io/v2";
 
 interface AnymailResponse {
@@ -146,6 +147,63 @@ export async function findContact(
     const hit = await hunter(domain, hunterKey, exclude);
     if (typeof hit !== "string") return hit;
     reasons.push(hit);
+  }
+  if (!anymailKey && !hunterKey) throw new Error("set ANYMAIL_API_KEY or HUNTER_API_KEY");
+  return reasons.join("; ");
+}
+
+/** True when a job title is one we'd email. Same tiers as the automatic lookup. */
+export function wantedTitle(title: string): boolean {
+  return TITLE_TIERS.some((re) => re.test(title));
+}
+
+/**
+ * A named person's address at a domain, for names found by research. Only a
+ * proven-valid address counts: a guess from a pattern never reaches the sheet.
+ */
+export async function findPerson(
+  domain: string,
+  fullName: string,
+  exclude: string[] = [],
+): Promise<{ email: string; source: "anymail" | "hunter" } | string> {
+  const reasons: string[] = [];
+  const anymailKey = process.env["ANYMAIL_API_KEY"];
+  if (anymailKey) {
+    const res = await fetch(ANYMAIL_PERSON, {
+      method: "POST",
+      headers: { Authorization: anymailKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ domain, full_name: fullName }),
+    });
+    if (!res.ok) throw new Error(`Anymail returned ${String(res.status)}`);
+    const body = (await res.json()) as AnymailResponse & { email?: string | null };
+    const email = (body.valid_email ?? (body.email_status === "valid" ? body.email : null))
+      ?.trim()
+      .toLowerCase();
+    if (body.email_status === "valid" && email && !exclude.includes(email)) {
+      return { email, source: "anymail" };
+    }
+    reasons.push(`anymail: ${body.email_status ?? "no result"}`);
+  }
+  const hunterKey = process.env["HUNTER_API_KEY"];
+  if (hunterKey) {
+    const [first = "", ...rest] = fullName.trim().split(/\s+/);
+    const found = await hunterGet<{ email?: string | null }>(
+      "email-finder",
+      { domain, first_name: first, last_name: rest.join(" ") },
+      hunterKey,
+    );
+    const email = found.email?.trim().toLowerCase();
+    if (email && !exclude.includes(email)) {
+      const { status = "unknown" } = await hunterGet<{ status?: string }>(
+        "email-verifier",
+        { email },
+        hunterKey,
+      );
+      if (status === "valid") return { email, source: "hunter" };
+      reasons.push(`hunter: ${email} ${status}`);
+    } else {
+      reasons.push("hunter: no address");
+    }
   }
   if (!anymailKey && !hunterKey) throw new Error("set ANYMAIL_API_KEY or HUNTER_API_KEY");
   return reasons.join("; ");
