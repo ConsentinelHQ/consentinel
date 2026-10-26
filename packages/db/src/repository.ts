@@ -1,6 +1,20 @@
 import { displayCounts } from "@consentinel/shared";
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, ne, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  ne,
+  sql,
+} from "drizzle-orm";
 import type { ScanResult, Severity } from "@consentinel/shared";
 import type { Database } from "./client.js";
 import {
@@ -823,6 +837,91 @@ export async function getEvidencePack(
     chain = prev ? "linked" : "broken";
   }
   return { scan: row.scan, siteId: row.siteId, siteLabel: row.siteLabel, seal, chain };
+}
+
+export interface DemandScan {
+  scan: ScanRow;
+  seal: Seal;
+  /** Links to the previous sealed scan in this pack (or, for the first, one in the database). */
+  chain: "linked" | "first" | "broken" | "unsealed";
+}
+
+export interface DemandPack {
+  siteId: string;
+  siteUrl: string;
+  siteLabel: string | null;
+  /** The nearest scan before the window, the window, and the nearest after. Oldest first. */
+  scans: DemandScan[];
+  /** More scans in the window than one pack holds; the newest were left out. */
+  truncated: boolean;
+}
+
+/** Scans in one pack, at most. A year of daily scans fits. */
+export const DEMAND_PACK_MAX = 400;
+
+/**
+ * Every completed scan of a site inside a claimed date window, plus the nearest
+ * one on each side, each with its seal and chain link checked.
+ */
+export async function getDemandPack(
+  db: Database,
+  siteId: string,
+  orgId: string,
+  from: Date,
+  to: Date,
+): Promise<DemandPack | null> {
+  const site = await getSiteForOrg(db, siteId, orgId);
+  if (!site) return null;
+  const done = and(eq(scans.siteId, site.id), eq(scans.status, "complete"));
+  const inWindow = await db
+    .select()
+    .from(scans)
+    .where(and(done, gte(scans.finishedAt, from), lte(scans.finishedAt, to)))
+    .orderBy(asc(scans.finishedAt))
+    .limit(DEMAND_PACK_MAX + 1);
+  const truncated = inWindow.length > DEMAND_PACK_MAX;
+  const [before] = await db
+    .select()
+    .from(scans)
+    .where(and(done, lt(scans.finishedAt, from)))
+    .orderBy(desc(scans.finishedAt))
+    .limit(1);
+  const [after] = truncated
+    ? []
+    : await db
+        .select()
+        .from(scans)
+        .where(and(done, gt(scans.finishedAt, to)))
+        .orderBy(asc(scans.finishedAt))
+        .limit(1);
+  const rows = [
+    ...(before ? [before] : []),
+    ...inWindow.slice(0, DEMAND_PACK_MAX),
+    ...(after ? [after] : []),
+  ].filter((r) => r.result !== null);
+
+  const out: DemandScan[] = [];
+  let prevSealed: ScanRow | null = null;
+  for (const scan of rows) {
+    const seal = verifySeal(scan);
+    let chain: DemandScan["chain"] = "unsealed";
+    if (seal.state !== "unsealed") {
+      if (!scan.prevEvidenceHash) chain = "first";
+      else if (prevSealed)
+        chain = prevSealed.evidenceHash === scan.prevEvidenceHash ? "linked" : "broken";
+      else {
+        const [prev] = await db
+          .select({ id: scans.id })
+          .from(scans)
+          .where(and(eq(scans.siteId, site.id), eq(scans.evidenceHash, scan.prevEvidenceHash)))
+          .limit(1);
+        chain = prev ? "linked" : "broken";
+      }
+      prevSealed = scan;
+    }
+    out.push({ scan, seal, chain });
+  }
+  return { siteId: site.id, siteUrl: site.url, siteLabel: site.label, scans: out, truncated };
 }
 
 /** Count one open of a share link. Atomic, so concurrent opens never lose a count. */

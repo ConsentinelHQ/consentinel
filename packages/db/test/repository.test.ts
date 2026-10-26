@@ -17,6 +17,7 @@ import {
 import { fingerprintFinding } from "../src/fingerprint";
 import { canonicalJson, verifySeal } from "../src/evidence";
 import {
+  getDemandPack,
   getEvidencePack,
   listDueSites,
   listReportViews,
@@ -239,6 +240,21 @@ async function main(): Promise<void> {
     "evidence pack is org-scoped",
     (await getEvidencePack(db, scan3.id, randomUUID())) === null,
   );
+  // --- demand letter pack: every scan in the window, chain checked across them ---
+  const winFrom = new Date(Date.now() - 3_600_000);
+  const winTo = new Date(Date.now() + 60_000);
+  const demand = await getDemandPack(db, siteId, org.id, winFrom, winTo);
+  check(
+    "demand pack holds the site's scans, oldest first, all sealed and linked",
+    !!demand &&
+      demand.scans.length >= 2 &&
+      demand.scans.every((d) => d.seal.state === "verified" && d.chain !== "broken") &&
+      demand.scans[demand.scans.length - 1]?.scan.id === scan3.id,
+  );
+  check(
+    "demand pack is org-scoped",
+    (await getDemandPack(db, siteId, randomUUID(), winFrom, winTo)) === null,
+  );
   // Any edit to a stored result breaks the seal.
   await db
     .update(scans)
@@ -247,6 +263,12 @@ async function main(): Promise<void> {
   check(
     "an edited result fails verification",
     (await getEvidencePack(db, scan3.id, org.id))?.seal.state === "mismatch",
+  );
+  check(
+    "demand pack flags the edited record",
+    (await getDemandPack(db, siteId, org.id, winFrom, winTo))?.scans.some(
+      (d) => d.scan.id === scan3.id && d.seal.state === "mismatch",
+    ) === true,
   );
   check(
     "canonical JSON ignores key order",
