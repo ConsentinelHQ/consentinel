@@ -5633,3 +5633,11 @@ a.print-button {
     opacity: 1;
   }
 }
+
+/* Disclosure check */
+.disclosure-sources {
+  overflow-wrap: anywhere;
+}
+.disclosure-sources a {
+  color: inherit;
+}

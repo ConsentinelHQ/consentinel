@@ -7,6 +7,7 @@ import {
   type ConsentModeDetection,
 } from "./cmp/detect.js";
 import { acceptConsent, rejectConsent } from "./cmp/driver.js";
+import { readPolicies, type PolicyText } from "./policy.js";
 
 const GOTO_TIMEOUT = 20_000;
 const NETWORK_IDLE_TIMEOUT = 8_000;
@@ -25,6 +26,8 @@ const MAX_SETTLE_MS = 15_000;
 export interface ScanOptions {
   /** Type a test identity into forms to detect personal-data leaks. Off unless set. */
   probePii?: boolean;
+  /** Read the privacy and cookie policies for Disclosure Check. On unless set false. */
+  disclosure?: boolean;
   /**
    * Record third-party requests but never send them. Used by fixture tests so a
    * suite run never touches a real tracker. Real scans must be false: tags load
@@ -133,6 +136,8 @@ export interface RawScan {
   grantedPass: PassResult;
   /** GPC on, no click. Absent when skipped. */
   gpcPass?: PassResult;
+  /** Privacy and cookie policy text, for Disclosure Check. Absent when skipped. */
+  policies?: PolicyText[];
 }
 
 /**
@@ -440,6 +445,9 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   await probe.page.waitForTimeout(600);
   const cmp = await detectCmp(probe.page, probe.requests);
   const consentMode = await detectConsentMode(probe.page);
+  // Read the policies here, once, in the clean probe context: they don't depend on consent state.
+  const runDisclosure = opts.disclosure ?? process.env["CONSENTINEL_DISCLOSURE"] !== "0";
+  const policies = runDisclosure ? await readPolicies(probe.page, url) : undefined;
   await probe.browser.close();
 
   const cmpId = cmp.detected?.id ?? null;
@@ -529,7 +537,15 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     await c.browser.close();
   }
 
-  return { url, cmp, consentMode, deniedPass, grantedPass, ...(gpcPass ? { gpcPass } : {}) };
+  return {
+    url,
+    cmp,
+    consentMode,
+    deniedPass,
+    grantedPass,
+    ...(gpcPass ? { gpcPass } : {}),
+    ...(policies ? { policies } : {}),
+  };
 }
 
 async function gotoWithFallback<R>(

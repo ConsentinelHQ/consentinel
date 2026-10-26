@@ -159,6 +159,28 @@ async function main(): Promise<void> {
       result.findings.every((f) => Array.isArray(f.compliance)),
     ],
     ["critical findings sort first", isSorted(result)],
+    [
+      "Disclosure: privacy policy found and read",
+      result.disclosure?.status === "checked" &&
+        result.disclosure.policies.some(
+          (p) => p.kind === "privacy" && p.url.endsWith("/pages/privacy-policy"),
+        ),
+    ],
+    [
+      "Disclosure: the opt-out page is not taken for the policy",
+      !result.disclosure?.policies.some((p) => p.url.includes("choices")),
+    ],
+    [
+      "Disclosure: TikTok, Clarity and Reddit run without being named",
+      JSON.stringify(result.disclosure?.notNamed) ===
+        JSON.stringify(["Microsoft Clarity", "Reddit", "TikTok"]),
+    ],
+    [
+      "Disclosure: Google, Meta, Pinterest and Criteo are named",
+      ["Google Analytics", "Meta", "Pinterest", "Criteo"].every((v) =>
+        result.disclosure?.named.includes(v),
+      ),
+    ],
   ];
 
   console.log(c(`\n  Accuracy + schema conformance:`, 1));
