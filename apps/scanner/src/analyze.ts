@@ -25,6 +25,13 @@ import { CMP_REGISTRY_VERSION } from "./cmp/registry.js";
 import type { RawScan, CapturedRequest, OptOutAcknowledgment } from "./scanner.js";
 import { remediationFor } from "./remediation.js";
 import { canonicalVendor } from "@consentinel/shared";
+import {
+  MIN_POLICY_CHARS,
+  checkDisclosure,
+  normalizePolicy,
+  type DisclosureCheck,
+} from "@consentinel/shared";
+import { createHash } from "node:crypto";
 
 // 0.3.0: separate GPC pass. Alerting only diffs same-version scans, so the new
 // findings don't email every customer as a regression.
@@ -382,6 +389,38 @@ export function analyze(raw: RawScan): ScanResult {
         : {}),
     },
     ...(gpcCheck ? { gpcCheck } : {}),
+    ...(raw.policies
+      ? {
+          disclosure: analyzeDisclosure(raw, [
+            ...deniedHits,
+            ...grantedHits,
+            ...(raw.gpcPass ? classifyPass(raw.gpcPass.requests) : []),
+          ]),
+        }
+      : {}),
+  };
+}
+
+/** Vendors seen running in any pass, against the vendors the site's policies name. */
+function analyzeDisclosure(raw: RawScan, hits: ClassifiedHit[]): DisclosureCheck {
+  const texts = (raw.policies ?? []).map((p) => ({ ...p, text: normalizePolicy(p.text) }));
+  const policies = texts.map((p) => ({
+    kind: p.kind,
+    url: p.url,
+    chars: p.text.length,
+    sha256: createHash("sha256").update(p.text).digest("hex"),
+  }));
+  const readable = texts.filter((p) => p.text.length >= MIN_POLICY_CHARS);
+  if (texts.length === 0) return { status: "no-policy", policies, named: [], notNamed: [] };
+  if (readable.length === 0) return { status: "unreadable", policies, named: [], notNamed: [] };
+  const vendors = hits.filter((h) => h.sig.consentRequired).map((h) => h.sig.vendor);
+  return {
+    status: "checked",
+    policies,
+    ...checkDisclosure(
+      vendors,
+      readable.map((p) => p.text),
+    ),
   };
 }
 

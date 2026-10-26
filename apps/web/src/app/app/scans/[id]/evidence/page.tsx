@@ -158,6 +158,25 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
                 </td>
               </tr>
             )}
+            {result.disclosure && (
+              <tr>
+                <th>Privacy policy</th>
+                <td>
+                  {result.disclosure.status === "no-policy"
+                    ? "No privacy policy was found linked from the page."
+                    : result.disclosure.status === "unreadable"
+                      ? "A policy was found but its text could not be read."
+                      : result.disclosure.notNamed.length === 0
+                        ? "Every vendor that ran is mentioned in the policy."
+                        : `Not mentioned in the policy: ${result.disclosure.notNamed.join(", ")}.`}
+                  {result.disclosure.policies.map((p) => (
+                    <span className="mono proof" key={p.url}>
+                      {p.kind} policy {p.url} · sha256 {p.sha256.slice(0, 16)}
+                    </span>
+                  ))}
+                </td>
+              </tr>
+            )}
             <tr>
               <th>Ran only after accept</th>
               <td>

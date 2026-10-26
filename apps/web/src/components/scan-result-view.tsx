@@ -1,5 +1,6 @@
 "use client";
 
+import { DisclosurePanel } from "./disclosure-panel";
 import { GpcPanel } from "./gpc-panel";
 import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -178,6 +179,7 @@ function Report({
         </div>
 
         {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
+        {report.disclosure && <DisclosurePanel check={report.disclosure} />}
 
         {!branded && (
           <div className="gate">
@@ -350,6 +352,7 @@ function Report({
       </div>
 
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
+      {report.disclosure && <DisclosurePanel check={report.disclosure} />}
 
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}

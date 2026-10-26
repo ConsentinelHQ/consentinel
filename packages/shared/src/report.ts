@@ -1,4 +1,5 @@
 import { canonicalVendor, isUnattributed, SEVERITY_RANK } from "./severity.js";
+import type { DisclosureCheck } from "./disclosure.js";
 import { type Finding, type GpcCheck, type ScanResult, type Severity } from "./finding.js";
 
 /**
@@ -39,6 +40,8 @@ export interface FreeReport {
   gpc?: boolean;
   /** The separate Global Privacy Control test. Absent on older scans. */
   gpcCheck?: GpcCheck;
+  /** Vendors seen running versus vendors the site's policy names. Absent on older scans. */
+  disclosure?: DisclosureCheck;
   scanId: string;
   url: string;
   scannedAt: string;
@@ -336,7 +339,11 @@ function observedUnderGpc(result: ScanResult): boolean {
 }
 
 function withGpcCheck(report: FreeReport, result: ScanResult): FreeReport {
-  return result.gpcCheck ? { ...report, gpcCheck: result.gpcCheck } : report;
+  return {
+    ...report,
+    ...(result.gpcCheck ? { gpcCheck: result.gpcCheck } : {}),
+    ...(result.disclosure ? { disclosure: result.disclosure } : {}),
+  };
 }
 
 export function toFreeReport(result: ScanResult): FreeReport {

@@ -1,3 +1,4 @@
+import type { DisclosureCheck } from "./disclosure.js";
 /**
  * Consentinel — shared finding schema.
  *
@@ -175,6 +176,8 @@ export interface ScanResult {
    * Absent on scans from engines before 0.3.0, or when the pass was blocked.
    */
   gpcCheck?: GpcCheck;
+  /** Vendors seen running versus vendors the privacy or cookie policy names. Absent when not run. */
+  disclosure?: DisclosureCheck;
 }
 
 export interface GpcCheck {

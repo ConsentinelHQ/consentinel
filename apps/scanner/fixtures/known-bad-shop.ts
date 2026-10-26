@@ -8,10 +8,13 @@ import type { AddressInfo } from "node:net";
 //   Under GPC with no click: Pinterest respects the reject button but not the signal
 //   -> gpc-signal-ignored. Criteo honors both -> stoppedBy. The page confirms the
 //   signal with "Opt-Out Request Honored".
+//   Disclosure: the privacy policy names Google, Facebook, Pinterest and Criteo,
+//   so TikTok, Microsoft Clarity and Reddit run without being named.
 const PAGE = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Northvale Outfitters</title></head>
 <body>
   <h1>Northvale Outfitters - Checkout</h1>
+  <footer><a href="/pages/privacy-policy">Privacy Policy</a> <a href="/pages/your-privacy-choices">Your Privacy Choices</a></footer>
 
   <!-- OneTrust-style banner with real handler IDs -->
   <div id="onetrust-banner-sdk">
@@ -77,6 +80,18 @@ const PAGE = `<!doctype html>
   </script>
 </body></html>`;
 
+const POLICY = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Privacy Policy</title></head>
+<body><h1>Privacy Policy</h1>
+<p>This Privacy Policy describes how Northvale Outfitters collects, uses and shares your personal information
+when you visit our store. We collect device information using cookies, log files, web beacons and pixels.</p>
+<p>We share your personal information with service providers. We use Google Analytics to understand how
+customers use the store, and we use Facebook and Pinterest for advertising. Criteo helps us show relevant ads.</p>
+<p>You can opt out of targeted advertising through the links below. We respond to Global Privacy Control
+signals as a request to opt out of sale or sharing. Contact us at privacy@example.com with any questions
+about this policy or your rights under applicable law, including the right to access, correct or delete
+personal information we hold about you.</p>
+<p>We keep order information for our records unless and until you ask us to delete it. Our store is not intended for children under 16.</p></body></html>`;
+
 export interface FixtureHandle {
   server: http.Server;
   url: string;
@@ -84,9 +99,9 @@ export interface FixtureHandle {
 
 export function startFixtureServer(port = 0): Promise<FixtureHandle> {
   return new Promise((resolve) => {
-    const server = http.createServer((_req, res) => {
+    const server = http.createServer((req, res) => {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      res.end(PAGE);
+      res.end(req.url?.startsWith("/pages/privacy-policy") ? POLICY : PAGE);
     });
     server.listen(port, "127.0.0.1", () => {
       const { port: p } = server.address() as AddressInfo;
