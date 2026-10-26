@@ -664,6 +664,19 @@ assert.deepEqual(
   ["c2.com", "c4.com"],
 );
 assert.deepEqual(need[1]?.tried, ["Ann Lee"]);
+assert.deepEqual(
+  needList(
+    [
+      cr(2, { "Next action": "Find contact on LinkedIn (Hunter had none)" }),
+      cr(3, { "Next action": "Contact lookup (prospect run)" }),
+      cr(4, { "Next action": "Find marketing/ecommerce contact" }),
+      cr(5, { "Next action": "Find new contact", "First email": "2026-10-01" }),
+    ],
+    "2026-10-26",
+    10,
+  ).map((x) => x.domain),
+  ["c2.com", "c3.com", "c4.com"],
+);
 assert.equal(cleanName("  Ann   Lee "), "Ann Lee");
 assert.equal(cleanName("José O'Neil-Smith"), "José O'Neil-Smith");
 assert.equal(cleanName("Ann"), null);

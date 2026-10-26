@@ -45,7 +45,10 @@ export function needsContact(rows: SheetRow[], today: string, sameRun = false): 
   const cutoff = new Date(`${today}T12:00:00Z`).getTime() - RETRY_DAYS * 86_400_000;
   return rows.filter(({ values: v }) => {
     if (v["Status"] !== "Scanned - ready" || v["First email"]) return false;
-    if (!/^find contact$/i.test((v["Next action"] ?? "").trim())) return false;
+    // Hand-written variants too: "Find contact on LinkedIn (Hunter had none)", "Contact lookup".
+    // A bounced contact ("Find new contact") already has a first email and is excluded above.
+    if (!/^(find\b.*\bcontacts?\b|contact lookup\b)/i.test((v["Next action"] ?? "").trim()))
+      return false;
     if ((v["Email"] ?? "").includes("@")) return false;
     const notes = v["Notes"] ?? "";
     // The bot's own research notes ("skipped", "not found") aren't a person's hands-off flag.
