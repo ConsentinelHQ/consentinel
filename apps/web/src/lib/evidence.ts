@@ -42,7 +42,11 @@ export function consentTested(result: ScanResult): string[] {
   if (result.gpcCheck?.mode === "separate-pass")
     out.push("Sent Global Privacy Control with no banner interaction, in a separate clean browser");
   else if (result.gpcCheck?.mode === "denied-pass")
-    out.push("Sent Global Privacy Control on the rejected-consent pass");
+    out.push(
+      a?.performed
+        ? "Sent Global Privacy Control alongside the reject click"
+        : "Sent Global Privacy Control with no banner interaction",
+    );
   return out;
 }
 
