@@ -73,7 +73,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
       {site.pausedAt !== null && site.archivedAt === null && site.schedule !== "off" && (
         <div className="archived-banner">
           <span>
-            Scheduled scans are paused since{" "}
+            Scheduled scans have been paused since{" "}
             {site.pausedAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}. Scan
             now still works.
           </span>
