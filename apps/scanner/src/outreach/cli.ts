@@ -51,6 +51,7 @@ import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
 import { followups } from "./followup.js";
 import { retouch } from "./retouch.js";
 import { RESEARCHED, needList, setContact, skipContact } from "./research.js";
+import { recordOpens } from "./views.js";
 import { computeStats } from "./stats.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
@@ -61,7 +62,7 @@ import {
   pickLeads,
   saveInboundSince,
 } from "./inbound.js";
-import { prep } from "./prep.js";
+import { fetchReport, prep } from "./prep.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
 
@@ -223,6 +224,16 @@ async function run(args: string[]): Promise<Summary> {
     Tier: ev ? tier(ev, minGpc) : "",
   });
   const note = (s: string): string => `${today}: outreach bot - ${s}`;
+  const apiKey = process.env["OUTREACH_API_KEY"];
+  const reportApi = apiKey
+    ? {
+        base: (process.env["OUTREACH_APP_URL"] ?? "https://www.getconsentinel.com").replace(
+          /\/$/,
+          "",
+        ),
+        key: apiKey,
+      }
+    : null;
 
   for (const { domain, row, recover } of targets) {
     /** New domains append a row; backlog rows update theirs and keep the old notes. */
@@ -308,13 +319,27 @@ async function run(args: string[]): Promise<Summary> {
       continue;
     }
 
+    // A link to their own report is the email's call to action, and its opens are the signal.
+    // No key, or the report scan fails: the email offers to send it instead.
+    let reportUrl: string | undefined;
+    if (reportApi) {
+      try {
+        const got = await fetchReport(reportApi, domain);
+        if (typeof got === "string") log(`       no report link: ${got}`);
+        else reportUrl = got.reportUrl;
+      } catch (error) {
+        log(`       no report link: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
     const email = render({
       domain,
       firstName: contact.firstName,
       ev,
       postalAddress: postal,
+      ...(reportUrl ? { reportUrl } : {}),
     });
     const contactCols = {
+      ...(reportUrl ? { "Report link": reportUrl } : {}),
       Contact: contact.fullName,
       Title: contact.title,
       Email: contact.email,
@@ -407,6 +432,23 @@ async function main(): Promise<void> {
       const sheet = await readSheet(sheetId, tab);
       const summary = await sync(sheetId, tab, sheet);
       const key = process.env["OUTREACH_API_KEY"];
+      // Report opens: never let a failure here hide the replies.
+      let opens: { reportOpens?: unknown; reportOpensError?: string } = {};
+      if (key) {
+        try {
+          opens = {
+            reportOpens: await recordOpens(
+              sheetId,
+              tab,
+              sheet,
+              cfg("OUTREACH_APP_URL", "https://www.getconsentinel.com"),
+              key,
+            ),
+          };
+        } catch (error) {
+          opens = { reportOpensError: error instanceof Error ? error.message : String(error) };
+        }
+      }
       let inbound = {};
       if (key) {
         // Inbound is a bonus: a failure here must not hide the replies above.
@@ -429,7 +471,7 @@ async function main(): Promise<void> {
           inbound = { inboundError: error instanceof Error ? error.message : String(error) };
         }
       }
-      console.log(JSON.stringify({ ...summary, ...inbound }, null, 2));
+      console.log(JSON.stringify({ ...summary, ...inbound, ...opens }, null, 2));
       break;
     }
     case "queue": {

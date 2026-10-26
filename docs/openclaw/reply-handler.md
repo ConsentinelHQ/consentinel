@@ -18,9 +18,10 @@ It prints JSON:
 - `replies`: each has `domain`, `from`, `subject`, `text`. Classify every one.
 - `inquiries`: contact-form messages. Message Charlie right away about every one (format below). Never mark them on the sheet.
 - `prospectScans`: someone at a company already on the sheet ran a free scan. Run `outreach mark --domain D --note "ran a free scan (<email>)"` and message Charlie.
-- `inboundError`: tell Charlie once, then carry on with the rest.
+- `reportOpens`: prospects who opened the report link in their email. Each has `domain`, `views` and `first`. Already recorded on the sheet. Message Charlie about every one (format below).
+- `inboundError` or `reportOpensError`: tell Charlie once, then carry on with the rest.
 
-If `replies`, `inquiries` and `prospectScans` are empty and there are no bounces, stop. Don't message Charlie.
+If `replies`, `inquiries`, `prospectScans` and `reportOpens` are empty and there are no bounces, stop. Don't message Charlie.
 
 ## Classify each reply
 
@@ -68,6 +69,13 @@ For an inquiry:
 ```
 Inquiry from <name> (<company>, <email>) about <topic>: "<first sentence of message>"
 Next: reply within the hour
+```
+
+For a report open:
+
+```
+<domain> opened their report (<views> views<, first time if first>).
+Next: follow up today while it's fresh
 ```
 
 For a prospect scan:

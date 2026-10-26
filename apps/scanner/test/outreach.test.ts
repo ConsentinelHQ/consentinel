@@ -29,6 +29,7 @@ import { DRAFTED, SENT, dueForRetouch, retouchEmail } from "../src/outreach/reto
 import { gpcIgnoredInAll } from "../src/outreach/evidence.js";
 import { RESEARCHED, cleanName, needList, needsContact } from "../src/outreach/research.js";
 import { wantedTitle } from "../src/outreach/contacts.js";
+import { newOpens, scanIdFromLink } from "../src/outreach/views.js";
 
 const rejected: Evidence = {
   mode: "rejected",
@@ -708,6 +709,56 @@ assert.deepEqual(
     10,
   )[0]?.tried,
   [],
+);
+
+// Report opens: matched to rows by the link's scan id, reported once per new view.
+const sid = "e870acda-31ad-4e14-bc05-974ed292f3c6";
+assert.equal(scanIdFromLink(`https://www.getconsentinel.com/report/${sid}?t=abc`), sid);
+assert.equal(scanIdFromLink("https://www.getconsentinel.com/scan/x"), null);
+const vRows = [
+  r(2, {
+    Domain: "olipop.com",
+    "Report link": `https://www.getconsentinel.com/report/${sid}?t=abc`,
+  }),
+  r(3, { Domain: "casper.com" }),
+];
+const view = (views: number) => ({
+  scanId: sid,
+  views,
+  firstViewedAt: "2026-10-26T15:00:00Z",
+  lastViewedAt: "2026-10-26T15:05:00Z",
+});
+assert.deepEqual(
+  newOpens(vRows, [view(2)], {}).map((o) => [o.open.domain, o.open.views, o.open.first]),
+  [["olipop.com", 2, true]],
+);
+assert.equal(newOpens(vRows, [view(2)], { [sid]: 2 }).length, 0);
+assert.equal(newOpens(vRows, [view(3)], { [sid]: 2 })[0]?.open.first, false);
+assert.equal(
+  newOpens(vRows, [{ ...view(1), scanId: "11111111-1111-1111-1111-111111111111" }], {}).length,
+  0,
+);
+
+// Cold email: with a report link, it's the call to action.
+const linked = render({
+  domain: "olipop.com",
+  firstName: "Brian",
+  ev: rejected,
+  postalAddress: "",
+  reportUrl: `https://www.getconsentinel.com/report/${sid}?t=abc`,
+});
+assert.match(
+  linked.text,
+  /I put the full report here: https:\/\/www\.getconsentinel\.com\/report\/e870acda[^\n]*\?t=abc\nWe also offer ongoing monitoring/,
+);
+assert.doesNotMatch(linked.text, /I'd love to share/);
+assert.match(
+  linked.html,
+  /href="https:\/\/www\.getconsentinel\.com\/report\/e870acda-31ad-4e14-bc05-974ed292f3c6\?t=abc"/,
+);
+assert.match(
+  render({ domain: "x.com", firstName: "", ev: rejected, postalAddress: "" }).text,
+  /I'd love to share the full report/,
 );
 
 console.log("outreach: all assertions passed");

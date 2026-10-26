@@ -199,6 +199,10 @@ export const scans = pgTable(
     result: jsonb("result").$type<ScanResult>(),
     /** Random token granting full-report access without a session. Null until shared. */
     shareToken: text("share_token"),
+    /** Opens of the share link by someone not signed in: the prospect, not Charlie. */
+    shareViews: integer("share_views").notNull().default(0),
+    shareFirstViewedAt: timestamp("share_first_viewed_at", { withTimezone: true }),
+    shareLastViewedAt: timestamp("share_last_viewed_at", { withTimezone: true }),
     error: text("error"),
     /**
      * Bot-management vendor that refused the scan, when one did. Set alongside

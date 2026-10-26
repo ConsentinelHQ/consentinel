@@ -16,7 +16,7 @@ import {
 } from "../src/repository";
 import { fingerprintFinding } from "../src/fingerprint";
 import { canonicalJson, verifySeal } from "../src/evidence";
-import { getEvidencePack } from "../src/repository";
+import { getEvidencePack, listReportViews, recordShareView } from "../src/repository";
 import { eq } from "drizzle-orm";
 import { scans } from "../src/schema";
 import { orgs } from "../src/schema";
@@ -232,6 +232,20 @@ async function main(): Promise<void> {
   check(
     "canonical JSON ignores key order",
     canonicalJson({ b: 1, a: [{ d: 2, c: 3 }] }) === canonicalJson({ a: [{ c: 3, d: 2 }], b: 1 }),
+  );
+
+  // --- share view tracking ---
+  const since = new Date(Date.now() - 60_000);
+  await recordShareView(db, scan1.id);
+  await recordShareView(db, scan1.id);
+  const views = await listReportViews(db, since);
+  const v1 = views.find((v) => v.scanId === scan1.id);
+  check("share views count every open", v1?.views === 2);
+  check("first and last view recorded", !!v1 && v1.firstViewedAt <= v1.lastViewedAt);
+  check("unviewed scans not listed", !views.some((v) => v.scanId === scan2.id));
+  check(
+    "viewing doesn't break the seal",
+    verifySeal((await getScan(db, scan1.id))!).state === "verified",
   );
 
   // --- cascade integrity ---

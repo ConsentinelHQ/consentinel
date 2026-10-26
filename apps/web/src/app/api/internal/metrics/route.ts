@@ -139,8 +139,15 @@ export async function GET(request: Request): Promise<NextResponse> {
     if (r.status === "failed") t.failed += 1;
   }
 
+  // Prospect reports are site-less scans; an open = a share link viewed by someone signed out.
+  const [opens] = await database
+    .select({ n: count })
+    .from(scans)
+    .where(and(sql`${scans.siteId} is null`, gt(scans.shareLastViewedAt, since)));
+
   return NextResponse.json({
     hours,
+    reportOpens: opens?.n ?? 0,
     users: {
       total: realUsers.length,
       new: realUsers.filter((u) => u.createdAt > since).length,

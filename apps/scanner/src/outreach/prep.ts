@@ -50,7 +50,7 @@ export function reportReply(input: {
   return { subject, text, html };
 }
 
-interface ApiOpts {
+export interface ApiOpts {
   base: string;
   key: string;
 }
@@ -82,6 +82,37 @@ export interface PrepResult {
   reason?: string;
 }
 
+/**
+ * Scan a site through the production API and return a share link to its full
+ * report. The link is what open tracking counts.
+ */
+export async function fetchReport(
+  o: ApiOpts,
+  domain: string,
+): Promise<{ reportUrl: string; scanId: string; critical?: number } | string> {
+  const { scanId } = await api<{ scanId: string }>(o, "/api/internal/prospect-report", {
+    method: "POST",
+    body: JSON.stringify({ url: domain }),
+  });
+  let scan: ScanStatus = { status: "queued" };
+  const deadline = Date.now() + TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    scan = await api<ScanStatus>(o, `/api/internal/prospect-report?scanId=${scanId}`);
+    if (scan.status === "complete" || scan.status === "failed") break;
+    await new Promise((r) => setTimeout(r, POLL_MS));
+  }
+  if (scan.status !== "complete" || !scan.reportUrl) {
+    return scan.status === "failed"
+      ? `scan failed${scan.blockedBy ? ` (blocked by ${scan.blockedBy})` : ""}: ${scan.error ?? ""}`
+      : "scan didn't finish in 6 minutes";
+  }
+  return {
+    reportUrl: scan.reportUrl,
+    scanId,
+    ...(scan.critical !== undefined ? { critical: scan.critical } : {}),
+  };
+}
+
 export async function prep(
   sheetId: string,
   tab: string,
@@ -92,25 +123,9 @@ export async function prep(
   const domain = normDomain(domainInput);
   const o = { base: opts.apiBase.replace(/\/$/, ""), key: opts.apiKey };
 
-  const { scanId } = await api<{ scanId: string }>(o, "/api/internal/prospect-report", {
-    method: "POST",
-    body: JSON.stringify({ url: domain }),
-  });
-
-  let scan: ScanStatus = { status: "queued" };
-  const deadline = Date.now() + TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    scan = await api<ScanStatus>(o, `/api/internal/prospect-report?scanId=${scanId}`);
-    if (scan.status === "complete" || scan.status === "failed") break;
-    await new Promise((r) => setTimeout(r, POLL_MS));
-  }
-  if (scan.status !== "complete" || !scan.reportUrl) {
-    const reason =
-      scan.status === "failed"
-        ? `scan failed${scan.blockedBy ? ` (blocked by ${scan.blockedBy})` : ""}: ${scan.error ?? ""}`
-        : "scan didn't finish in 6 minutes";
-    return { domain, status: "failed", reason };
-  }
+  const got = await fetchReport(o, domain);
+  if (typeof got === "string") return { domain, status: "failed", reason: got };
+  const scan = { reportUrl: got.reportUrl, critical: got.critical };
 
   const row = sheet.rows.find((r) => normDomain(r.values["Domain"] ?? "") === domain);
   const today = nyDate(new Date());

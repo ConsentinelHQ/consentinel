@@ -19,6 +19,8 @@ export interface TemplateInput {
   ev: Evidence;
   /** Optional footer line. Empty leaves it out. */
   postalAddress: string;
+  /** Share link to their full report. Without one, the email offers to send it. */
+  reportUrl?: string;
 }
 
 /** The deadline that makes this urgent: AB 566, effective January 1, 2027. */
@@ -65,7 +67,7 @@ const MIN_GPC_BULLET = 2;
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export function render({ domain, firstName, ev, postalAddress }: TemplateInput): Email {
+export function render({ domain, firstName, ev, postalAddress, reportUrl }: TemplateInput): Email {
   const greeting = `Hi ${firstName.trim() || "there"},`;
   const intro =
     "Sorry to bother, my name is Charlie Buckley - I'm the founder of Consentinel, a tool that checks whether websites actually respect their visitors' privacy choices.";
@@ -73,8 +75,11 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
   const items = bullets(ev);
   const law =
     "This is the exact pattern behind a wave of lawsuits right now. Plaintiffs' firms are suing retailers under California's wiretap law (CIPA) when trackers fire after a visitor opts out, and regulators have fined Sephora $1.2M and Healthline $1.55M for not honoring opt-outs.";
-  const offer =
-    "I'd love to share the full report with you if you're interested. We also offer ongoing monitoring that rescans your site daily and alerts you if something new starts firing.";
+  const monitoring =
+    "We also offer ongoing monitoring that rescans your site daily and alerts you if something new starts firing.";
+  const offer = reportUrl
+    ? `I put the full report here: ${reportUrl}`
+    : `I'd love to share the full report with you if you're interested. ${monitoring}`;
   const close = "Happy to connect if interested - just wanted to make you aware of these gaps.";
   const sig = ["Thank you,", "Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
   const optOut = "If you'd rather not hear from me, just reply and I won't email again.";
@@ -91,6 +96,7 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
     law,
     "",
     offer,
+    ...(reportUrl ? [monitoring] : []),
     "",
     close,
     "",
@@ -107,7 +113,11 @@ export function render({ domain, firstName, ev, postalAddress }: TemplateInput):
     p(esc(lead)),
     `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`,
     p(esc(law)),
-    p(esc(offer)),
+    reportUrl
+      ? p(
+          `I put the full report here: <a href="${esc(reportUrl)}">${esc(reportUrl.replace(/\?.*$/, ""))}</a><br>${esc(monitoring)}`,
+        )
+      : p(esc(offer)),
     p(esc(close)),
     p(
       sig
