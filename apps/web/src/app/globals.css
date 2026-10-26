@@ -1381,6 +1381,17 @@ body > footer {
   background: #fef2f2;
   color: #991b1b;
 }
+.pause-scans {
+  position: relative;
+}
+.site-actions .pause-scans .form-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 0.6rem 0 0;
+  white-space: nowrap;
+}
+
 .archived-banner {
   display: flex;
   gap: 16px;

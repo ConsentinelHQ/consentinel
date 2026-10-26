@@ -16,7 +16,14 @@ import {
 } from "../src/repository";
 import { fingerprintFinding } from "../src/fingerprint";
 import { canonicalJson, verifySeal } from "../src/evidence";
-import { getEvidencePack, listReportViews, recordShareView } from "../src/repository";
+import {
+  getEvidencePack,
+  listDueSites,
+  listReportViews,
+  recordShareView,
+  setSitePaused,
+  setSiteSchedule,
+} from "../src/repository";
 import { eq } from "drizzle-orm";
 import { scans } from "../src/schema";
 import { orgs } from "../src/schema";
@@ -159,6 +166,18 @@ async function main(): Promise<void> {
   if (!org) throw new Error("org insert failed");
   const siteId = await addSite(db, org.id, url, "Test shop");
   check("addSite is idempotent", (await addSite(db, org.id, url)) === siteId);
+
+  // --- pause: scheduler skips the site, cadence survives ---
+  await db.update(orgs).set({ plan: "monitoring" }).where(eq(orgs.id, org.id));
+  await setSiteSchedule(db, siteId, org.id, "daily");
+  const due = async (): Promise<boolean> => (await listDueSites(db)).some((d) => d.id === siteId);
+  check("daily site is due", await due());
+  await setSitePaused(db, siteId, org.id, true);
+  check("paused site is not due", !(await due()));
+  await setSitePaused(db, siteId, org.id, false);
+  check("resumed site is due again", await due());
+  await setSiteSchedule(db, siteId, org.id, "off");
+  await db.update(orgs).set({ plan: "none" }).where(eq(orgs.id, org.id));
 
   const scan2 = await createScan(db, { url, siteId, trigger: "scheduled" });
   // Meta fixed, GA4 still there, a NEW critical appeared.

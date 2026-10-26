@@ -60,7 +60,11 @@ export default async function Dashboard() {
                           : `${String(site.lastCritical ?? 0)} critical`}
                 </span>
                 <span className="site-schedule">
-                  {site.schedule === "off" ? "manual" : site.schedule}
+                  {site.schedule === "off"
+                    ? "manual"
+                    : site.pausedAt !== null
+                      ? `${site.schedule}, paused`
+                      : site.schedule}
                 </span>
               </Link>
             </li>

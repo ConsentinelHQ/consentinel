@@ -127,6 +127,8 @@ export const sites = pgTable(
     client: text("client"),
     /** How often to scan automatically. "off" means manual only. */
     schedule: text("schedule").$type<ScanSchedule>().notNull().default("off"),
+    /** Scheduled scans on hold. Keeps the cadence and the plan slot; manual scans still work. */
+    pausedAt: timestamp("paused_at", { withTimezone: true }),
     /** Set by the scheduler after each run, so a query can find what is due. */
     lastScheduledAt: timestamp("last_scheduled_at", { withTimezone: true }),
     // Baseline for regression alerting (Epic 4.3). Nullable until one is approved.
