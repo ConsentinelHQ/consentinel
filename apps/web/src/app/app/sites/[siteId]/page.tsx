@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBillingState, getSiteForOrg, isEntitled, listScansForSite } from "@consentinel/db";
+import {
+  activePlan,
+  getBillingState,
+  getSiteForOrg,
+  isEntitled,
+  listScansForSite,
+} from "@consentinel/db";
 import { ScheduleControl } from "@/components/schedule-control";
 import { ScanNowButton } from "@/components/scan-now-button";
 import { ScanProgress } from "@/components/scan-progress";
@@ -24,8 +30,15 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
   const site = await getSiteForOrg(db(), siteId, session.orgId);
   if (!site) notFound();
 
-  const scans = await listScansForSite(db(), siteId, 20);
-  const entitled = isEntitled(await getBillingState(db(), session.orgId));
+  const billing = await getBillingState(db(), session.orgId);
+  const entitled = isEntitled(billing);
+  // History is kept for every plan; the plan sets how far back it shows.
+  const historyDays = activePlan(billing)?.historyDays ?? 30;
+  const cutoff = Date.now() - historyDays * 86_400_000;
+  const all = await listScansForSite(db(), siteId, 400);
+  const scans = all.filter((s) => (s.finishedAt ?? s.queuedAt).getTime() >= cutoff).slice(0, 60);
+  const hidden =
+    all.length - all.filter((s) => (s.finishedAt ?? s.queuedAt).getTime() >= cutoff).length;
 
   // Matches the API's 30-minute window: a scan stuck longer than that’s stalled,
   // not in flight, so it can never lock the Scan now button forever.
@@ -67,7 +80,13 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
 
       <AutoRefresh active={scans.some(isActive)} />
 
-      <h2 className="section-label">Scan history</h2>
+      <h2 className="section-label">
+        Scan history
+        <span className="quiet history-window">
+          {" "}
+          · last {historyDays === 365 ? "12 months" : `${String(historyDays)} days`}, sealed
+        </span>
+      </h2>
 
       {scans.length === 0 ? (
         <div className="empty">
@@ -111,6 +130,13 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
             </li>
           ))}
         </ul>
+      )}
+
+      {hidden > 0 && (
+        <p className="quiet history-more">
+          {hidden} older {hidden === 1 ? "scan is" : "scans are"} kept and sealed.{" "}
+          <Link href="/app/billing">Growth shows 12 months of history.</Link>
+        </p>
       )}
 
       {site.archivedAt === null && (

@@ -208,6 +208,10 @@ export const scans = pgTable(
     blockedBy: text("blocked_by"),
     /** Jira issue whose transition to Done started this scan. The verdict is posted back to it. */
     jiraIssueKey: text("jira_issue_key"),
+    /** SHA-256 over this scan's result, URL, finish time and the previous hash. See evidence.ts. */
+    evidenceHash: text("evidence_hash"),
+    /** The same site's previous sealed scan, chaining history so edits and deletions show. */
+    prevEvidenceHash: text("prev_evidence_hash"),
     queuedAt: timestamp("queued_at", { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),

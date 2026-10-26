@@ -15,6 +15,10 @@ import {
   upsertUser,
 } from "../src/repository";
 import { fingerprintFinding } from "../src/fingerprint";
+import { canonicalJson, verifySeal } from "../src/evidence";
+import { getEvidencePack } from "../src/repository";
+import { eq } from "drizzle-orm";
+import { scans } from "../src/schema";
 import { orgs } from "../src/schema";
 
 const checks: Array<[string, boolean]> = [];
@@ -188,6 +192,47 @@ async function main(): Promise<void> {
 
   const history = await listScansForSite(db, siteId);
   check("site history returns its scans", history.length === 1 && history[0]?.id === scan2.id);
+
+  // --- evidence seal ---
+  const sealed1 = await getScan(db, scan1.id);
+  check(
+    "anonymous scan is sealed with no previous link",
+    !!sealed1?.evidenceHash && sealed1.prevEvidenceHash === null,
+  );
+  check(
+    "sealed scan verifies after the jsonb round trip",
+    !!sealed1 && verifySeal(sealed1).state === "verified",
+  );
+  const scan3 = await createScan(db, { url, siteId, trigger: "scheduled" });
+  await completeScan(db, scan3.id, result(url, [gaF]));
+  const s2 = await getScan(db, scan2.id);
+  const s3 = await getScan(db, scan3.id);
+  check(
+    "next scan chains to the previous one",
+    !!s2?.evidenceHash && s3?.prevEvidenceHash === s2.evidenceHash,
+  );
+  const pack = await getEvidencePack(db, scan3.id, org.id);
+  check(
+    "evidence pack verifies and links",
+    pack?.seal.state === "verified" && pack.chain === "linked",
+  );
+  check(
+    "evidence pack is org-scoped",
+    (await getEvidencePack(db, scan3.id, randomUUID())) === null,
+  );
+  // Any edit to a stored result breaks the seal.
+  await db
+    .update(scans)
+    .set({ headline: "edited", result: { ...s3!.result!, headline: "edited" } })
+    .where(eq(scans.id, scan3.id));
+  check(
+    "an edited result fails verification",
+    (await getEvidencePack(db, scan3.id, org.id))?.seal.state === "mismatch",
+  );
+  check(
+    "canonical JSON ignores key order",
+    canonicalJson({ b: 1, a: [{ d: 2, c: 3 }] }) === canonicalJson({ a: [{ c: 3, d: 2 }], b: 1 }),
+  );
 
   // --- cascade integrity ---
   const orphan = await findCachedScan(db, url, 60 * 60 * 1000);

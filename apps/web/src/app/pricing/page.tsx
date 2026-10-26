@@ -81,9 +81,7 @@ export default function Pricing() {
               </li>
               <li>Slack alerts</li>
               <li>Jira tickets, with fixes verified when a ticket closes</li>
-              <li>
-                PDF exports <span className="soon">Coming soon</span>
-              </li>
+              <li>Sealed evidence packs for demand letters, as PDF and raw JSON</li>
             </ul>
             <Link className="tier-cta" href="/app/billing">
               Start {growth.name}

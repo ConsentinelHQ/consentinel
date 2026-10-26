@@ -151,9 +151,7 @@ export default async function Billing({
                       <>
                         <li>Slack alerts</li>
                         {p.jira ? <li>Jira sync with verified fixes</li> : null}
-                        <li>
-                          PDF evidence <em>Coming soon</em>
-                        </li>
+                        <li>Sealed evidence packs (PDF and JSON)</li>
                       </>
                     ) : null}
                     {p.workspaces ? (
