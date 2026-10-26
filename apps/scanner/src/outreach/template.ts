@@ -46,7 +46,34 @@ export function stillFire(list: string[]): string {
     : `${String(n)} ad vendors still fire, including ${named}`;
 }
 
-export function bullets(ev: Evidence): [string, string, string] {
+/** "TikTok or Attentive", "TikTok, Attentive or Klaviyo". */
+function joinOr(names: string[]): string {
+  if (names.length <= 1) return names.join("");
+  return `${names.slice(0, -1).join(", ")} or ${names[names.length - 1] ?? ""}`;
+}
+
+const COUNT_WORDS = ["", "", "both", "all three"];
+
+/** The policy line, only when every scan read the policy and found a vendor missing. */
+export function policyBullet(notMentioned: string[] | undefined): string | null {
+  const list = notMentioned ?? [];
+  const n = list.length;
+  if (n === 0) return null;
+  if (n === 1)
+    return `Your privacy policy doesn't mention ${list[0] ?? ""}, but it runs on your site`;
+  if (n <= 3)
+    return `Your privacy policy doesn't mention ${joinOr(list)}, but ${COUNT_WORDS[n] ?? ""} run on your site`;
+  const rest = n - 3;
+  return `Your privacy policy doesn't mention ${list.slice(0, 3).join(", ")} or ${String(rest)} other ${rest === 1 ? "vendor" : "vendors"}, but all of them run on your site`;
+}
+
+export function bullets(ev: Evidence): [string, string, string, ...string[]] {
+  const base = coreBullets(ev);
+  const policy = policyBullet(ev.notMentioned);
+  return policy ? [...base, policy] : base;
+}
+
+function coreBullets(ev: Evidence): [string, string, string] {
   const vendors = stillFire(ev.firing);
   const plural = ev.gated === 1 ? "vendor correctly" : "vendors correctly";
   // evaluate() only names vendors that fired in both runs, so this is literal.

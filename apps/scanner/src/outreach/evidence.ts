@@ -17,6 +17,11 @@ export interface Evidence {
    * every run. Empty when GPC wasn't tested or everything stopped.
    */
   gpcIgnored?: string[];
+  /**
+   * Vendors running that the site's privacy policy didn't mention, in every run
+   * whose policy was read. Absent unless every run read the policy.
+   */
+  notMentioned?: string[];
 }
 
 interface Tally {
@@ -83,6 +88,28 @@ export function gpcIgnoredInAll(results: ScanResult[]): string[] {
   return [...first].filter((v) => rest.every((s) => s.has(v)));
 }
 
+/**
+ * Not mentioned in every run, same two-scan bar as the rest of the email. Any
+ * run that couldn't read the policy voids the claim. Platform and CMP left out.
+ */
+export function notMentionedInAll(results: ScanResult[]): string[] {
+  if (results.length === 0) return [];
+  if (!results.every((r) => r.disclosure?.status === "checked")) return [];
+  const sets = results.map((r) => {
+    const self = r.cmp.detected ? canonicalVendor(r.cmp.detected.name) : null;
+    return new Set(
+      (r.disclosure?.notNamed ?? []).filter((v) => v !== self && !/^shopify\b/i.test(v)),
+    );
+  });
+  const [first, ...rest] = sets;
+  return byProminence([...(first ?? [])].filter((v) => rest.every((s) => s.has(v))));
+}
+
+const withPolicy = (ev: Evidence, runs: ScanResult[]): Evidence => {
+  const notMentioned = notMentionedInAll(runs);
+  return notMentioned.length > 0 ? { ...ev, notMentioned } : ev;
+};
+
 /** A clicked reject is the stronger claim; GPC only when no reject was possible. */
 export async function gather(url: string): Promise<Evidence | string> {
   try {
@@ -91,11 +118,11 @@ export async function gather(url: string): Promise<Evidence | string> {
       const runs = [normal, await scan(url)];
       const ev = evaluate("rejected", runs);
       const gpcIgnored = gpcIgnoredInAll(runs);
-      return gpcIgnored.length > 0 ? { ...ev, gpcIgnored } : ev;
+      return withPolicy(gpcIgnored.length > 0 ? { ...ev, gpcIgnored } : ev, runs);
     }
     const a = await scan(url, { gpc: true });
     const b = await scan(url, { gpc: true });
-    return evaluate("gpc", [a, b]);
+    return withPolicy(evaluate("gpc", [a, b]), [a, b]);
   } catch (error) {
     return `scan failed: ${error instanceof Error ? error.message : String(error)}`;
   }

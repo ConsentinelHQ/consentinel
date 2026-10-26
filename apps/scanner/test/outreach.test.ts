@@ -24,9 +24,9 @@ import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.
 import { isStore, storeSignals } from "../src/outreach/queue.js";
 import { renderBrief, windowHours } from "../src/outreach/brief.js";
 import { computeStats } from "../src/outreach/stats.js";
-import { bullets, render } from "../src/outreach/template.js";
+import { bullets, policyBullet, render } from "../src/outreach/template.js";
 import { DRAFTED, SENT, dueForRetouch, retouchEmail } from "../src/outreach/retouch.js";
-import { gpcIgnoredInAll } from "../src/outreach/evidence.js";
+import { gpcIgnoredInAll, notMentionedInAll } from "../src/outreach/evidence.js";
 import { RESEARCHED, cleanName, needList, needsContact } from "../src/outreach/research.js";
 import { wantedTitle } from "../src/outreach/contacts.js";
 import { newOpens, scanIdFromLink } from "../src/outreach/views.js";
@@ -1028,5 +1028,61 @@ assert.equal(
   0,
 );
 assert.equal(teamDue([researched], [], "2026-11-02").length, 0);
+
+// ---------- Policy bullet ----------
+assert.equal(policyBullet(undefined), null);
+assert.equal(policyBullet([]), null);
+assert.equal(
+  policyBullet(["TikTok"]),
+  "Your privacy policy doesn't mention TikTok, but it runs on your site",
+);
+assert.equal(
+  policyBullet(["TikTok", "Attentive"]),
+  "Your privacy policy doesn't mention TikTok or Attentive, but both run on your site",
+);
+assert.equal(
+  policyBullet(["TikTok", "Attentive", "Klaviyo"]),
+  "Your privacy policy doesn't mention TikTok, Attentive or Klaviyo, but all three run on your site",
+);
+assert.equal(
+  policyBullet(["TikTok", "Attentive", "Klaviyo", "Hotjar", "Criteo"]),
+  "Your privacy policy doesn't mention TikTok, Attentive, Klaviyo or 2 other vendors, but all of them run on your site",
+);
+assert.equal(bullets(rejected).length, 3);
+assert.equal(bullets({ ...rejected, notMentioned: ["TikTok", "Attentive"] }).length, 4);
+const withPol = render({
+  domain: "x.com",
+  firstName: "A",
+  ev: { ...gpc, notMentioned: ["TikTok"] },
+  postalAddress: "",
+});
+assert.match(
+  withPol.text,
+  /- Your privacy policy doesn't mention TikTok, but it runs on your site\n\n/,
+);
+assert.match(
+  withPol.html,
+  /<li>Your privacy policy doesn&#39;t mention TikTok|<li>Your privacy policy doesn't mention TikTok/,
+);
+
+const disc = (status: "checked" | "unreadable", notNamed: string[], cmp: string | null = null) =>
+  ({
+    cmp: {
+      detected: cmp ? { id: "c", name: cmp, confidence: "high" } : null,
+      consentMode: { present: false, defaultState: null },
+    },
+    disclosure: { status, policies: [], named: [], notNamed },
+  }) as unknown as ScanResult;
+// Only vendors missing in both runs, prominent names first, platform and CMP dropped.
+assert.deepEqual(
+  notMentionedInAll([
+    disc("checked", ["Attentive", "TikTok", "Hotjar", "Shopify", "OneTrust"], "OneTrust"),
+    disc("checked", ["Attentive", "TikTok", "Shopify", "OneTrust"], "OneTrust"),
+  ]),
+  ["TikTok", "Attentive"],
+);
+// One run that couldn't read the policy voids the claim.
+assert.deepEqual(notMentionedInAll([disc("checked", ["TikTok"]), disc("unreadable", [])]), []);
+assert.deepEqual(notMentionedInAll([]), []);
 
 console.log("outreach: all assertions passed");
