@@ -18,7 +18,13 @@ function host(url: string): string {
  * site's privacy or cookie policy names. Same look as the GPC test, so the two
  * read as one set of checks.
  */
-export function DisclosurePanel({ check }: { check: Disclosure }) {
+export function DisclosurePanel({
+  check,
+  upsell = false,
+}: {
+  check: Disclosure;
+  upsell?: boolean;
+}) {
   const missing = check.notNamed.length;
   const verdict =
     check.status === "no-policy"
@@ -82,6 +88,13 @@ export function DisclosurePanel({ check }: { check: Disclosure }) {
             />
           </div>
         </>
+      )}
+
+      {upsell && check.status === "checked" && missing > 0 && (
+        <p className="disclosure-upsell">
+          Monitoring checks this on every scan, alerts you when a new vendor isn’t covered, and
+          saves every version of your policy. <a href="/pricing">See plans</a>
+        </p>
       )}
 
       {check.policies.length > 0 && (

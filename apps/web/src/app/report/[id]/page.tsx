@@ -103,7 +103,7 @@ export default async function SharedReport({ params, searchParams }: Props) {
               <PrintButton />
             </div>
           ) : null}
-          <ScanResultView scanId={id} shareToken={t} />
+          <ScanResultView scanId={id} shareToken={t} upsell />
           {steps ? (
             <ReportNextSteps {...steps} />
           ) : (

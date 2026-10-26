@@ -8,7 +8,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
     <main>
       <section className="hero center">
         <div className="wrap">
-          <ScanResultView scanId={id} />
+          <ScanResultView scanId={id} upsell />
         </div>
       </section>
       <footer>

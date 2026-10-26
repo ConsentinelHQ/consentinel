@@ -19,6 +19,7 @@ export function ScanResultView({
   shareToken,
   actions,
   branded = false,
+  upsell = false,
 }: {
   scanId: string;
   shareToken?: string | undefined;
@@ -26,6 +27,8 @@ export function ScanResultView({
   actions?: ReactNode;
   /** White-label share: no Consentinel upsell or funnel links in the body. */
   branded?: boolean;
+  /** A prospect's view: point the disclosure panel at monitoring. */
+  upsell?: boolean;
 }) {
   const [state, setState] = useState<State>({ kind: "loading", status: "queued" });
 
@@ -107,7 +110,15 @@ export function ScanResultView({
     );
   }
 
-  return <Report actions={actions} branded={branded} report={state.report} scanId={scanId} />;
+  return (
+    <Report
+      actions={actions}
+      branded={branded}
+      report={state.report}
+      scanId={scanId}
+      upsell={upsell && !branded}
+    />
+  );
 }
 
 function Report({
@@ -115,11 +126,13 @@ function Report({
   scanId,
   actions,
   branded,
+  upsell,
 }: {
   report: FreeReport;
   scanId: string;
   actions?: ReactNode;
   branded: boolean;
+  upsell: boolean;
 }) {
   const clean = report.findings.length === 0;
 
@@ -179,7 +192,7 @@ function Report({
         </div>
 
         {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
-        {report.disclosure && <DisclosurePanel check={report.disclosure} />}
+        {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
 
         {!branded && (
           <div className="gate">
@@ -352,7 +365,7 @@ function Report({
       </div>
 
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
-      {report.disclosure && <DisclosurePanel check={report.disclosure} />}
+      {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
 
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
