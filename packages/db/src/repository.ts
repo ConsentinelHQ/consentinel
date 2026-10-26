@@ -16,6 +16,7 @@ import {
   type ScanTrigger,
 } from "./schema.js";
 import { fingerprintFinding } from "./fingerprint.js";
+import { evidenceHash, verifySeal, type Seal } from "./evidence.js";
 
 export interface CreateScanInput {
   url: string;
@@ -78,11 +79,44 @@ export async function completeScan(
   result: ScanResult,
 ): Promise<void> {
   await db.transaction(async (tx) => {
+    // Seal: chain onto the same site's latest sealed scan. Anonymous scans start their own chain.
+    const finishedAt = new Date();
+    const [current] = await tx
+      .select({ siteId: scans.siteId, url: scans.url })
+      .from(scans)
+      .where(eq(scans.id, scanId))
+      .limit(1);
+    const siteId = current?.siteId ?? null;
+    const [prev] = siteId
+      ? await tx
+          .select({ hash: scans.evidenceHash })
+          .from(scans)
+          .where(
+            and(
+              eq(scans.siteId, siteId),
+              eq(scans.status, "complete"),
+              isNotNull(scans.evidenceHash),
+              ne(scans.id, scanId),
+            ),
+          )
+          .orderBy(desc(scans.finishedAt))
+          .limit(1)
+      : [];
+    const prevHash = prev?.hash ?? null;
+    const hash = evidenceHash({
+      scanId,
+      url: current?.url ?? result.url,
+      finishedAt,
+      result,
+      prevHash,
+    });
     await tx
       .update(scans)
       .set({
         status: "complete",
-        finishedAt: new Date(),
+        finishedAt,
+        evidenceHash: hash,
+        prevEvidenceHash: prevHash,
         engineVersion: result.engineVersion,
         signatureLibraryVersion: result.signatureLibraryVersion,
         cmpRegistryVersion: result.cmpRegistryVersion,
@@ -727,4 +761,39 @@ export async function getSlackTargetForSite(
     .where(eq(sites.id, siteId))
     .limit(1);
   return row ?? null;
+}
+
+export interface EvidencePack {
+  scan: ScanRow;
+  siteId: string;
+  siteLabel: string | null;
+  seal: Seal;
+  /** The previous sealed scan still exists and its hash matches this scan's link. */
+  chain: "linked" | "first" | "broken";
+}
+
+/** One completed scan with its seal checked, only for a member of the owning org. */
+export async function getEvidencePack(
+  db: Database,
+  scanId: string,
+  orgId: string,
+): Promise<EvidencePack | null> {
+  const [row] = await db
+    .select({ scan: scans, siteLabel: sites.label, siteId: sites.id })
+    .from(scans)
+    .innerJoin(sites, eq(sites.id, scans.siteId))
+    .where(and(eq(scans.id, scanId), eq(sites.orgId, orgId)))
+    .limit(1);
+  if (!row || row.scan.status !== "complete" || !row.scan.result) return null;
+  const seal = verifySeal(row.scan);
+  let chain: EvidencePack["chain"] = "first";
+  if (row.scan.prevEvidenceHash) {
+    const [prev] = await db
+      .select({ id: scans.id })
+      .from(scans)
+      .where(and(eq(scans.siteId, row.siteId), eq(scans.evidenceHash, row.scan.prevEvidenceHash)))
+      .limit(1);
+    chain = prev ? "linked" : "broken";
+  }
+  return { scan: row.scan, siteId: row.siteId, siteLabel: row.siteLabel, seal, chain };
 }
