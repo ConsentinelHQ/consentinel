@@ -1,3 +1,4 @@
+import type { Role } from "./contacts.js";
 import { byProminence, joinNames, type Evidence } from "./evidence.js";
 
 /**
@@ -21,7 +22,18 @@ export interface TemplateInput {
   postalAddress: string;
   /** Share link to their full report. Without one, the email offers to send it. */
   reportUrl?: string;
+  /** Why this person in particular. The owner (who fixes it) needs no extra line. */
+  role?: Role;
+  /** Colleagues emailed the same day, named so nobody is surprised. */
+  alsoSent?: string[];
 }
+
+/** One line per role, after the findings. Plain, no pitch. */
+export const ROLE_LINE: Readonly<Record<Role, string | null>> = {
+  owner: null,
+  risk: "I'm sending this to you because the legal exposure here sits with the company, not with the ad vendors.",
+  budget: "Most of these are marketing tags, so the fix likely runs through your team.",
+};
 
 /** The deadline that makes this urgent: AB 566, effective January 1, 2027. */
 const DEADLINE = "which every browser has to offer starting January 1";
@@ -67,7 +79,20 @@ const MIN_GPC_BULLET = 2;
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export function render({ domain, firstName, ev, postalAddress, reportUrl }: TemplateInput): Email {
+export function render({
+  domain,
+  firstName,
+  ev,
+  postalAddress,
+  reportUrl,
+  role,
+  alsoSent = [],
+}: TemplateInput): Email {
+  const roleLine = role ? ROLE_LINE[role] : null;
+  const names = alsoSent.map((n) => n.trim()).filter(Boolean);
+  const also = names.length
+    ? `I've also sent this to ${joinNames(names)} so the right person sees it.`
+    : null;
   const greeting = `Hi ${firstName.trim() || "there"},`;
   const intro =
     "Sorry to bother, my name is Charlie Buckley - I'm the founder of Consentinel, a tool that checks whether websites actually respect their visitors' privacy choices.";
@@ -93,11 +118,13 @@ export function render({ domain, firstName, ev, postalAddress, reportUrl }: Temp
     "",
     ...items.map((i) => `- ${i}`),
     "",
+    ...(roleLine ? [roleLine, ""] : []),
     law,
     "",
     offer,
     ...(reportUrl ? [monitoring] : []),
     "",
+    ...(also ? [also, ""] : []),
     close,
     "",
     ...sig,
@@ -112,12 +139,14 @@ export function render({ domain, firstName, ev, postalAddress, reportUrl }: Temp
     p(esc(intro).replace("Consentinel", `<a href="${SITE}">Consentinel</a>`)),
     p(esc(lead)),
     `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`,
+    ...(roleLine ? [p(esc(roleLine))] : []),
     p(esc(law)),
     reportUrl
       ? p(
           `I put the full report here: <a href="${esc(reportUrl)}">${esc(reportUrl.replace(/\?.*$/, ""))}</a><br>${esc(monitoring)}`,
         )
       : p(esc(offer)),
+    ...(also ? [p(esc(also))] : []),
     p(esc(close)),
     p(
       sig

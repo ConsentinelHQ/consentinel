@@ -128,6 +128,20 @@ export async function send(from: string, to: string, email: Email): Promise<stri
   return r.id;
 }
 
+/**
+ * Deletes a draft. False when it's already gone, which is what a sent draft
+ * looks like: Gmail drops the draft id once the message goes out.
+ */
+export async function deleteDraft(id: string): Promise<boolean> {
+  const res = await fetch(`${GMAIL}/drafts/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${await accessToken()}` },
+  });
+  if (res.status === 404) return false;
+  if (!res.ok) throw new Error(`Google ${String(res.status)}: ${(await res.text()).slice(0, 300)}`);
+  return true;
+}
+
 /** Drafts sitting in Gmail, up to 500. */
 export async function countDrafts(): Promise<number> {
   const r = await google<{ drafts?: unknown[] }>(`${GMAIL}/drafts?maxResults=500`);
@@ -201,7 +215,7 @@ export const normDomain = (d: string): string =>
 
 export async function readSheet(id: string, tab: string): Promise<Sheet> {
   const r = await google<{ values?: string[][] }>(
-    `${SHEETS}/${id}/values/${encodeURIComponent(`${tab}!A1:Z`)}`,
+    `${SHEETS}/${id}/values/${encodeURIComponent(`${tab}!A1:AZ`)}`,
   );
   const [headers = [], ...rows] = r.values ?? [];
   const col = headers.findIndex((h) => h.trim().toLowerCase() === "domain");
@@ -245,6 +259,46 @@ export async function updateRow(
     method: "POST",
     body: JSON.stringify({ valueInputOption: "USER_ENTERED", data }),
   });
+}
+
+/**
+ * Adds any missing headers after the last column, widening the grid if needed.
+ * Updates sheet.headers in place so later writes land in the new columns.
+ */
+export async function ensureHeaders(
+  id: string,
+  tab: string,
+  sheet: Sheet,
+  wanted: readonly string[],
+): Promise<string[]> {
+  const missing = wanted.filter((h) => !sheet.headers.includes(h));
+  if (missing.length === 0) return [];
+  const meta = await google<{
+    sheets: {
+      properties: { sheetId: number; title: string; gridProperties: { columnCount: number } };
+    }[];
+  }>(`${SHEETS}/${id}?fields=sheets.properties`);
+  const props = meta.sheets.find((s) => s.properties.title === tab)?.properties;
+  if (!props) throw new Error(`no tab named ${tab}`);
+  const start = sheet.headers.length;
+  const need = start + missing.length - props.gridProperties.columnCount;
+  if (need > 0) {
+    await google(`${SHEETS}/${id}:batchUpdate`, {
+      method: "POST",
+      body: JSON.stringify({
+        requests: [
+          { appendDimension: { sheetId: props.sheetId, dimension: "COLUMNS", length: need } },
+        ],
+      }),
+    });
+  }
+  const range = `${tab}!${columnLetter(start)}1:${columnLetter(start + missing.length - 1)}1`;
+  await google(`${SHEETS}/${id}/values/${encodeURIComponent(range)}?valueInputOption=RAW`, {
+    method: "PUT",
+    body: JSON.stringify({ values: [missing] }),
+  });
+  sheet.headers.push(...missing);
+  return missing;
 }
 
 /** Writes by header name, so reordering sheet columns can't misfile data. */

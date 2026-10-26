@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { nyDate, repoRoot } from "./state.js";
+import { SLOTS, col, type Slot } from "./team.js";
 
 /**
  * Report opens: the one signal we get before a reply. A prospect's email links
@@ -21,6 +22,8 @@ export interface Open {
   views: number;
   /** True the first time this report is ever opened. */
   first: boolean;
+  /** Who the link was sent to, when the row names them. */
+  who?: string;
   lastViewedAt: string;
 }
 
@@ -70,17 +73,22 @@ export function newOpens(
   views: View[],
   seen: Record<string, number>,
 ): { row: SheetRow; open: Open; scanId: string }[] {
-  const byScan = new Map<string, SheetRow>();
+  // Each contact has their own report, so the link that was opened says who opened it.
+  const byScan = new Map<string, { row: SheetRow; slot: Slot }>();
   for (const row of rows) {
-    const id = scanIdFromLink(row.values["Report link"] ?? "");
-    if (id) byScan.set(id, row);
+    for (const slot of [1, ...SLOTS] as Slot[]) {
+      const id = scanIdFromLink(row.values[col("Report link", slot)] ?? "");
+      if (id) byScan.set(id, { row, slot });
+    }
   }
   const out: { row: SheetRow; open: Open; scanId: string }[] = [];
   for (const v of views) {
     const id = v.scanId.toLowerCase();
-    const row = byScan.get(id);
+    const hit = byScan.get(id);
     const before = seen[id] ?? 0;
-    if (!row || v.views <= before) continue;
+    if (!hit || v.views <= before) continue;
+    const { row, slot } = hit;
+    const who = (row.values[col("Contact", slot)] ?? "").trim();
     out.push({
       row,
       scanId: id,
@@ -89,6 +97,7 @@ export function newOpens(
         views: v.views,
         first: before === 0,
         lastViewedAt: v.lastViewedAt,
+        ...(who ? { who } : {}),
       },
     });
   }
@@ -116,7 +125,7 @@ export async function recordOpens(
   const opens: Open[] = [];
   for (const { row, open, scanId } of newOpens(sheet.rows, views, seen.views)) {
     const prior = row.values["Notes"] ?? "";
-    const n = `${today}: outreach bot - report opened (${String(open.views)} ${open.views === 1 ? "view" : "views"})`;
+    const n = `${today}: outreach bot - report opened${open.who ? ` by ${open.who}` : ""} (${String(open.views)} ${open.views === 1 ? "view" : "views"})`;
     const status = row.values["Status"] ?? "";
     // Someone who said no stays closed, however often they open the link.
     const closedByThem = /unsubscribe|not interested|not now/i.test(prior);

@@ -208,3 +208,145 @@ export async function findPerson(
   if (!anymailKey && !hunterKey) throw new Error("set ANYMAIL_API_KEY or HUNTER_API_KEY");
   return reasons.join("; ");
 }
+
+/**
+ * Three people per company, one per role: who fixes it, who carries the legal
+ * risk, and who owns the tags. A broken opt-out is a different problem to each.
+ */
+export type Role = "owner" | "risk" | "budget";
+
+export const ROLE_TITLES: Readonly<Record<Role, RegExp>> = {
+  owner:
+    /e-?commerce|digital (product|experience)|product|engineering|technology|\bcto\b|\bweb\b|developer/i,
+  risk: /privacy|legal|counsel|compliance|founder|\bceo\b|president|owner/i,
+  budget: /marketing|\bcmo\b|growth|brand|performance|acquisition|retention|lifecycle/i,
+};
+
+/** First role a title fits, in priority order. Null when it fits none. */
+export function roleFor(title: string): Role | null {
+  for (const role of ["owner", "risk", "budget"] as const) {
+    if (ROLE_TITLES[role].test(title)) return role;
+  }
+  return null;
+}
+
+export interface RoleContact extends Contact {
+  role: Role;
+}
+
+/** Anymail decision-maker categories per role, best first. */
+const ANYMAIL_ROLE: Readonly<Record<Role, string[]>> = {
+  owner: ["engineering", "it"],
+  risk: ["ceo"],
+  budget: ["marketing"],
+};
+
+async function anymailRole(
+  domain: string,
+  key: string,
+  role: Role,
+  exclude: string[],
+): Promise<RoleContact | null> {
+  const res = await fetch(ANYMAIL, {
+    method: "POST",
+    headers: { Authorization: key, "Content-Type": "application/json" },
+    body: JSON.stringify({ domain, decision_maker_category: ANYMAIL_ROLE[role] }),
+  });
+  if (!res.ok) throw new Error(`Anymail returned ${String(res.status)}`);
+  const body = (await res.json()) as AnymailResponse;
+  const email = body.valid_email?.toLowerCase();
+  if (body.email_status !== "valid" || !email || exclude.includes(email)) return null;
+  const fullName = body.person_full_name ?? "";
+  return {
+    role,
+    firstName: body.person_first_name ?? fullName.split(" ")[0] ?? "",
+    fullName,
+    email,
+    title: body.person_job_title ?? "",
+    verified: "valid",
+    source: "anymail",
+  };
+}
+
+interface HunterEmailV extends HunterEmail {
+  verification?: { status?: string | null } | null;
+}
+
+/** One Hunter search fills whichever roles Anymail missed. */
+async function hunterRoles(
+  domain: string,
+  key: string,
+  missing: Role[],
+  exclude: string[],
+): Promise<RoleContact[]> {
+  const { emails = [] } = await hunterGet<{ emails?: HunterEmailV[] }>(
+    "domain-search",
+    { domain, limit: "10", type: "personal" },
+    key,
+  );
+  const out: RoleContact[] = [];
+  for (const role of missing) {
+    const pick = emails
+      .filter((e) => !exclude.includes(e.value.toLowerCase()))
+      .filter((e) => !out.some((o) => o.email === e.value.toLowerCase()))
+      .filter((e) => roleFor(e.position ?? "") === role)
+      .sort((a, b) => b.confidence - a.confidence)[0];
+    if (!pick) continue;
+    // Hunter's own recent check saves a verification credit when it says valid.
+    let status = pick.verification?.status ?? "unknown";
+    if (status !== "valid") {
+      status =
+        (await hunterGet<{ status?: string }>("email-verifier", { email: pick.value }, key))
+          .status ?? "unknown";
+    }
+    if (status !== "valid" && status !== "accept_all") continue;
+    const firstName = pick.first_name ?? "";
+    out.push({
+      role,
+      firstName,
+      fullName: [firstName, pick.last_name ?? ""].join(" ").trim(),
+      email: pick.value.toLowerCase(),
+      title: pick.position ?? "",
+      verified: status,
+      source: "hunter",
+    });
+  }
+  return out;
+}
+
+/**
+ * Up to three people at a company, at most one per role, owner first. Anymail
+ * charges only on a hit, so it goes first per role; one Hunter search fills
+ * the gaps. Throws on outages or quota errors so the domain retries later.
+ */
+export async function findContacts(
+  domain: string,
+  exclude: string[] = [],
+  /** skip: roles already covered. hunter false keeps the 25 monthly Hunter searches for contact 1. */
+  opts: { skip?: Role[]; hunter?: boolean } = {},
+): Promise<RoleContact[] | string> {
+  const roles = (["owner", "risk", "budget"] as const).filter((r) => !opts.skip?.includes(r));
+  const found: RoleContact[] = [];
+  const taken = (): string[] => [...exclude, ...found.map((f) => f.email)];
+  const anymailKey = process.env["ANYMAIL_API_KEY"];
+  const hunterKey = opts.hunter === false ? undefined : process.env["HUNTER_API_KEY"];
+  if (!anymailKey && !hunterKey) throw new Error("set ANYMAIL_API_KEY or HUNTER_API_KEY");
+  if (anymailKey) {
+    for (const role of roles) {
+      const hit = await anymailRole(domain, anymailKey, role, taken());
+      if (hit) found.push(hit);
+    }
+  }
+  const missing = roles.filter((r) => !found.some((f) => f.role === r));
+  if (hunterKey && missing.length > 0) {
+    try {
+      found.push(...(await hunterRoles(domain, hunterKey, missing, taken())));
+    } catch (error) {
+      // Out of Hunter credits mid-month: keep who Anymail found rather than lose the company.
+      if (found.length === 0) throw error;
+    }
+  }
+  if (found.length === 0) return "no contact found for any role";
+  const order: Record<Role, number> = { owner: 0, risk: 1, budget: 2 };
+  return found.sort((a, b) => order[a.role] - order[b.role]);
+}
