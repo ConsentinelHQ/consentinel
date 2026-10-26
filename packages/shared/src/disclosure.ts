@@ -106,3 +106,28 @@ export function checkDisclosure(
   for (const v of unique) (termsFor(v).some((re) => re.test(all)) ? named : notNamed).push(v);
   return { named, notNamed };
 }
+
+export interface DisclosureChange {
+  vendor: string;
+  /** "started": newly seen running. "dropped": the policy used to mention it and no longer does. */
+  why: "started" | "dropped";
+}
+
+/**
+ * Vendors newly not mentioned versus recent checked scans. Compared against
+ * several scans, not one, because ad tags flicker: a vendor missing from one
+ * scan and back in the next isn't news. Null until there's a checked baseline.
+ */
+export function disclosureChanges(
+  current: DisclosureCheck | undefined,
+  previous: readonly (DisclosureCheck | undefined)[],
+): DisclosureChange[] | null {
+  if (current?.status !== "checked") return null;
+  const base = previous.filter((p): p is DisclosureCheck => p?.status === "checked");
+  if (base.length === 0) return null;
+  const before = new Set(base.flatMap((p) => p.notNamed));
+  const named = new Set(base.flatMap((p) => p.named));
+  return current.notNamed
+    .filter((v) => !before.has(v))
+    .map((vendor) => ({ vendor, why: named.has(vendor) ? "dropped" : "started" }));
+}

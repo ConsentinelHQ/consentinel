@@ -10,7 +10,8 @@ import {
   type Database,
   type DiffItem,
 } from "@consentinel/db";
-import { sendRegressionAlert } from "@consentinel/notify";
+import { sendDisclosureAlert, sendRegressionAlert } from "@consentinel/notify";
+import { disclosureChanges, type DisclosureChange, type ScanResult } from "@consentinel/shared";
 import type { ScannerConfig } from "./config.js";
 import { openJiraIssueForRegression } from "./jira-sync.js";
 
@@ -39,15 +40,7 @@ export async function alertOnRegression(
     await openJiraIssueForRegression(db, scan, added, config);
   }
 
-  const recipients = await listAlertRecipients(db, scan.siteId);
-  const to = [...new Set(recipients.map((r) => r.email))].filter((e) => e.length > 0);
-  const memberSet = new Set(to);
-  const external = (await listExternalAlertRecipients(db, scan.siteId))
-    .filter((r) => !memberSet.has(r.email))
-    .map((r) => ({
-      email: r.email,
-      unsubscribeUrl: `${config.APP_URL}/unsubscribe?t=${encodeURIComponent(r.unsubscribeToken)}`,
-    }));
+  const { to, external } = await recipientsFor(db, scan.siteId, config);
   // Slack is gated on the plan, not on who gets email, so it goes first.
   await postSlackAlert(
     db,
@@ -76,6 +69,80 @@ export async function alertOnRegression(
   } else {
     console.log(`alert sent for ${scan.url}: ${String(added.length)} new critical`);
   }
+}
+
+/** Members and outside recipients for a site's alerts, deduped. */
+async function recipientsFor(
+  db: Database,
+  siteId: string,
+  config: ScannerConfig,
+): Promise<{ to: string[]; external: { email: string; unsubscribeUrl: string }[] }> {
+  const recipients = await listAlertRecipients(db, siteId);
+  const to = [...new Set(recipients.map((r) => r.email))].filter((e) => e.length > 0);
+  const memberSet = new Set(to);
+  const external = (await listExternalAlertRecipients(db, siteId))
+    .filter((r) => !memberSet.has(r.email))
+    .map((r) => ({
+      email: r.email,
+      unsubscribeUrl: `${config.APP_URL}/unsubscribe?t=${encodeURIComponent(r.unsubscribeToken)}`,
+    }));
+  return { to, external };
+}
+
+/**
+ * Emails the org when a vendor starts running that the site's privacy policy
+ * doesn't mention, or the policy stops mentioning one that still runs. Same
+ * triggers as regression alerts; compared against the last 3 checked scans.
+ */
+export async function alertOnDisclosure(
+  db: Database,
+  scanId: string,
+  config: ScannerConfig,
+): Promise<void> {
+  const scan = await getScan(db, scanId);
+  if (!scan?.siteId) return;
+  if (scan.trigger !== "scheduled" && scan.trigger !== "deploy" && scan.trigger !== "jira") return;
+  const changes = await newDisclosureGaps(db, scan);
+  if (!changes || changes.length === 0) return;
+
+  const reportUrl = `${config.APP_URL}/app/scans/${scanId}`;
+  const { to, external } = await recipientsFor(db, scan.siteId, config);
+  await postSlack(db, scan.siteId, disclosureSlackText(scan.url, changes, reportUrl));
+  if (to.length === 0 && external.length === 0) return;
+
+  const policyUrl = scan.result?.disclosure?.policies.find((p) => p.kind === "privacy")?.url;
+  const result = await sendDisclosureAlert({
+    to,
+    external,
+    siteUrl: scan.url,
+    changes,
+    reportUrl,
+    ...(policyUrl ? { policyUrl } : {}),
+  });
+  if (!result.sent) console.error("disclosure alert not sent", { scanId, reason: result.reason });
+  else console.log(`disclosure alert sent for ${scan.url}: ${String(changes.length)} vendors`);
+}
+
+export async function newDisclosureGaps(
+  db: Database,
+  scan: { id: string; siteId: string | null; result: ScanResult | null },
+): Promise<DisclosureChange[] | null> {
+  if (!scan.siteId || !scan.result?.disclosure) return null;
+  const previous = await findPreviousScans(db, scan.siteId, scan.id, 3);
+  return disclosureChanges(
+    scan.result.disclosure,
+    previous.map((p) => p.result?.disclosure),
+  );
+}
+
+export function disclosureSlackText(
+  siteUrl: string,
+  changes: DisclosureChange[],
+  reportUrl: string,
+): string {
+  const host = new URL(siteUrl).hostname.replace(/^www\./, "");
+  const names = changes.map((c) => c.vendor).join(", ");
+  return `${names} ${changes.length === 1 ? "is" : "are"} running on ${host} and the privacy policy doesn't mention ${changes.length === 1 ? "it" : "them"}. <${reportUrl}|See the report>`;
 }
 
 /**
@@ -116,6 +183,23 @@ export async function newCriticalFindings(
     scan.id,
   );
   return diff.added.filter((f) => f.severity === "critical");
+}
+
+/** Never throws: a Slack outage must not fail the scan or block the email. */
+async function postSlack(db: Database, siteId: string, text: string): Promise<void> {
+  try {
+    const target = await getSlackTargetForSite(db, siteId);
+    if (!target?.url) return;
+    if (!can(await getBillingState(db, target.orgId), "slack")) return;
+    const res = await fetch(target.url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) console.error("slack alert not sent", { siteId, status: res.status });
+  } catch (error) {
+    console.error("slack alert failed", error);
+  }
 }
 
 /** Never throws: a Slack outage must not fail the scan or block the email. */
