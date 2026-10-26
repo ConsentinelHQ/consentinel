@@ -448,3 +448,28 @@ function adaptForGpc(report: FreeReport): FreeReport {
     })),
   };
 }
+
+/**
+ * A plain-text fix list a marketing lead can paste to their developer: one line
+ * per vendor to change, the tags it also clears, and what to do. Built from the
+ * same grouped rows as the full report, so the two never disagree.
+ */
+export function fixList(result: ScanResult, reportUrl: string): string {
+  const report = toFullReport(result);
+  const host = result.url.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  const rows = report.findings.filter(
+    (f) => !f.locked && !f.causedBy && f.severity !== "info" && f.remediation,
+  );
+  const day = result.scannedAt.slice(0, 10);
+  const lines = [
+    `Consent fixes for ${host} (scanned ${day})`,
+    "",
+    ...rows.map((f, i) => {
+      const also = f.triggers?.length ? ` Also clears: ${joinList(f.triggers)}.` : "";
+      return `${String(i + 1)}. ${f.vendor} (${f.severity}): ${f.remediation ?? ""}${also}`;
+    }),
+    "",
+    `Full report with the request behind each finding: ${reportUrl}`,
+  ];
+  return lines.join("\n");
+}
