@@ -216,6 +216,11 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
           hash for the same site.
         </p>
         <p>This record describes what was observed. It is not legal advice.</p>
+        <p className="evidence-more">
+          Need a date range?{" "}
+          <Link href={`/app/sites/${pack.siteId}/demand`}>Build a demand letter pack</Link> with
+          every scan around the dates a letter claims.
+        </p>
       </footer>
     </div>
   );

@@ -89,6 +89,13 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         )}
       </div>
 
+      <p className="quiet demand-site-link">
+        Got a demand letter?{" "}
+        <Link href={`/app/sites/${site.id}/demand`}>
+          Build a response pack for the dates it claims
+        </Link>
+      </p>
+
       <DeployHookPanel entitled={entitled} siteId={site.id} token={site.deployHookToken} />
 
       <AllowlistPanel open={scans[0]?.blockedBy != null} token={site.scanToken} />

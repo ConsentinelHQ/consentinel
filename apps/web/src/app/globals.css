@@ -2821,7 +2821,7 @@ section.panel.panel-gap {
   height: 38px;
   margin: 0;
   padding: 0 0.75rem;
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--hairline);
   border-radius: 8px;
   background: #fff;
   color: inherit;
@@ -3153,7 +3153,7 @@ a.nav-cta:hover {
 .plan-card .billing-actions + .billing-actions button {
   background: #fff;
   color: #18181b;
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--hairline);
 }
 .plan-card .billing-actions + .billing-actions button:hover {
   border-color: #18181b;
@@ -3175,7 +3175,7 @@ a.nav-cta:hover {
   height: 38px;
   margin: 0;
   padding: 0 0.75rem;
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--hairline);
   border-radius: 8px;
   background: #fff;
   color: inherit;
@@ -4223,8 +4223,10 @@ body:has(.wl-report) > .nav {
   justify-content: flex-end;
   margin-bottom: 1rem;
 }
-button.print-button {
+button.print-button,
+a.print-button {
   display: inline-flex;
+  text-decoration: none;
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.8rem;
@@ -4237,7 +4239,8 @@ button.print-button {
     background 0.15s ease,
     border-color 0.15s ease;
 }
-button.print-button:hover:not(:disabled) {
+button.print-button:hover:not(:disabled),
+a.print-button:hover {
   background: #f4f4f5;
   border-color: #d4d4d8;
 }
@@ -5555,5 +5558,78 @@ a.print-button {
   }
   .next-step:hover {
     transform: none;
+  }
+}
+
+/* Demand letter pack */
+.demand-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin: 1rem 0 0.5rem;
+}
+.demand-range label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+.demand-range input {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+}
+.demand-range .evidence-toolbar {
+  margin: 0 0 0 auto;
+}
+.demand-range button[type="submit"] {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.9rem;
+}
+.demand-note {
+  margin: 0 0 1rem;
+}
+.demand .evidence-head {
+  margin: 2.25rem 0 2rem;
+}
+.demand-summary p {
+  max-width: 68ch;
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+.demand-log tr[data-outside] td {
+  opacity: 0.6;
+}
+.demand-seal.mismatch {
+  color: var(--critical);
+  font-weight: 600;
+}
+.demand-site-link {
+  margin: -1.5rem 0 2.5rem;
+}
+@media (max-width: 640px) {
+  .demand-range .evidence-toolbar {
+    margin: 0.25rem 0 0;
+  }
+  .demand td[data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--ink-soft);
+  }
+  .demand-seal .proof {
+    display: none;
+  }
+}
+@media print {
+  .demand-range,
+  .demand-note,
+  .demand > .quiet:first-child {
+    display: none !important;
+  }
+  .demand-log tr[data-outside] td {
+    opacity: 1;
   }
 }
