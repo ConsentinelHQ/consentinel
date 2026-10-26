@@ -5217,6 +5217,10 @@ a.print-button {
 .evidence {
   max-width: 52rem;
 }
+.evidence section:not(.evidence-seal) {
+  padding: 0;
+  margin: 0 0 2rem;
+}
 .evidence-toolbar {
   display: flex;
   gap: 0.6rem;
@@ -5305,9 +5309,16 @@ a.print-button {
   color: var(--warning);
 }
 .evidence-findings .proof {
-  font-size: 0.75rem;
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
   word-break: break-all;
-  max-width: 22rem;
+}
+.evidence-findings .observed {
+  width: 9rem;
+  color: var(--ink-soft);
 }
 .evidence .mono {
   font-family: var(--font-mono);
@@ -5341,9 +5352,37 @@ a.print-button {
   }
 }
 @media print {
+  .dash-side,
   .evidence-toolbar,
   .evidence > .quiet:first-child {
     display: none !important;
+  }
+  .dash,
+  .dash-main {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .evidence {
+    max-width: none;
+    padding: 0 !important;
+  }
+  .evidence section:not(.evidence-seal) {
+    margin: 0 0 1.25rem;
+  }
+  .evidence .section-label {
+    margin: 1rem 0 0.5rem;
+    break-after: avoid;
+  }
+  .evidence-seal {
+    margin: 1rem 0;
+  }
+  .evidence-facts,
+  .evidence-findings {
+    font-size: 9.5pt;
+  }
+  .evidence-findings .proof {
+    font-size: 7.5pt;
   }
   .evidence-seal {
     animation: none;

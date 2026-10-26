@@ -159,7 +159,7 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
               </tr>
             )}
             <tr>
-              <th>Waited for consent</th>
+              <th>Ran only after accept</th>
               <td>
                 {result.correctlyGated.length > 0
                   ? result.correctlyGated.map((g) => g.vendor).join(", ")
@@ -186,9 +186,8 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
             <thead>
               <tr>
                 <th>Severity</th>
-                <th>Finding</th>
+                <th>Finding and proof</th>
                 <th>Observed</th>
-                <th>Proof</th>
               </tr>
             </thead>
             <tbody>
@@ -198,9 +197,9 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
                   <td>
                     <strong>{f.title}</strong>
                     {f.causedBy && <span className="quiet"> Loaded by {f.causedBy}.</span>}
+                    <span className="mono proof">{proofLine(f)}</span>
                   </td>
-                  <td>{observedLabel(f)}</td>
-                  <td className="mono proof">{proofLine(f)}</td>
+                  <td className="observed">{observedLabel(f)}</td>
                 </tr>
               ))}
             </tbody>
