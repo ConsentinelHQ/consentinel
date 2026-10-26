@@ -18,6 +18,8 @@ export interface Metrics {
   failedCustomerScans: { url: string; trigger: string; reason: string }[];
   leads: { total: number; consented: number };
   inquiries: number;
+  /** Prospect report links opened in the window. Absent on older web deploys. */
+  reportOpens?: number;
 }
 
 export async function fetchMetrics(base: string, key: string, hours: number): Promise<Metrics> {
@@ -85,7 +87,7 @@ export function renderBrief(b: BriefInput): string {
       `*Product (${span}):* ${plural(m.users.new, "signup")} (${String(m.users.total)} total), ${plural(free, "free scan")}, ${plural(sched, "scheduled scan")} across ${plural(m.monitoredSites, "monitored site")}`,
     );
     lines.push(
-      `*Inbound (${span}):* ${plural(m.leads.total, "lead")} (${String(m.leads.consented)} consented), ${plural(m.inquiries, "inquiry", "inquiries")}`,
+      `*Inbound (${span}):* ${plural(m.leads.total, "lead")} (${String(m.leads.consented)} consented), ${plural(m.inquiries, "inquiry", "inquiries")}${m.reportOpens !== undefined ? `, ${plural(m.reportOpens, "prospect report opened", "prospect reports opened")}` : ""}`,
     );
   }
 

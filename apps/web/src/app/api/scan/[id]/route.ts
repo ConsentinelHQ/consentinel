@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { eq, getScan, orgMembers, orgs, shareTokenMatches, sites, users } from "@consentinel/db";
+import {
+  eq,
+  getScan,
+  orgMembers,
+  orgs,
+  recordShareView,
+  shareTokenMatches,
+  sites,
+  users,
+} from "@consentinel/db";
 import { db } from "@/lib/server";
 import { toFreeReport, toFullReport } from "@/lib/free-report";
 
@@ -40,6 +49,19 @@ export async function GET(
   // this report to someone, so redacting it would defeat the point.
   const shared = token !== null && (await shareTokenMatches(db(), id, token));
   const owns = shared || (await callerOwnsScan(scan.siteId));
+  // Count an open of a shared link, unless the viewer is signed in (that's us,
+  // checking our own link). Link scanners in mail filters fetch the page HTML
+  // but don't run its JavaScript, so they never reach this route.
+  if (shared) {
+    const { userId } = await auth();
+    if (!userId) {
+      try {
+        await recordShareView(db(), id);
+      } catch (error) {
+        console.error("share view not recorded", { id, error });
+      }
+    }
+  }
   return NextResponse.json({
     status: "complete",
     report: owns ? toFullReport(scan.result) : toFreeReport(scan.result),

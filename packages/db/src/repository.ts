@@ -797,3 +797,43 @@ export async function getEvidencePack(
   }
   return { scan: row.scan, siteId: row.siteId, siteLabel: row.siteLabel, seal, chain };
 }
+
+/** Count one open of a share link. Atomic, so concurrent opens never lose a count. */
+export async function recordShareView(db: Database, scanId: string): Promise<void> {
+  await db
+    .update(scans)
+    .set({
+      shareViews: sql`${scans.shareViews} + 1`,
+      shareFirstViewedAt: sql`coalesce(${scans.shareFirstViewedAt}, now())`,
+      shareLastViewedAt: sql`now()`,
+    })
+    .where(eq(scans.id, scanId));
+}
+
+export interface ReportViews {
+  scanId: string;
+  views: number;
+  firstViewedAt: string;
+  lastViewedAt: string;
+}
+
+/** Share links opened since a time, newest first. Backs outreach open tracking. */
+export async function listReportViews(db: Database, since: Date): Promise<ReportViews[]> {
+  const rows = await db
+    .select({
+      scanId: scans.id,
+      views: scans.shareViews,
+      first: scans.shareFirstViewedAt,
+      last: scans.shareLastViewedAt,
+    })
+    .from(scans)
+    .where(and(isNotNull(scans.shareLastViewedAt), gte(scans.shareLastViewedAt, since)))
+    .orderBy(desc(scans.shareLastViewedAt))
+    .limit(500);
+  return rows.map((r) => ({
+    scanId: r.scanId,
+    views: r.views,
+    firstViewedAt: (r.first ?? r.last ?? new Date()).toISOString(),
+    lastViewedAt: (r.last ?? new Date()).toISOString(),
+  }));
+}
