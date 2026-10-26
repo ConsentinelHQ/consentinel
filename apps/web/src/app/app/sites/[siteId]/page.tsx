@@ -16,6 +16,7 @@ import { LocalTime } from "@/components/local-time";
 import { AllowlistPanel } from "@/components/allowlist-panel";
 import { DeployHookPanel } from "@/components/deploy-hook-panel";
 import { ArchiveSiteButton } from "@/components/archive-site-button";
+import { PauseScansButton } from "@/components/pause-scans-button";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 import { blockedLabel, displayHost } from "@/lib/format";
@@ -69,9 +70,23 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         </div>
       )}
 
+      {site.pausedAt !== null && site.archivedAt === null && site.schedule !== "off" && (
+        <div className="archived-banner">
+          <span>
+            Scheduled scans are paused since{" "}
+            {site.pausedAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}. Scan
+            now still works.
+          </span>
+          <PauseScansButton paused siteId={site.id} />
+        </div>
+      )}
+
       <div className="site-actions">
         <ScanNowButton inFlight={scans.some(isActive)} siteId={site.id} />
         <ScheduleControl entitled={entitled} schedule={site.schedule} siteId={site.id} />
+        {site.schedule !== "off" && site.archivedAt === null && site.pausedAt === null && (
+          <PauseScansButton paused={false} siteId={site.id} />
+        )}
       </div>
 
       <DeployHookPanel entitled={entitled} siteId={site.id} token={site.deployHookToken} />

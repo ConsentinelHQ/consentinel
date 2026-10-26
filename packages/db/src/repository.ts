@@ -312,6 +312,7 @@ export interface SiteSummary {
   url: string;
   label: string | null;
   schedule: string;
+  pausedAt: Date | null;
   lastScanAt: Date | null;
   lastCritical: number | null;
   lastStatus: string | null;
@@ -329,6 +330,7 @@ export async function listSitesForOrg(db: Database, orgId: string): Promise<Site
       url: sites.url,
       label: sites.label,
       schedule: sites.schedule,
+      pausedAt: sites.pausedAt,
       lastScanAt: scans.finishedAt,
       lastCritical: scans.criticalCount,
       lastStatus: scans.status,
@@ -385,6 +387,22 @@ export async function setSiteSchedule(
     .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
 }
 
+/**
+ * Pause or resume scheduled scans. The cadence stays as it was, so resuming puts
+ * the site back exactly where it was. A long pause makes the site due right away.
+ */
+export async function setSitePaused(
+  db: Database,
+  siteId: string,
+  orgId: string,
+  paused: boolean,
+): Promise<void> {
+  await db
+    .update(sites)
+    .set({ pausedAt: paused ? new Date() : null })
+    .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
+}
+
 const SCHEDULE_INTERVAL_MS: Record<string, number> = {
   daily: 24 * 60 * 60 * 1000,
   weekly: 7 * 24 * 60 * 60 * 1000,
@@ -419,7 +437,14 @@ export async function listDueSites(db: Database, now = new Date()): Promise<DueS
     })
     .from(sites)
     .innerJoin(orgs, eq(orgs.id, sites.orgId))
-    .where(and(ne(sites.schedule, "off"), ne(orgs.plan, "none"), isNull(sites.archivedAt)));
+    .where(
+      and(
+        ne(sites.schedule, "off"),
+        ne(orgs.plan, "none"),
+        isNull(sites.archivedAt),
+        isNull(sites.pausedAt),
+      ),
+    );
 
   return rows
     .filter((r) => {
@@ -500,7 +525,9 @@ export async function setSiteArchived(
 ): Promise<void> {
   await db
     .update(sites)
-    .set(archived ? { archivedAt: new Date() } : { archivedAt: null, schedule: "off" })
+    .set(
+      archived ? { archivedAt: new Date() } : { archivedAt: null, schedule: "off", pausedAt: null },
+    )
     .where(and(eq(sites.id, siteId), eq(sites.orgId, orgId)));
 }
 

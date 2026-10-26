@@ -84,8 +84,8 @@ export default async function Overview() {
 
   const critical = sites.reduce((sum, s) => sum + crit(s), 0);
   const attention = sites.filter((s) => crit(s) > 0).sort((a, b) => crit(b) - crit(a));
-  const monitored = sites.filter((s) => s.schedule !== "off");
-  const manual = sites.filter((s) => s.schedule === "off");
+  const monitored = sites.filter((s) => s.schedule !== "off" && s.pausedAt === null);
+  const manual = sites.filter((s) => s.schedule === "off" || s.pausedAt !== null);
   const recent = sites.filter((s) => time(s) > 0).sort((a, b) => time(b) - time(a));
   const lastScan = recent[0] === undefined ? 0 : time(recent[0]);
 
@@ -160,7 +160,11 @@ export default async function Overview() {
               </p>
               <ul className="panel-list">
                 {manual.slice(0, 6).map((s) => (
-                  <Row key={s.id} meta="turn on monitoring" site={s} />
+                  <Row
+                    key={s.id}
+                    meta={s.pausedAt !== null ? "paused" : "turn on monitoring"}
+                    site={s}
+                  />
                 ))}
               </ul>
             </>
