@@ -16,7 +16,7 @@ import {
   type ScanJobData,
 } from "@consentinel/queue";
 import { scan, ScanBlockedError, UncredibleScanError } from "./index.js";
-import { alertOnRegression } from "./alerting.js";
+import { alertOnDisclosure, alertOnRegression } from "./alerting.js";
 import { postJiraScanFailure, postJiraVerdict } from "./jira-sync.js";
 import { Sentry } from "./instrument.js";
 
@@ -98,6 +98,15 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       } catch (error) {
         console.error("alert failed", { scanId, error });
         // A customer paying for monitoring got no alert. Silent is not acceptable.
+        Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
+      }
+
+      // A vendor running that the privacy policy doesn't mention. Own try: one alert
+      // failing must not swallow the other.
+      try {
+        await alertOnDisclosure(db, scanId, config);
+      } catch (error) {
+        console.error("disclosure alert failed", { scanId, error });
         Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
       }
 

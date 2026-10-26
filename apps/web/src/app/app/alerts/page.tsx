@@ -39,8 +39,9 @@ export default async function Alerts() {
       <div className="app-head">
         <h1>Alerts</h1>
         <p className="quiet">
-          New critical issues on scheduled scans are emailed to the people below. Warnings, fixes
-          and manual scans don&apos;t alert.
+          New critical issues on scheduled scans are emailed to the people below, and so is any
+          vendor that starts running without your privacy policy mentioning it. Warnings, fixes and
+          manual scans don&apos;t alert.
         </p>
       </div>
 

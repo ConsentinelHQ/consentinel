@@ -1,4 +1,9 @@
-import { checkDisclosure, termsFor } from "./disclosure.js";
+import {
+  checkDisclosure,
+  disclosureChanges,
+  termsFor,
+  type DisclosureCheck,
+} from "./disclosure.js";
 
 describe("checkDisclosure", () => {
   const policy = `
@@ -60,5 +65,40 @@ describe("checkDisclosure", () => {
       checkDisclosure(["TikTok Pixel", "Meta Pixel"], ["We use Facebook.", "Cookie list: TikTok"])
         .notNamed,
     ).toEqual([]);
+  });
+});
+
+describe("disclosureChanges", () => {
+  const d = (
+    named: string[],
+    notNamed: string[],
+    status: DisclosureCheck["status"] = "checked",
+  ): DisclosureCheck => ({
+    status,
+    policies: [],
+    named,
+    notNamed,
+  });
+
+  it("flags vendors newly running unmentioned, and ones the policy stopped mentioning", () => {
+    expect(
+      disclosureChanges(d(["Google Ads"], ["TikTok", "Meta", "Hotjar"]), [
+        d(["Google Ads", "Meta"], ["Hotjar"]),
+      ]),
+    ).toEqual([
+      { vendor: "TikTok", why: "started" },
+      { vendor: "Meta", why: "dropped" },
+    ]);
+  });
+
+  it("ignores a vendor that flickered out of one recent scan", () => {
+    expect(disclosureChanges(d([], ["TikTok"]), [d([], []), d([], ["TikTok"])])).toEqual([]);
+  });
+
+  it("waits for a checked baseline, and never alerts on an unchecked scan", () => {
+    expect(disclosureChanges(d([], ["TikTok"]), [])).toBeNull();
+    expect(disclosureChanges(d([], ["TikTok"]), [d([], [], "unreadable"), undefined])).toBeNull();
+    expect(disclosureChanges(d([], [], "no-policy"), [d([], [])])).toBeNull();
+    expect(disclosureChanges(undefined, [d([], [])])).toBeNull();
   });
 });
