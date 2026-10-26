@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { activePlan, can, getBillingState, getDemandPack } from "@consentinel/db";
+import {
+  activePlan,
+  can,
+  getBillingState,
+  getDemandPack,
+  policyVersionsInWindow,
+  verifyPolicyText,
+} from "@consentinel/db";
 import { buildTimeline } from "@consentinel/shared";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
@@ -59,6 +66,18 @@ export async function GET(
       version: 1,
       hashed: "canonical JSON (keys sorted) of {v, scanId, url, finishedAt, prevHash, result}",
     },
+    policyVersions: (await policyVersionsInWindow(db(), pack.siteId, range.from, range.to)).map(
+      (p) => ({
+        kind: p.kind,
+        url: p.url,
+        firstSeenAt: p.firstSeenAt.toISOString(),
+        lastSeenAt: p.lastSeenAt.toISOString(),
+        sha256: p.sha256,
+        textMatchesHash: verifyPolicyText(p),
+        hashed: "sha256 of the text with whitespace collapsed to single spaces and trimmed",
+        text: p.text,
+      }),
+    ),
     records: pack.scans.map(({ scan, seal, chain }) => ({
       scanId: scan.id,
       url: scan.url,

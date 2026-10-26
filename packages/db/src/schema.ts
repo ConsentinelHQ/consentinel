@@ -391,3 +391,33 @@ export const jiraIssues = pgTable(
 
 export type JiraConnectionRow = typeof jiraConnections.$inferSelect;
 export type JiraIssueRow = typeof jiraIssues.$inferSelect;
+
+/**
+ * Every distinct version of a site's privacy or cookie policy, stored once when
+ * it first appears. A version is a run: the same text seen again only moves
+ * lastSeenAt. The text is verifiable: sha256 of its normalized form matches the
+ * hash sealed into each scan's disclosure result.
+ */
+export const policyVersions = pgTable(
+  "policy_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    kind: text("kind").$type<"privacy" | "cookie">().notNull(),
+    url: text("url").notNull(),
+    /** Text as read, line breaks kept for display. */
+    text: text("text").notNull(),
+    /** sha256 of normalizePolicy(text): the value sealed into scans. */
+    sha256: text("sha256").notNull(),
+    chars: integer("chars").notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull(),
+    firstScanId: uuid("first_scan_id").references(() => scans.id, { onDelete: "set null" }),
+    lastScanId: uuid("last_scan_id").references(() => scans.id, { onDelete: "set null" }),
+  },
+  (t) => [index("policy_versions_site_idx").on(t.siteId, t.kind, t.firstSeenAt)],
+);
+
+export type PolicyVersionRow = typeof policyVersions.$inferSelect;

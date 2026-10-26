@@ -17,6 +17,15 @@ import {
 import { fingerprintFinding } from "../src/fingerprint";
 import { canonicalJson, verifySeal } from "../src/evidence";
 import {
+  countPolicyVersionsSince,
+  listPolicyVersions,
+  policyHash,
+  policyVersionsInWindow,
+  recordPolicyVersions,
+  verifyPolicyText,
+} from "../src/policies";
+import { createHash } from "node:crypto";
+import {
   getDemandPack,
   getEvidencePack,
   listDueSites,
@@ -273,6 +282,68 @@ async function main(): Promise<void> {
   check(
     "canonical JSON ignores key order",
     canonicalJson({ b: 1, a: [{ d: 2, c: 3 }] }) === canonicalJson({ a: [{ c: 3, d: 2 }], b: 1 }),
+  );
+
+  // --- policy archive: a version per distinct text, runs extended in place ---
+  const policyA = `Privacy Policy\n${"We collect personal information to run the store. ".repeat(20)}\nWe use Google Analytics.`;
+  const policyB = `${policyA}\nWe also share data with TikTok for advertising.`;
+  const day = (n: number): Date => new Date(Date.UTC(2026, 9, n, 15));
+  const pUrl = "https://shop.example/policies/privacy-policy";
+  check(
+    "policy hash matches the scanner's disclosure hash",
+    policyHash(policyA) ===
+      createHash("sha256").update(policyA.replace(/\s+/g, " ").trim()).digest("hex"),
+  );
+  const pv1 = await recordPolicyVersions(db, siteId, scan3.id, day(1), [
+    { kind: "privacy", url: pUrl, text: policyA },
+    { kind: "cookie", url: pUrl, text: "tiny" },
+  ]);
+  check("first version stored, short text skipped", pv1.length === 1 && !pv1[0]?.previous);
+  const same = await recordPolicyVersions(db, siteId, scan3.id, day(5), [
+    {
+      kind: "privacy",
+      url: pUrl,
+      text: policyA.replace("Privacy Policy\n", "Privacy   Policy \n"),
+    },
+  ]);
+  check("same text, reflowed, extends the run", same.length === 0);
+  const pv2 = await recordPolicyVersions(db, siteId, scan3.id, day(9), [
+    { kind: "privacy", url: pUrl, text: policyB },
+  ]);
+  check(
+    "changed text is a new version pointing at the old",
+    pv2[0]?.previous?.id === pv1[0]?.version.id,
+  );
+  const pv3 = await recordPolicyVersions(db, siteId, scan3.id, day(12), [
+    { kind: "privacy", url: pUrl, text: policyA },
+  ]);
+  check("reverting is its own version, not a merge", pv3.length === 1);
+  const all = (await listPolicyVersions(db, siteId, org.id)) ?? [];
+  check(
+    "versions list newest first, runs dated",
+    all.length === 3 &&
+      all[2]?.firstSeenAt.getTime() === day(1).getTime() &&
+      all[2]?.lastSeenAt.getTime() === day(5).getTime(),
+  );
+  check("policy list is org-scoped", (await listPolicyVersions(db, siteId, randomUUID())) === null);
+  const inWin = await policyVersionsInWindow(db, siteId, day(6), day(10));
+  check(
+    "window finds the versions in effect",
+    inWin.length === 2 &&
+      inWin[0]?.sha256 === policyHash(policyA) &&
+      inWin[1]?.sha256 === policyHash(policyB),
+  );
+  check(
+    "stored text verifies against its hash",
+    all.every((v) => verifyPolicyText(v)),
+  );
+  check(
+    "edited text fails verification",
+    !verifyPolicyText({ text: `${policyA} edited`, sha256: policyHash(policyA) }),
+  );
+  check(
+    "versions since counts new runs",
+    (await countPolicyVersionsSince(db, siteId, day(8))) === 2,
   );
 
   // --- share view tracking ---

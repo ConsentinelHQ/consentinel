@@ -5641,3 +5641,106 @@ a.print-button {
 .disclosure-sources a {
   color: inherit;
 }
+
+/* Policy archive */
+.policy-versions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.policy-version {
+  padding: 1.1rem 0 1.25rem;
+  border-bottom: 1px solid var(--hairline);
+}
+.policy-version-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+.policy-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--paper-alt);
+  border: 1px solid var(--hairline);
+}
+.policy-seal {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.policy-seal.bad {
+  color: var(--critical);
+  font-weight: 600;
+}
+.policy-meta {
+  margin: 0.35rem 0 0.75rem;
+  overflow-wrap: anywhere;
+}
+.policy-meta a {
+  color: inherit;
+}
+.policy-meta .proof {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+.policy-diff {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+.policy-diff h3 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  margin: 0 0 0.35rem;
+}
+.policy-diff ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.policy-diff li {
+  padding: 0.45rem 0.7rem;
+  margin: 0 0 0.35rem;
+  border-radius: 6px;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+.policy-diff .added li {
+  background: #e5f4e4;
+  border-left: 3px solid var(--gated);
+}
+.policy-diff .removed li {
+  background: #fbebeb;
+  border-left: 3px solid var(--critical);
+  text-decoration: line-through;
+  text-decoration-color: rgb(0 0 0 / 0.25);
+}
+.policy-text summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.policy-body {
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  max-height: 32rem;
+  overflow: auto;
+  margin-top: 0.6rem;
+  padding: 0.9rem 1rem;
+  background: var(--paper-alt);
+  border-radius: 8px;
+}
+@media print {
+  .policy-text[open] .policy-body,
+  .policy-body {
+    max-height: none;
+    overflow: visible;
+  }
+}

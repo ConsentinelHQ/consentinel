@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { buildTimeline, displayCounts } from "@consentinel/shared";
-import type { DemandPack } from "@consentinel/db";
+import { buildTimeline, displayCounts, policyMentions } from "@consentinel/shared";
+import type { DemandPack, PolicyVersionRow } from "@consentinel/db";
 import { PrintButton } from "@/components/print-button";
 import { longDay, type Range } from "@/lib/demand";
 import { whenBoth } from "@/lib/evidence";
@@ -14,12 +14,15 @@ export function DemandPackView({
   range,
   historyDays,
   pack,
+  policies = [],
 }: {
   host: string;
   back: React.ReactNode;
   range: Range;
   historyDays: number;
   pack: DemandPack;
+  /** Privacy policy versions in effect during the window, oldest first. */
+  policies?: PolicyVersionRow[];
 }) {
   const site = { id: pack.siteId, url: pack.siteUrl };
   const timeline = buildTimeline(
@@ -107,6 +110,14 @@ export function DemandPackView({
           {unsealed > 0 &&
             ` ${plural(unsealed, "record")} predate${unsealed === 1 ? "s" : ""} sealing and carr${unsealed === 1 ? "ies" : "y"} no seal.`}
         </p>
+        {policies.length > 0 && timeline.vendors.length > 0 && (
+          <p>
+            {policySentence(
+              policies,
+              timeline.vendors.map((v) => v.vendor),
+            )}
+          </p>
+        )}
         {pack.truncated && (
           <p className="form-error">
             This period has more than {String(pack.scans.length)} scans. Pick a shorter range to
@@ -129,6 +140,7 @@ export function DemandPackView({
                 <th>First seen</th>
                 <th>Last seen</th>
                 <th>Status</th>
+                {policies.length > 0 && <th>In policy</th>}
               </tr>
             </thead>
             <tbody>
@@ -152,6 +164,9 @@ export function DemandPackView({
                         ? `Stopped by ${longDay(v.stoppedBy)}`
                         : "No later scan"}
                   </td>
+                  {policies.length > 0 && (
+                    <td data-label="In policy">{mentionLabel(v.vendor, policies)}</td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -162,6 +177,47 @@ export function DemandPackView({
             Seen only outside this period:{" "}
             {timeline.outside.map((v) => `${v.vendor} (${longDay(v.firstSeen)})`).join(", ")}.
           </p>
+        )}
+      </section>
+
+      <section>
+        <h2 className="section-label">Policy in effect</h2>
+        {policies.length === 0 ? (
+          <p className="quiet">
+            No saved policy covers this period. Policies are saved from the first scan after the
+            archive was turned on, so earlier dates can’t be shown.
+          </p>
+        ) : (
+          <table className="evidence-findings demand-policies">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Policy</th>
+                <th>Text check</th>
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((p) => (
+                <tr key={p.id}>
+                  <td>
+                    Seen {longDay(p.firstSeenAt)}
+                    {p.lastSeenAt.getTime() !== p.firstSeenAt.getTime() &&
+                      ` to ${longDay(p.lastSeenAt)}`}
+                  </td>
+                  <td data-label="Policy">
+                    <Link href={`/app/sites/${site.id}/policy`}>
+                      {p.kind === "privacy" ? "Privacy policy" : "Cookie policy"}
+                    </Link>
+                    <span className="mono proof">{p.url}</span>
+                  </td>
+                  <td data-label="Text check">
+                    {p.chars.toLocaleString("en-US")} characters
+                    <span className="mono proof">sha256 {p.sha256.slice(0, 16)}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
 
@@ -237,4 +293,22 @@ export function DemandPackView({
       </footer>
     </div>
   );
+}
+
+/** Mentioned in every version, none, or only some of those in effect. */
+function mentionLabel(vendor: string, policies: PolicyVersionRow[]): string {
+  const hits = policies.filter((p) => policyMentions(vendor, p.text)).length;
+  if (hits === policies.length) return "Mentioned";
+  if (hits === 0) return "Not mentioned";
+  return "In some versions";
+}
+
+function policySentence(policies: PolicyVersionRow[], vendors: string[]): string {
+  const privacy = policies.filter((p) => p.kind === "privacy");
+  const list = privacy.length > 0 ? privacy : policies;
+  const missing = vendors.filter((v) => list.every((p) => !policyMentions(v, p.text)));
+  const versions = `${String(list.length)} version${list.length === 1 ? "" : "s"} of the ${privacy.length > 0 ? "privacy" : "cookie"} policy ${list.length === 1 ? "was" : "were"} in effect during this period`;
+  return missing.length === 0
+    ? `${versions}, and ${list.length === 1 ? "it mentions" : "each mentions"} every vendor listed below.`
+    : `${versions}. ${missing.join(", ")} ${missing.length === 1 ? "was" : "were"} not mentioned in ${list.length === 1 ? "it" : "any of them"}.`;
 }

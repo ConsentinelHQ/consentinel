@@ -7,11 +7,23 @@ import {
   can,
   getBillingState,
   getSlackTargetForSite,
+  countPolicyVersionsSince,
   type Database,
   type DiffItem,
+  type NewVersion,
 } from "@consentinel/db";
-import { sendDisclosureAlert, sendRegressionAlert } from "@consentinel/notify";
-import { disclosureChanges, type DisclosureChange, type ScanResult } from "@consentinel/shared";
+import {
+  sendDisclosureAlert,
+  sendPolicyChangeAlert,
+  sendRegressionAlert,
+} from "@consentinel/notify";
+import {
+  diffPolicy,
+  disclosureChanges,
+  isMeaningfulChange,
+  type DisclosureChange,
+  type ScanResult,
+} from "@consentinel/shared";
 import type { ScannerConfig } from "./config.js";
 import { openJiraIssueForRegression } from "./jira-sync.js";
 
@@ -121,6 +133,59 @@ export async function alertOnDisclosure(
   });
   if (!result.sent) console.error("disclosure alert not sent", { scanId, reason: result.reason });
   else console.log(`disclosure alert sent for ${scan.url}: ${String(changes.length)} vendors`);
+}
+
+/** More versions than this in a week means the page changes on every load: stop alerting. */
+export const UNSTABLE_VERSIONS_PER_WEEK = 3;
+
+/**
+ * Emails the org when a scan stored a new version of the policy and the text
+ * really changed. A page that changes on every load (a rendered timestamp, a
+ * rotating cookie list) is archived but never alerted on.
+ */
+export async function alertOnPolicyChange(
+  db: Database,
+  scanId: string,
+  changed: readonly NewVersion[],
+  config: ScannerConfig,
+): Promise<void> {
+  if (changed.length === 0) return;
+  const scan = await getScan(db, scanId);
+  if (!scan?.siteId) return;
+  if (scan.trigger !== "scheduled" && scan.trigger !== "deploy" && scan.trigger !== "jira") return;
+  const recent = await countPolicyVersionsSince(
+    db,
+    scan.siteId,
+    new Date(Date.now() - 7 * 86_400_000),
+  );
+  if (recent > UNSTABLE_VERSIONS_PER_WEEK) {
+    console.log(`policy alert skipped for ${scan.url}: ${String(recent)} versions this week`);
+    return;
+  }
+  const historyUrl = `${config.APP_URL}/app/sites/${scan.siteId}/policy`;
+  const { to, external } = await recipientsFor(db, scan.siteId, config);
+  for (const { version, previous } of changed) {
+    // The first version on record is a baseline, not a change.
+    if (!previous) continue;
+    const diff = diffPolicy(previous.text, version.text);
+    if (!isMeaningfulChange(diff)) continue;
+    await postSlack(
+      db,
+      scan.siteId,
+      `The ${version.kind} policy on ${new URL(scan.url).hostname.replace(/^www\./, "")} changed: ${String(diff.added.length)} paragraphs added, ${String(diff.removed.length)} removed. <${historyUrl}|See both versions>`,
+    );
+    if (to.length === 0 && external.length === 0) continue;
+    const result = await sendPolicyChangeAlert({
+      to,
+      external,
+      siteUrl: scan.url,
+      kind: version.kind,
+      added: diff.added,
+      removed: diff.removed,
+      historyUrl,
+    });
+    if (!result.sent) console.error("policy alert not sent", { scanId, reason: result.reason });
+  }
 }
 
 export async function newDisclosureGaps(

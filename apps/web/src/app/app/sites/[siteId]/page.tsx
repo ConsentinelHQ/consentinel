@@ -94,6 +94,8 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         <Link href={`/app/sites/${site.id}/demand`}>
           Build a response pack for the dates it claims
         </Link>
+        {" · "}
+        <Link href={`/app/sites/${site.id}/policy`}>Privacy policy history</Link>
       </p>
 
       <DeployHookPanel entitled={entitled} siteId={site.id} token={site.deployHookToken} />

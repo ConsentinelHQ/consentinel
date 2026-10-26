@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { activePlan, can, getBillingState, getDemandPack, getSiteForOrg } from "@consentinel/db";
+import {
+  activePlan,
+  can,
+  getBillingState,
+  getDemandPack,
+  getSiteForOrg,
+  policyVersionsInWindow,
+} from "@consentinel/db";
 import { DemandPackView } from "@/components/demand-pack-view";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
@@ -64,6 +71,13 @@ export default async function DemandPackPage({
   if (!pack) notFound();
 
   return (
-    <DemandPackView back={back} historyDays={historyDays} host={host} pack={pack} range={range} />
+    <DemandPackView
+      back={back}
+      historyDays={historyDays}
+      host={host}
+      pack={pack}
+      policies={await policyVersionsInWindow(db(), site.id, range.from, range.to)}
+      range={range}
+    />
   );
 }
