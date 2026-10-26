@@ -6,6 +6,7 @@ import {
   type ScanResult,
 } from "@consentinel/shared";
 import { scanUrl, type ScanOptions } from "./scanner.js";
+import type { PolicyText } from "./policy.js";
 import { analyze } from "./analyze.js";
 
 export { scanUrl } from "./scanner.js";
@@ -47,6 +48,17 @@ export class ScanBlockedError extends Error {
 
 /** Scan a URL end to end and return the structured, severity-ranked result. */
 export async function scan(url: string, opts: ScanOptions = {}): Promise<ScanResult> {
+  return (await scanDetailed(url, opts)).result;
+}
+
+/**
+ * The result plus the policy text it was judged against. The text stays out of
+ * the result (it's large); the worker archives it beside the scan.
+ */
+export async function scanDetailed(
+  url: string,
+  opts: ScanOptions = {},
+): Promise<{ result: ScanResult; policies: PolicyText[] }> {
   const raw = await scanUrl(url, opts);
 
   // Explicit block detection runs first: it names the vendor, where the
@@ -94,5 +106,5 @@ export async function scan(url: string, opts: ScanOptions = {}): Promise<ScanRes
     if (blocked || thin) delete raw.gpcPass;
   }
 
-  return analyze(raw);
+  return { result: analyze(raw), policies: raw.policies ?? [] };
 }

@@ -5,7 +5,9 @@ import {
   markScanBlocked,
   markScanFailed,
   getScanTokenForScan,
+  getScan,
   markScanRunning,
+  recordPolicyVersions,
   type Database,
 } from "@consentinel/db";
 import { loadConfig, type ScannerConfig } from "./config.js";
@@ -15,8 +17,8 @@ import {
   SCAN_QUEUE,
   type ScanJobData,
 } from "@consentinel/queue";
-import { scan, ScanBlockedError, UncredibleScanError } from "./index.js";
-import { alertOnDisclosure, alertOnRegression } from "./alerting.js";
+import { scanDetailed, ScanBlockedError, UncredibleScanError } from "./index.js";
+import { alertOnDisclosure, alertOnPolicyChange, alertOnRegression } from "./alerting.js";
 import { postJiraScanFailure, postJiraVerdict } from "./jira-sync.js";
 import { Sentry } from "./instrument.js";
 
@@ -57,18 +59,22 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       // Customer allowlist token, if their Cloudflare rule expects one.
       const scanToken = await getScanTokenForScan(db, scanId);
       const tokenOpts = scanToken ? { scanToken } : {};
-      let result;
+      let detailed;
       try {
-        result = await withTimeout(
-          scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS, ...tokenOpts }),
+        detailed = await withTimeout(
+          scanDetailed(check.url, { minRequests: config.SCAN_MIN_REQUESTS, ...tokenOpts }),
           config.SCAN_TIMEOUT_MS,
         );
         // No reject control to click, usually a US visitor on a CCPA-model site.
         // Test the opt-out that actually applies to them rather than reporting
         // an unchallenged default state.
-        if (!result.consentAttempt?.performed) {
-          result = await withTimeout(
-            scan(check.url, { minRequests: config.SCAN_MIN_REQUESTS, gpc: true, ...tokenOpts }),
+        if (!detailed.result.consentAttempt?.performed) {
+          detailed = await withTimeout(
+            scanDetailed(check.url, {
+              minRequests: config.SCAN_MIN_REQUESTS,
+              gpc: true,
+              ...tokenOpts,
+            }),
             config.SCAN_TIMEOUT_MS,
           );
         }
@@ -87,7 +93,22 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         }
         throw error;
       }
+      const { result, policies } = detailed;
       await completeScan(db, scanId, result);
+
+      // Archive the policy text beside the scan. Only for a customer's site, and
+      // never at the cost of the scan itself.
+      let changed: Awaited<ReturnType<typeof recordPolicyVersions>> = [];
+      if (policies.length > 0) {
+        try {
+          const siteId = (await getScan(db, scanId))?.siteId;
+          if (siteId)
+            changed = await recordPolicyVersions(db, siteId, scanId, new Date(), policies);
+        } catch (error) {
+          console.error("policy archive failed", { scanId, error });
+          Sentry.captureException(error, { tags: { area: "policy" }, extra: { scanId } });
+        }
+      }
 
       // Alerting is the product's whole promise on a schedule: a scan nobody
       // reads is worth nothing. Failures here must never fail the scan.
@@ -107,6 +128,13 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         await alertOnDisclosure(db, scanId, config);
       } catch (error) {
         console.error("disclosure alert failed", { scanId, error });
+        Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
+      }
+
+      try {
+        await alertOnPolicyChange(db, scanId, changed, config);
+      } catch (error) {
+        console.error("policy alert failed", { scanId, error });
         Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
       }
 

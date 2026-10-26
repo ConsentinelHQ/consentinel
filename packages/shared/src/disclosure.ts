@@ -131,3 +131,9 @@ export function disclosureChanges(
     .filter((v) => !before.has(v))
     .map((vendor) => ({ vendor, why: named.has(vendor) ? "dropped" : "started" }));
 }
+
+/** Whether one policy text mentions a vendor, same lenient rules as the check. */
+export function policyMentions(vendor: string, text: string): boolean {
+  const all = normalizePolicy(text);
+  return termsFor(vendor).some((re) => re.test(all));
+}

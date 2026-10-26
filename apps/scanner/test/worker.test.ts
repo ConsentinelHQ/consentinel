@@ -1,4 +1,4 @@
-import { createDbWithConnection, getScan } from "@consentinel/db";
+import { createDbWithConnection, getScan, listPolicyVersions, orgs, sites } from "@consentinel/db";
 import { runMigrations } from "@consentinel/db/migrate";
 import { startFixtureServer } from "../fixtures/known-bad-shop";
 import { loadConfig } from "../src/config";
@@ -68,6 +68,31 @@ async function main(): Promise<void> {
   check("CMP recorded", stored?.cmpName === "OneTrust");
   check("timestamps recorded", !!stored?.startedAt && !!stored?.finishedAt);
   check("result blob stored by the worker", (stored?.result?.findings.length ?? 0) > 0);
+
+  // --- a customer's site: the policy text is archived beside the scan ---
+  const [org] = await db
+    .insert(orgs)
+    .values({ clerkOrgId: `worker-test-${String(Date.now())}`, name: "Worker test" })
+    .returning();
+  const [site] = org
+    ? await db.insert(sites).values({ orgId: org.id, url: fixture.url }).returning()
+    : [];
+  if (!org || !site) throw new Error("site setup failed");
+  const owned = await enqueueScan(db, queue, fixture.url, {
+    allowPrivate: true,
+    trigger: "manual",
+    siteId: site.id,
+  });
+  if (owned.status !== "queued") throw new Error("site scan not queued");
+  check("site scan completes", (await waitForStatus(db, owned.scan.id, "complete")) === "complete");
+  const ownedRow = await getScan(db, owned.scan.id);
+  const versions = (await listPolicyVersions(db, site.id, org.id)) ?? [];
+  check(
+    "policy version archived, hash matches the sealed result",
+    versions.length === 1 &&
+      versions[0]?.sha256 === ownedRow?.result?.disclosure?.policies[0]?.sha256 &&
+      versions[0]?.firstScanId === owned.scan.id,
+  );
 
   // --- cache short-circuits a repeat request instead of burning a worker slot ---
   const second = await enqueueScan(db, queue, fixture.url, {
