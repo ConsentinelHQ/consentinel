@@ -3,7 +3,8 @@ import { resolve } from "node:path";
 import { getMessage, normDomain, search, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { address, bouncedRecipients, extractText, header, stripQuoted } from "./mail.js";
 import { DRAFTED as RETOUCH_DRAFTED, SENT as RETOUCH_SENT } from "./retouch.js";
-import { addBusinessDays, nyDate, parseDay, repoRoot } from "./state.js";
+import { addBusinessDays, nyDate, parseDay, readLedger, repoRoot } from "./state.js";
+import { col, members, stopDrafts, type Slot } from "./team.js";
 
 /**
  * Keeps the sheet in step with Gmail. Deterministic: it records what happened
@@ -40,6 +41,8 @@ export interface SyncSummary {
   replies: Reply[];
   autoReplies: string[];
   bounces: { domain: string; email: string }[];
+  /** Unsent bot drafts removed because someone at that company replied. */
+  stopped: { domain: string; emails: string[] }[];
 }
 
 const seenFile = resolve(repoRoot(), ".outreach", "sync-seen.json");
@@ -85,10 +88,14 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
     replies: [],
     autoReplies: [],
     bounces: [],
+    stopped: [],
   };
+  const ledger = readLedger();
   const today = nyDate(new Date());
   const withEmail = sheet.rows.filter((r) => (r.values["Email"] ?? "").includes("@"));
-  const byEmail = new Map(withEmail.map((r) => [r.values["Email"]!.trim().toLowerCase(), r]));
+  const byEmail = new Map<string, { row: SheetRow; slot: Slot }>();
+  for (const row of withEmail)
+    for (const m of members(row.values)) byEmail.set(m.email, { row, slot: m.slot });
 
   const update = (row: SheetRow, fields: Record<string, string>): Promise<void> => {
     const prior = row.values["Notes"] ?? "";
@@ -197,6 +204,12 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
           Notes: note(`reply from ${address(header(msg.payload, "From"))}`),
         });
       }
+      // One answer speaks for the company: nobody else there gets a cold email or follow-up.
+      const emails = await stopDrafts(ledger, domain, msg.at);
+      if (emails.length) {
+        out.stopped.push({ domain, emails });
+        await update(row, { Notes: note(`deleted unsent drafts to ${emails.join(", ")}`) });
+      }
     }
   }
 
@@ -206,12 +219,13 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
     seen.add(id);
     const msg = await getMessage(id);
     for (const email of bouncedRecipients(msg.payload, extractText(msg.payload))) {
-      const row = byEmail.get(email);
-      if (!row) continue;
+      const hit = byEmail.get(email);
+      if (!hit) continue;
+      const { row, slot } = hit;
+      // A colleague bouncing just drops them; contact 1 bouncing needs a replacement.
       await update(row, {
-        "Email check": "bounced",
-        "Next action": "Find new contact",
-        "Next action date": today,
+        [col("Email check", slot)]: "bounced",
+        ...(slot === 1 ? { "Next action": "Find new contact", "Next action date": today } : {}),
         Notes: note(`bounced: ${email}`),
       });
       out.bounces.push({ domain: normDomain(row.values["Domain"] ?? ""), email });

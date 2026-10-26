@@ -30,6 +30,15 @@ import { gpcIgnoredInAll } from "../src/outreach/evidence.js";
 import { RESEARCHED, cleanName, needList, needsContact } from "../src/outreach/research.js";
 import { wantedTitle } from "../src/outreach/contacts.js";
 import { newOpens, scanIdFromLink } from "../src/outreach/views.js";
+import { roleFor, type RoleContact } from "../src/outreach/contacts.js";
+import {
+  EXTRA_HEADERS,
+  draftsToStop,
+  extraCols,
+  members,
+  pickExtras,
+  stopDrafts,
+} from "../src/outreach/team.js";
 
 const rejected: Evidence = {
   mode: "rejected",
@@ -760,5 +769,145 @@ assert.match(
   render({ domain: "x.com", firstName: "", ev: rejected, postalAddress: "" }).text,
   /I'd love to share the full report/,
 );
+
+// ---------- Multi-contact ----------
+assert.equal(roleFor("VP, E-commerce"), "owner");
+assert.equal(roleFor("General Counsel"), "risk");
+assert.equal(roleFor("Co-Founder & CEO"), "risk");
+assert.equal(roleFor("Director of Growth Marketing"), "budget");
+assert.equal(roleFor("Office Manager"), null);
+
+const rc = (role: RoleContact["role"], email: string, fullName = "A B"): RoleContact => ({
+  role,
+  email,
+  fullName,
+  firstName: fullName.split(" ")[0]!,
+  title: role,
+  verified: "valid",
+  source: "anymail",
+});
+// Primary covers owner: extras are one risk and one budget, never the primary again.
+assert.deepEqual(
+  pickExtras({ email: "p@x.com", title: "Head of Ecommerce" }, [
+    rc("owner", "o@x.com"),
+    rc("risk", "P@x.com"),
+    rc("risk", "r@x.com"),
+    rc("risk", "r2@x.com"),
+    rc("budget", "b@x.com"),
+  ]).map((c) => c.email),
+  ["r@x.com", "b@x.com"],
+);
+// Unknown primary role: still capped at two colleagues.
+assert.equal(
+  pickExtras({ email: "p@x.com", title: "Office Manager" }, [
+    rc("owner", "o@x.com"),
+    rc("risk", "r@x.com"),
+    rc("budget", "b@x.com"),
+  ]).length,
+  2,
+);
+
+assert.equal(EXTRA_HEADERS.length, 10);
+assert.ok(EXTRA_HEADERS.includes("Email 2") && EXTRA_HEADERS.includes("Report link 3"));
+assert.deepEqual(extraCols(3, rc("budget", "b@x.com", "Bo Lee"), "https://r"), {
+  "Contact 3": "Bo Lee",
+  "Title 3": "budget",
+  "Email 3": "b@x.com",
+  "Email check 3": "valid (anymail)",
+  "Report link 3": "https://r",
+});
+assert.deepEqual(
+  members({
+    Contact: "Ann Smith",
+    Email: "Ann@x.com",
+    "Contact 2": "Raj Patel",
+    "Email 2": "",
+    "Contact 3": "Bo Lee",
+    "Email 3": "bo@x.com",
+  }).map((m) => [m.slot, m.firstName, m.email]),
+  [
+    [1, "Ann", "ann@x.com"],
+    [3, "Bo", "bo@x.com"],
+  ],
+);
+
+const at = (iso: string, e: Partial<Entry>): Entry => ({
+  at: iso,
+  domain: "x.com",
+  action: "drafted",
+  ...e,
+});
+const stopLedger: Entry[] = [
+  at("2026-10-20T10:00:00Z", { email: "a@x.com", messageId: "d1", reason: "draft mode" }),
+  at("2026-10-20T10:00:00Z", {
+    email: "b@x.com",
+    messageId: "d2",
+    reason: "draft mode, contact 2",
+  }),
+  at("2026-10-20T10:00:00Z", { email: "l@x.com", messageId: "d3", reason: "inbound lead" }),
+  at("2026-10-20T10:00:00Z", { domain: "y.com", email: "z@y.com", messageId: "d4" }),
+  at("2026-10-20T10:00:00Z", { action: "sent", email: "a@x.com", messageId: "m1" }),
+  at("2026-10-27T10:00:00Z", { email: "a@x.com", messageId: "d5", reason: "follow-up" }),
+];
+assert.deepEqual(
+  draftsToStop(stopLedger, "x.com", new Date("2026-10-22T00:00:00Z")).map((e) => e.messageId),
+  ["d1", "d2"],
+);
+// d1 was already sent (gone from Gmail); only d2 is reported as deleted.
+const removed: string[] = [];
+assert.deepEqual(
+  await stopDrafts(stopLedger, "x.com", new Date("2026-10-22T00:00:00Z"), (id) => {
+    removed.push(id);
+    return Promise.resolve(id !== "d1");
+  }),
+  ["b@x.com"],
+);
+assert.deepEqual(removed, ["d1", "d2"]);
+// A failed delete doesn't stop the rest.
+assert.deepEqual(
+  await stopDrafts(stopLedger, "x.com", new Date("2026-10-22T00:00:00Z"), (id) => {
+    if (id === "d1") return Promise.reject(new Error("500"));
+    return Promise.resolve(true);
+  }),
+  ["b@x.com"],
+);
+
+// Per-person report links: the opened link names who opened it.
+const sid2 = "22222222-2222-2222-2222-222222222222";
+const teamRows = [
+  r(9, {
+    Domain: "x.com",
+    Contact: "Ann Smith",
+    "Report link": `https://www.getconsentinel.com/report/${sid}?t=a`,
+    "Contact 2": "Raj Patel",
+    "Report link 2": `https://www.getconsentinel.com/report/${sid2}?t=b`,
+  }),
+];
+assert.deepEqual(
+  newOpens(teamRows, [{ ...view(1), scanId: sid2 }], {}).map((o) => [o.open.domain, o.open.who]),
+  [["x.com", "Raj Patel"]],
+);
+
+// Role line and also-sent line.
+const team = render({
+  domain: "x.com",
+  firstName: "Raj",
+  ev: gpc,
+  postalAddress: "",
+  role: "risk",
+  alsoSent: ["Ann Smith", "Bo Lee"],
+});
+assert.match(team.text, /legal exposure here sits with the company/);
+assert.match(
+  team.text,
+  /I've also sent this to Ann Smith and Bo Lee so the right person sees it\.\n\nHappy to connect/,
+);
+assert.match(team.html, /also sent this to Ann Smith and Bo Lee/);
+assert.match(
+  render({ domain: "x.com", firstName: "A", ev: gpc, postalAddress: "", role: "budget" }).text,
+  /Most of these are marketing tags/,
+);
+const solo = render({ domain: "x.com", firstName: "A", ev: gpc, postalAddress: "", role: "owner" });
+assert.doesNotMatch(solo.text, /sending this to you because|marketing tags, so|also sent/);
 
 console.log("outreach: all assertions passed");

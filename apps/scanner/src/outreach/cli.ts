@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { findContact, type Contact } from "./contacts.js";
+import { findContact, findContacts, roleFor, type Contact, type RoleContact } from "./contacts.js";
+import { EXTRA_HEADERS, extraCols, pickExtras, type Slot } from "./team.js";
 import {
   MIN_VENDORS,
   NOT_A_SITE,
@@ -25,6 +26,7 @@ import {
   countBounces,
   countDrafts,
   createDraft,
+  ensureHeaders,
   normDomain,
   readSheet,
   send,
@@ -160,6 +162,11 @@ async function run(args: string[]): Promise<Summary> {
   const now = new Date();
   const ledger = readLedger();
   const sheet = await readSheet(sheetId, tab);
+  // Contact 2 and 3 columns, added once on the first run that needs them.
+  if (fromSheet || domains.length) {
+    const added = await ensureHeaders(sheetId, tab, sheet, EXTRA_HEADERS);
+    if (added.length) log(`added sheet columns: ${added.join(", ")}`);
+  }
   const handled = new Set(
     ledger.filter((e) => e.action === "sent" || e.action === "drafted").map((e) => e.domain),
   );
@@ -319,25 +326,41 @@ async function run(args: string[]): Promise<Summary> {
       continue;
     }
 
-    // A link to their own report is the email's call to action, and its opens are the signal.
-    // No key, or the report scan fails: the email offers to send it instead.
-    let reportUrl: string | undefined;
-    if (reportApi) {
+    // Colleagues in other roles, each in their own thread. A failed lookup never blocks contact 1.
+    let extras: RoleContact[] = [];
+    if (!recover) {
       try {
-        const got = await fetchReport(reportApi, domain);
-        if (typeof got === "string") log(`       no report link: ${got}`);
-        else reportUrl = got.reportUrl;
+        const own = roleFor(contact.title);
+        const found = await findContacts(domain, [...exclude, contact.email], {
+          ...(own ? { skip: [own] } : {}),
+          hunter: false,
+        });
+        if (typeof found !== "string") extras = pickExtras(contact, found);
       } catch (error) {
-        log(`       no report link: ${error instanceof Error ? error.message : String(error)}`);
+        log(`       no extra contacts: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
-    const email = render({
-      domain,
-      firstName: contact.firstName,
-      ev,
-      postalAddress: postal,
-      ...(reportUrl ? { reportUrl } : {}),
-    });
+    const team: { slot: Slot; c: Contact; role?: RoleContact["role"] }[] = [
+      { slot: 1, c: contact, ...(roleFor(contact.title) ? { role: roleFor(contact.title)! } : {}) },
+      ...extras.map((c, i) => ({ slot: (i + 2) as Slot, c, role: c.role })),
+    ];
+
+    // A link to their own report is the email's call to action, and its opens are the signal.
+    // One report per person so an open says who looked. No key, or the scan fails: the email offers to send it.
+    const links = await Promise.all(
+      team.map(async (): Promise<string | undefined> => {
+        if (!reportApi) return undefined;
+        try {
+          const got = await fetchReport(reportApi, domain);
+          if (typeof got === "string") log(`       no report link: ${got}`);
+          else return got.reportUrl;
+        } catch (error) {
+          log(`       no report link: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        return undefined;
+      }),
+    );
+    const reportUrl = links[0];
     const contactCols = {
       ...(reportUrl ? { "Report link": reportUrl } : {}),
       Contact: contact.fullName,
@@ -346,53 +369,83 @@ async function run(args: string[]): Promise<Summary> {
       "Email check": `${contact.verified} (${contact.source})`,
       // A replacement contact starts a fresh thread: old send dates belong to the bounced address.
       ...(recover ? { "First email": "", "Follow-up": "" } : {}),
-    };
-    // Only proven addresses go out unattended; accept_all bounces burn a new domain.
-    const canSend = sendMode && !pausedState && contact.verified === "valid" && sentCount < cap;
+      ...Object.assign(
+        {},
+        ...team.slice(1).map((m, i) => extraCols(m.slot, extras[i]!, links[i + 1])),
+      ),
+    } as Row;
 
-    try {
-      if (canSend) {
-        const id = await send(from, contact.email, email);
-        sentCount++;
-        record({ domain, action: "sent", email: contact.email, messageId: id });
-        await write({
-          ...base(domain, ev),
-          ...contactCols,
-          Status: "Emailed",
-          "First email": today,
-          "Next action": "Follow up",
-          "Next action date": nyDate(addBusinessDays(now, 5)),
-          Notes: note("sent"),
-        });
-        out.sent.push(domain);
-        log(`       sent to ${contact.email}`);
-      } else {
-        const id = await createDraft(from, contact.email, email);
-        const why = !sendMode
-          ? "draft mode"
-          : pausedState
-            ? "paused"
-            : contact.verified !== "valid"
-              ? "accept_all address"
-              : "daily cap";
-        record({ domain, action: "drafted", email: contact.email, messageId: id, reason: why });
-        await write({
-          ...base(domain, ev),
-          ...contactCols,
-          Status: "Scanned - ready",
-          "Next action": "Review Gmail draft and send",
-          "Next action date": today,
-          Notes: note(
-            `drafted (${why})${recover ? `, replacing bounced ${exclude.join(", ")}` : ""}`,
-          ),
-        });
-        out.drafted.push(domain);
-        log(`       drafted for ${contact.email} (${why})`);
+    const results: { email: string; sent: boolean; why: string }[] = [];
+    for (const [i, m] of team.entries()) {
+      const others = team.filter((o) => o !== m).map((o) => o.c.fullName);
+      const email = render({
+        domain,
+        firstName: m.c.firstName,
+        ev,
+        postalAddress: postal,
+        ...(links[i] ? { reportUrl: links[i] } : {}),
+        ...(m.role ? { role: m.role } : {}),
+        alsoSent: others,
+      });
+      // Only proven addresses go out unattended; accept_all bounces burn a new domain.
+      const canSend = sendMode && !pausedState && m.c.verified === "valid" && sentCount < cap;
+      const tag = m.slot === 1 ? "" : `, contact ${String(m.slot)}`;
+      try {
+        if (canSend) {
+          const id = await send(from, m.c.email, email);
+          sentCount++;
+          record({ domain, action: "sent", email: m.c.email, messageId: id });
+          results.push({ email: m.c.email, sent: true, why: "sent" });
+          log(`       sent to ${m.c.email}`);
+        } else {
+          const id = await createDraft(from, m.c.email, email);
+          const why = !sendMode
+            ? "draft mode"
+            : pausedState
+              ? "paused"
+              : m.c.verified !== "valid"
+                ? "accept_all address"
+                : "daily cap";
+          record({ domain, action: "drafted", email: m.c.email, messageId: id, reason: why + tag });
+          results.push({ email: m.c.email, sent: false, why });
+          log(`       drafted for ${m.c.email} (${why})`);
+        }
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        record({ domain, action: "error", email: m.c.email, reason });
+        // Contact 1 failing is the row's error; a colleague failing just drops that colleague.
+        if (m.slot === 1) out.errors[domain] = reason;
+        else log(`       contact ${String(m.slot)} failed: ${reason}`);
       }
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      record({ domain, action: "error", email: contact.email, reason });
-      out.errors[domain] = reason;
+    }
+
+    const first = results.find((r) => r.email === contact.email);
+    if (!first) continue;
+    const who = team.length > 1 ? ` for ${String(team.length)} contacts` : "";
+    if (first.sent) {
+      await write({
+        ...base(domain, ev),
+        ...contactCols,
+        Status: "Emailed",
+        "First email": today,
+        "Next action": "Follow up",
+        "Next action date": nyDate(addBusinessDays(now, 5)),
+        Notes: note(`sent${who}`),
+      });
+      out.sent.push(domain);
+    } else {
+      await write({
+        ...base(domain, ev),
+        ...contactCols,
+        Status: "Scanned - ready",
+        "Next action":
+          team.length > 1 ? "Review Gmail drafts and send" : "Review Gmail draft and send",
+        "Next action date": today,
+        Notes: note(
+          `drafted${who} (${first.why})${recover ? `, replacing bounced ${exclude.join(", ")}` : ""}`,
+        ),
+      });
+      out.drafted.push(domain);
     }
   }
   out.sentToday = sentCount;

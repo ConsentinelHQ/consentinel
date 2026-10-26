@@ -18,7 +18,8 @@ It prints JSON:
 - `replies`: each has `domain`, `from`, `subject`, `text`. Classify every one.
 - `inquiries`: contact-form messages. Message Charlie right away about every one (format below). Never mark them on the sheet.
 - `prospectScans`: someone at a company already on the sheet ran a free scan. Run `outreach mark --domain D --note "ran a free scan (<email>)"` and message Charlie.
-- `reportOpens`: prospects who opened the report link in their email. Each has `domain`, `views` and `first`. Already recorded on the sheet. Message Charlie about every one (format below).
+- `reportOpens`: prospects who opened the report link in their email. Each has `domain`, `views`, `first` and, when known, `who` (each contact at a company has their own link). Already recorded on the sheet. Message Charlie about every one (format below), naming `who` when it's there.
+- `stopped`: someone at that company replied, so the bot deleted its unsent drafts to their colleagues. Already done. Mention it in one line with the reply.
 - `inboundError` or `reportOpensError`: tell Charlie once, then carry on with the rest.
 
 If `replies`, `inquiries`, `prospectScans` and `reportOpens` are empty and there are no bounces, stop. Don't message Charlie.

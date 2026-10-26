@@ -10,6 +10,7 @@ import {
 import { header } from "./mail.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record } from "./state.js";
 import type { Email } from "./template.js";
+import { members } from "./team.js";
 
 /**
  * One follow-up per prospect, threaded under the first email, 5 business days
@@ -165,10 +166,40 @@ export async function followups(
       messageId ? { threadId: first.threadId, messageId } : undefined,
     );
     record({ domain, action: "drafted", email, messageId: id, reason: "follow-up" });
+    // Colleagues get theirs in their own thread, only if Charlie sent them the first email.
+    let extra = 0;
+    for (const m of members(row.values).filter((m) => m.slot !== 1)) {
+      if (/bounced/i.test(m.check)) continue;
+      const theirs = await search(`in:sent to:${m.email}`, 10);
+      if (theirs.length !== 1) continue;
+      const msg = await getMessage(theirs[0]!);
+      const mid = header(msg.payload, "Message-ID") || header(msg.payload, "Message-Id");
+      const fid = await createDraft(
+        opts.from,
+        m.email,
+        followUpEmail({
+          domain,
+          firstName: m.firstName,
+          subject: header(msg.payload, "Subject") || `Privacy issues on ${domain}`,
+          postalAddress: opts.postalAddress,
+        }),
+        mid ? { threadId: msg.threadId, messageId: mid } : undefined,
+      );
+      record({
+        domain,
+        action: "drafted",
+        email: m.email,
+        messageId: fid,
+        reason: `follow-up, contact ${String(m.slot)}`,
+      });
+      extra++;
+    }
     await update(row, {
-      "Next action": "Review follow-up draft",
+      "Next action": extra ? "Review follow-up drafts" : "Review follow-up draft",
       "Next action date": today,
-      Notes: note("follow-up drafted"),
+      Notes: note(
+        extra ? `follow-ups drafted for ${String(extra + 1)} contacts` : "follow-up drafted",
+      ),
     });
     out.drafted.push(domain);
   }
