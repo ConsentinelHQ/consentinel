@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { getReportBranding, shareTokenMatches } from "@consentinel/db";
+import { getReportBranding, getScan, shareTokenMatches } from "@consentinel/db";
+import { fixList, toFullReport } from "@consentinel/shared";
 import type { CSSProperties } from "react";
 import { PrintButton } from "@/components/print-button";
+import { ReportNextSteps } from "@/components/report-next-steps";
 import { ScanResultView } from "@/components/scan-result-view";
 import { db } from "@/lib/server";
 
@@ -89,6 +91,9 @@ export default async function SharedReport({ params, searchParams }: Props) {
     );
   }
 
+  // A valid link gets next steps built from the scan itself; a bare id keeps the generic CTA.
+  const steps = await nextStepsFor(id, t);
+
   return (
     <main>
       <section className="hero">
@@ -99,16 +104,20 @@ export default async function SharedReport({ params, searchParams }: Props) {
             </div>
           ) : null}
           <ScanResultView scanId={id} shareToken={t} />
-          <div className="report-cta">
-            <h3>Know the moment this changes.</h3>
-            <p className="quiet">
-              Consentinel rescans your site on a schedule and emails you when a new tag fires before
-              consent - before a regulator or a plaintiff finds it.
-            </p>
-            <a className="nav-cta" href="/pricing">
-              Start monitoring
-            </a>
-          </div>
+          {steps ? (
+            <ReportNextSteps {...steps} />
+          ) : (
+            <div className="report-cta">
+              <h3>Know the moment this changes.</h3>
+              <p className="quiet">
+                Consentinel rescans your site on a schedule and emails you when a tag starts
+                ignoring an opt-out, before a regulator or a plaintiff finds it.
+              </p>
+              <a className="nav-cta" href="/pricing">
+                Start monitoring
+              </a>
+            </div>
+          )}
         </div>
       </section>
       <footer>
@@ -118,4 +127,25 @@ export default async function SharedReport({ params, searchParams }: Props) {
       </footer>
     </main>
   );
+}
+
+async function nextStepsFor(id: string, token: string | undefined) {
+  if (!token || !UUID.test(id)) return null;
+  const database = db();
+  if (!(await shareTokenMatches(database, id, token))) return null;
+  const scan = await getScan(database, id);
+  if (!scan || scan.status !== "complete" || !scan.result) return null;
+  const base = (process.env["APP_URL"] ?? "https://www.getconsentinel.com").replace(/\/$/, "");
+  const fixes = fixList(scan.result, `${base}/report/${id}?t=${token}`);
+  const fixCount = toFullReport(scan.result).findings.filter(
+    (f) => !f.causedBy && f.severity !== "info" && f.remediation,
+  ).length;
+  return {
+    host: scan.url.replace(/^https?:\/\//, "").replace(/\/.*$/, ""),
+    fixes,
+    fixCount,
+    deadline:
+      (scan.result.gpcCheck?.ignoredBy.length ?? 0) > 0 ||
+      scan.result.findings.some((f) => f.observedUnder === "gpc"),
+  };
 }
