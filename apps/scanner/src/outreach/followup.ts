@@ -173,6 +173,8 @@ export async function followups(
       const theirs = await search(`in:sent to:${m.email}`, 10);
       if (theirs.length !== 1) continue;
       const msg = await getMessage(theirs[0]!);
+      // A colleague emailed later than contact 1 waits their own 5 business days, so skip for now.
+      if (nyDate(addBusinessDays(msg.at, FOLLOW_UP_AFTER)) > today) continue;
       const mid = header(msg.payload, "Message-ID") || header(msg.payload, "Message-Id");
       const fid = await createDraft(
         opts.from,

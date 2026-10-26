@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { findContact, findContacts, roleFor, type Contact, type RoleContact } from "./contacts.js";
 import { EXTRA_HEADERS, extraCols, pickExtras, type Slot } from "./team.js";
+import { draftTeam } from "./team-draft.js";
+import { setTeam, skipTeam, teamNeedList } from "./team-research.js";
 import {
   MIN_VENDORS,
   NOT_A_SITE,
@@ -139,6 +141,8 @@ interface Summary {
   paused: string | null;
   sentToday: number;
   cap: number;
+  /** Colleagues Claw researched, drafted after contact 1. */
+  colleagues?: string[];
 }
 
 async function run(args: string[]): Promise<Summary> {
@@ -449,6 +453,20 @@ async function run(args: string[]): Promise<Summary> {
     }
   }
   out.sentToday = sentCount;
+  if (fromSheet) {
+    try {
+      out.colleagues = await draftTeam(
+        sheetId,
+        tab,
+        sheet,
+        readLedger(),
+        { from, postalAddress: postal, limit, reportApi },
+        log,
+      );
+    } catch (error) {
+      out.errors["colleagues"] = error instanceof Error ? error.message : String(error);
+    }
+  }
   return out;
 }
 
@@ -644,6 +662,31 @@ async function main(): Promise<void> {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
       const sheet = await readSheet(sheetId, tab);
+      // --team: colleagues for rows whose contact 1 is already drafted or emailed.
+      const team = args.includes("--team");
+      if (args[0] === "need" && team) {
+        const limit = Number(flag(args, "--limit") ?? "5");
+        console.log(JSON.stringify(teamNeedList(sheet.rows, nyDate(new Date()), limit)));
+        break;
+      }
+      if (args[0] === "set" && team) {
+        const result = await setTeam(sheetId, tab, sheet, {
+          domain: flag(args, "--domain") ?? "",
+          name: flag(args, "--name") ?? "",
+          title: flag(args, "--title") ?? "",
+          source: flag(args, "--source") ?? "",
+        });
+        console.log(JSON.stringify(result));
+        break;
+      }
+      if (args[0] === "skip" && team) {
+        const result = await skipTeam(sheetId, tab, sheet, {
+          domain: flag(args, "--domain") ?? "",
+          reason: flag(args, "--reason") ?? "",
+        });
+        console.log(JSON.stringify(result));
+        break;
+      }
       if (args[0] === "need") {
         const limit = Number(flag(args, "--limit") ?? "10");
         console.log(JSON.stringify(needList(sheet.rows, nyDate(new Date()), limit)));
@@ -668,7 +711,7 @@ async function main(): Promise<void> {
         break;
       }
       throw new Error(
-        "usage: outreach contacts need [--limit n] | contacts set --domain d --name n --title t --source url | contacts skip --domain d --reason r",
+        "usage: outreach contacts need [--team] [--limit n] | contacts set [--team] --domain d --name n --title t --source url | contacts skip [--team] --domain d --reason r",
       );
     }
     case "retouch": {

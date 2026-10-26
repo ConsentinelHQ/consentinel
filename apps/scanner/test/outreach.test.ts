@@ -39,6 +39,8 @@ import {
   pickExtras,
   stopDrafts,
 } from "../src/outreach/team.js";
+import { missingRoles, needsTeam, teamNeedList } from "../src/outreach/team-research.js";
+import { teamDue } from "../src/outreach/team-draft.js";
 
 const rejected: Evidence = {
   mode: "rejected",
@@ -909,5 +911,122 @@ assert.match(
 );
 const solo = render({ domain: "x.com", firstName: "A", ev: gpc, postalAddress: "", role: "owner" });
 assert.doesNotMatch(solo.text, /sending this to you because|marketing tags, so|also sent/);
+
+// ---------- Colleague research ----------
+const tr = (n: number, v: Record<string, string>): SheetRow =>
+  r(n, {
+    Domain: "x.com",
+    Status: "Emailed",
+    "First email": "2026-10-26",
+    Contact: "Ann Smith",
+    Title: "Head of Ecommerce",
+    Email: "ann@x.com",
+    "Email check": "valid (anymail)",
+    ...v,
+  });
+const tday = "2026-10-28";
+assert.deepEqual(missingRoles(tr(2, {}).values), ["risk", "budget"]);
+assert.equal(needsTeam([tr(2, {})], tday).length, 1);
+// Past the 5 business day window: a colleague email would read as a new cold email.
+assert.equal(needsTeam([tr(2, {})], "2026-11-02").length, 0);
+// Not drafted yet: the run's own lookup goes first.
+assert.equal(
+  needsTeam(
+    [tr(2, { Status: "Scanned - ready", "First email": "", "Next action": "Find contact" })],
+    tday,
+  ).length,
+  0,
+);
+assert.equal(
+  needsTeam(
+    [
+      tr(2, {
+        Status: "Scanned - ready",
+        "First email": "",
+        "Next action": "Review Gmail drafts and send",
+      }),
+    ],
+    tday,
+  ).length,
+  1,
+);
+// Full team, replied, skipped, hands-off, bounced contact 1: nothing to research.
+const full = {
+  "Contact 2": "Raj Patel",
+  "Title 2": "General Counsel",
+  "Email 2": "raj@x.com",
+  "Contact 3": "Bo Lee",
+  "Title 3": "CMO",
+  "Email 3": "bo@x.com",
+};
+assert.equal(needsTeam([tr(2, full)], tday).length, 0);
+assert.equal(needsTeam([tr(2, { Status: "Replied" })], tday).length, 0);
+assert.equal(
+  needsTeam([tr(2, { Notes: "2026-10-27: outreach bot - team research skipped: none" })], tday)
+    .length,
+  0,
+);
+assert.equal(needsTeam([tr(2, { Notes: "2026-10-27: hold, talking to Ann" })], tday).length, 0);
+assert.equal(needsTeam([tr(2, { "Email check": "bounced" })], tday).length, 0);
+// One colleague in slot 2 covering risk: budget still missing, slot 3 free.
+assert.deepEqual(
+  teamNeedList(
+    [
+      tr(2, {
+        "Contact 2": "Raj Patel",
+        "Title 2": "General Counsel",
+        "Email 2": "raj@x.com",
+        Notes:
+          "2026-10-27: outreach bot - team research: Joe Doe (CFO) not found, anymail: no result",
+      }),
+    ],
+    tday,
+    5,
+  ),
+  [
+    {
+      domain: "x.com",
+      have: [
+        { name: "Ann Smith", title: "Head of Ecommerce" },
+        { name: "Raj Patel", title: "General Counsel" },
+      ],
+      missing: ["budget"],
+      tried: ["Joe Doe"],
+    },
+  ],
+);
+
+// Drafting: only researched colleagues not yet drafted or sent.
+const researched = tr(3, {
+  "Contact 2": "Raj Patel",
+  "Title 2": "General Counsel",
+  "Email 2": "raj@x.com",
+  "Email check 2": "valid (researched)",
+  "Contact 3": "Bo Lee",
+  "Title 3": "CMO",
+  "Email 3": "bo@x.com",
+  "Email check 3": "valid (anymail)",
+});
+assert.deepEqual(
+  teamDue([researched], [], tday).map((d) => d.m.email),
+  ["raj@x.com"],
+);
+assert.equal(
+  teamDue(
+    [researched],
+    [
+      {
+        at: "2026-10-27T07:00:00Z",
+        domain: "x.com",
+        action: "drafted",
+        email: "raj@x.com",
+        messageId: "d",
+      },
+    ],
+    tday,
+  ).length,
+  0,
+);
+assert.equal(teamDue([researched], [], "2026-11-02").length, 0);
 
 console.log("outreach: all assertions passed");
