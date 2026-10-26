@@ -33,6 +33,7 @@ export default function Pricing() {
               <li>Any single page, any site you’re authorized to test</li>
               <li>Two-pass scan: once refusing consent, once accepting</li>
               <li>Every tracker firing before consent, graded by risk</li>
+              <li>Your privacy policy checked against every vendor that ran</li>
               <li>Full findings by email</li>
             </ul>
             <Link className="tier-cta" href="/#scan">
@@ -52,6 +53,9 @@ export default function Pricing() {
               <li>Scheduled scans daily, weekly, or monthly</li>
               <li>A scan after every deploy, from your CI pipeline or a Zapier step</li>
               <li>An email the moment a new tracker fires before consent</li>
+              <li>
+                An alert when a vendor starts running that your privacy policy doesn’t mention
+              </li>
               <li>Every finding carries the request or cookie that proves it, and the fix</li>
               <li>Shareable report links for whoever has to make the change</li>
               <li>{monitoring.historyDays} days of scan history</li>
@@ -82,8 +86,11 @@ export default function Pricing() {
               <li>Slack alerts</li>
               <li>Jira tickets, with fixes verified when a ticket closes</li>
               <li>
-                Demand letter packs: every sealed scan around the dates a letter claims, as PDF and
-                raw JSON
+                Demand letter packs: every sealed scan around the dates a letter claims, and the
+                policy in effect, as PDF and raw JSON
+              </li>
+              <li>
+                Policy history: every version of your privacy policy, saved the day it changes
               </li>
             </ul>
             <Link className="tier-cta" href="/app/billing">

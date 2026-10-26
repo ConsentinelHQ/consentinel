@@ -162,6 +162,52 @@ export default function Home() {
       </section>
 
       <section>
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <p className="eyebrow">When a demand letter arrives</p>
+              <h2>The record your lawyer asks for, already kept.</h2>
+            </div>
+            <p className="lede">
+              A letter names a date and claims tracking without consent. The defense needs three
+              things: what ran on your site that day, what your privacy policy said, and when each
+              changed. Consentinel keeps all three, sealed so nobody can say the record was edited.
+            </p>
+          </div>
+
+          <div className="tiles">
+            <div className="tile">
+              <p className="eyebrow">1 · What ran</p>
+              <h3>Every scan, sealed and dated</h3>
+              <p>
+                Daily scans record each tag that fired after a visitor opted out, with the exact
+                request as proof. Each record is hashed and chained to the one before it.
+              </p>
+            </div>
+            <div className="tile">
+              <p className="eyebrow">2 · What your policy said</p>
+              <h3>Every version of your policy, saved</h3>
+              <p>
+                We read your privacy policy on every scan, flag vendors it never mentions, and save
+                each version the day it changes. Nobody keeps old policies. Now you do.
+              </p>
+            </div>
+            <div className="tile">
+              <p className="eyebrow">3 · When it changed</p>
+              <h3>A response pack in one click</h3>
+              <p>
+                Pick the dates a letter claims. Get every scan around them, which vendors fired and
+                when they stopped, and the policy in effect, as a PDF and raw data.
+              </p>
+            </div>
+          </div>
+          <p className="center" style={{ marginTop: "1.5rem" }}>
+            <Link href="/pricing">Included in Growth &rarr;</Link>
+          </p>
+        </div>
+      </section>
+
+      <section>
         <div data-reveal className="wrap center">
           <h2>Clean today. Broken next week.</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
