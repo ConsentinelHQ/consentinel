@@ -39,7 +39,12 @@ import {
   pickExtras,
   stopDrafts,
 } from "../src/outreach/team.js";
-import { missingRoles, needsTeam, teamNeedList } from "../src/outreach/team-research.js";
+import {
+  foundNames,
+  missingRoles,
+  needsTeam,
+  teamNeedList,
+} from "../src/outreach/team-research.js";
 import { teamDue } from "../src/outreach/team-draft.js";
 
 const rejected: Evidence = {
@@ -1084,5 +1089,16 @@ assert.deepEqual(
 // One run that couldn't read the policy voids the claim.
 assert.deepEqual(notMentionedInAll([disc("checked", ["TikTok"]), disc("unreadable", [])]), []);
 assert.deepEqual(notMentionedInAll([]), []);
+
+// Colleagues found before the columns existed are recoverable from the notes.
+assert.deepEqual(
+  foundNames(
+    "2026-10-26: outreach bot - team research: Erika Georgiou (General Counsel) found via anymail, source https://x | 2026-10-26: outreach bot - team research: Joe Doe (CFO) not found, anymail: no result | 2026-10-26: outreach bot - team research: Bridget Schowalter (Head of Growth Marketing) found via hunter, source https://y",
+  ),
+  [
+    { name: "Erika Georgiou", title: "General Counsel" },
+    { name: "Bridget Schowalter", title: "Head of Growth Marketing" },
+  ],
+);
 
 console.log("outreach: all assertions passed");
