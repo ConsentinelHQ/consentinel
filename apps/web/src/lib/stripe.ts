@@ -40,6 +40,7 @@ export function planForPrice(priceId: string | undefined): PaidPlan | null {
 const ANNUAL_PRICE_ENV: Partial<Record<PaidPlan, string>> = {
   monitoring: "STRIPE_PRICE_MONITORING_ANNUAL",
   growth: "STRIPE_PRICE_GROWTH_ANNUAL",
+  agency: "STRIPE_PRICE_AGENCY_ANNUAL",
 };
 
 /**

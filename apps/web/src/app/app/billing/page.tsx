@@ -11,6 +11,7 @@ import {
 } from "@consentinel/db";
 import { BillingActions } from "@/components/billing-actions";
 import { requireSession } from "@/lib/auth";
+import { hasPrice } from "@/lib/stripe";
 import { db } from "@/lib/server";
 
 export const metadata: Metadata = { title: "Billing" };
@@ -164,14 +165,14 @@ export default async function Billing({
                       </>
                     ) : null}
                   </ul>
-                  {p.id === "agency" ? (
+                  {!hasPrice(p.id, false) ? (
                     <span aria-disabled="true" className="tier-cta is-disabled">
                       Coming soon
                     </span>
                   ) : (
                     <>
                       <BillingActions action="checkout" label="Pay monthly" plan={p.id} />
-                      {ANNUAL_PRICES[p.id] ? (
+                      {ANNUAL_PRICES[p.id] && hasPrice(p.id, true) ? (
                         <BillingActions
                           action="checkout"
                           interval="year"
