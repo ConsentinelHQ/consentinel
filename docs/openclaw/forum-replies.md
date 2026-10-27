@@ -59,7 +59,7 @@ Only after Charlie replies in Slack with `post`, or with `edit` (post his text e
 2. Click Reply on the topic, paste the approved text exactly, and submit.
 3. Open the thread again and confirm the post shows. Reply in Slack: `Posted: <post url>`.
 
-Never post anything Charlie didn't approve in this Slack thread. One post per thread, ever. If posting fails, tell Charlie and don't retry.
+Wait 60 seconds between posts, since the forum rejects replies sent close together. Never post anything Charlie didn't approve in this Slack thread. One post per thread, ever. If posting fails, tell Charlie and don't retry.
 
 ## Log
 
