@@ -2,6 +2,7 @@ import { roleFor } from "./contacts.js";
 import { MIN_VENDORS, gather, type Evidence } from "./evidence.js";
 import { createDraft, normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { reportLink, type ApiOpts } from "./prep.js";
+import { GONE, REFERRED } from "./referral.js";
 import { RESEARCHED } from "./research.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record, type Entry } from "./state.js";
 import { WINDOW_DAYS } from "./team-research.js";
@@ -16,7 +17,10 @@ import { render } from "./template.js";
 const LIVE = new Set(["Scanned - ready", "Emailed"]);
 const HANDS_OFF = /do not|don't|hold|avoid|skip|unsubscribe|not interested|reply from|stop/i;
 
-/** Researched colleagues with no draft or send in the ledger yet, still inside the window. */
+/**
+ * Researched colleagues inside the window, plus people a left-company auto-reply
+ * named (no window: they replace someone already emailed). Skips anyone already drafted or sent.
+ */
 export function teamDue(
   rows: SheetRow[],
   ledger: Entry[],
@@ -30,9 +34,11 @@ export function teamDue(
   const out: { row: SheetRow; m: Member }[] = [];
   for (const row of rows) {
     const v = row.values;
-    if (!LIVE.has(v["Status"] ?? "")) continue;
+    const live = LIVE.has(v["Status"] ?? "");
+    // A referral still counts after the follow-up: nobody has read our email yet.
+    if (!live && v["Status"] !== "Followed up") continue;
     const first = parseDay(v["First email"]);
-    if (first && nyDate(addBusinessDays(dayToDate(first), WINDOW_DAYS)) <= today) continue;
+    const late = Boolean(first && nyDate(addBusinessDays(dayToDate(first), WINDOW_DAYS)) <= today);
     const human = (v["Notes"] ?? "")
       .split("|")
       .filter((p) => !p.includes("outreach bot - "))
@@ -40,7 +46,8 @@ export function teamDue(
     if (HANDS_OFF.test(human)) continue;
     const domain = normDomain(v["Domain"] ?? "");
     for (const m of members(v)) {
-      if (m.slot === 1 || m.check !== RESEARCHED) continue;
+      const ok = m.check === REFERRED || (m.check === RESEARCHED && live && !late);
+      if (m.slot === 1 || !ok) continue;
       if (contacted.has(`${domain}|${m.email}`)) continue;
       out.push({ row, m });
     }
@@ -84,7 +91,7 @@ export async function draftTeam(
       ...(reportUrl ? { reportUrl } : {}),
       ...(role ? { role } : {}),
       alsoSent: members(row.values)
-        .filter((o) => o.slot !== m.slot && !/bounced/i.test(o.check))
+        .filter((o) => o.slot !== m.slot && !GONE.test(o.check))
         .map((o) => o.fullName)
         .filter(Boolean),
     });
@@ -95,7 +102,7 @@ export async function draftTeam(
         action: "drafted",
         email: m.email,
         messageId: id,
-        reason: `draft mode, contact ${String(m.slot)} (researched)`,
+        reason: `draft mode, contact ${String(m.slot)} (${m.check === REFERRED ? "referred" : "researched"})`,
       });
       const prior = row.values["Notes"] ?? "";
       const n = `${today}: outreach bot - drafted for ${m.fullName} (contact ${String(m.slot)})`;

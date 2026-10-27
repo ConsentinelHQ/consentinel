@@ -46,6 +46,13 @@ import {
   teamNeedList,
 } from "../src/outreach/team-research.js";
 import { teamDue } from "../src/outreach/team-draft.js";
+import {
+  GONE,
+  domainFromSubject,
+  nameFromEmail,
+  referralEmails,
+  saysLeft,
+} from "../src/outreach/referral.js";
 
 const rejected: Evidence = {
   mode: "rejected",
@@ -1099,6 +1106,53 @@ assert.deepEqual(
     { name: "Erika Georgiou", title: "General Counsel" },
     { name: "Bridget Schowalter", title: "Head of Growth Marketing" },
   ],
+);
+
+// Left-company auto-replies: who left, who to email instead.
+const leftText =
+  "Thank you for your email. Megan Ducate is no longer with Generous Brands.\nplease reach out to Kreg.Adamsen@generousbrands.com";
+assert.equal(saysLeft(leftText), true);
+assert.equal(saysLeft("I'm out of the office until Monday with limited access to email."), false);
+assert.equal(saysLeft("Jane has left the company. Please contact sales@x.com"), true);
+assert.equal(
+  domainFromSubject('Automatic reply: "[External]"Privacy issues on health-ade.com'),
+  "health-ade.com",
+);
+assert.equal(domainFromSubject("Re: lunch"), null);
+assert.deepEqual(
+  referralEmails(
+    leftText + " megan.ducate@generousbrands.com",
+    "megan.ducate@generousbrands.com",
+    "health-ade.com",
+  ),
+  ["kreg.adamsen@generousbrands.com"],
+);
+// Shared inboxes and outside domains aren't people to email.
+assert.deepEqual(
+  referralEmails("Contact info@x.com or bob@gmail.com or amy.lee@x.com", "jo@x.com", "x.com"),
+  ["amy.lee@x.com"],
+);
+assert.equal(nameFromEmail("Kreg.Adamsen@generousbrands.com"), "Kreg Adamsen");
+assert.equal(nameFromEmail("kadamsen@generousbrands.com"), "");
+assert.equal(GONE.test("left company"), true);
+assert.equal(GONE.test("bounced (left company)"), true);
+assert.equal(GONE.test("valid (referred)"), false);
+
+// A referral is drafted even after the window and after the follow-up; the leaver never is.
+const referred = tr(4, {
+  Status: "Followed up",
+  "Email check": "left company",
+  "Email 2": "kreg.adamsen@x.com",
+  "Contact 2": "Kreg Adamsen",
+  "Email check 2": "valid (referred)",
+});
+assert.deepEqual(
+  teamDue([referred], [], "2026-11-20").map((d) => d.m.email),
+  ["kreg.adamsen@x.com"],
+);
+assert.equal(
+  teamDue([{ ...referred, values: { ...referred.values, Status: "Dead" } }], [], tday).length,
+  0,
 );
 
 console.log("outreach: all assertions passed");
