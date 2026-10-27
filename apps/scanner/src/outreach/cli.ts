@@ -57,6 +57,7 @@ import { retouch } from "./retouch.js";
 import { RESEARCHED, needList, setContact, skipContact } from "./research.js";
 import { recordOpens } from "./views.js";
 import { computeStats } from "./stats.js";
+import { funnel, renderFunnel } from "./funnel.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
   draftLeads,
@@ -609,6 +610,18 @@ async function main(): Promise<void> {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
       console.log(JSON.stringify(computeStats((await readSheet(sheetId, tab)).rows), null, 2));
+      break;
+    }
+    case "funnel": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const key = process.env["OUTREACH_API_KEY"];
+      const f = await funnel(
+        (await readSheet(sheetId, tab)).rows,
+        key ? { base: cfg("OUTREACH_APP_URL", "https://www.getconsentinel.com"), key } : null,
+        Number(flag(args, "--days") ?? 120),
+      );
+      console.log(args.includes("--json") ? JSON.stringify(f, null, 2) : renderFunnel(f));
       break;
     }
     case "leads": {
