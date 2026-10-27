@@ -34,6 +34,8 @@ export function SiteFooter() {
           <Link href="/gpc-checker">GPC checker</Link>
           <Link href="/gpc">Global Privacy Control by state</Link>
           <Link href="/cipa-demand-letter">Got a CIPA demand letter?</Link>
+          <Link href="/research/opt-out-report-2026">2026 opt-out report</Link>
+          <Link href="/vendors">Pixels that ignore opt-outs</Link>
         </nav>
         <nav aria-label="Company">
           <p className="site-footer-head">Company</p>

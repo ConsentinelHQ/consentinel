@@ -70,9 +70,35 @@ jobs:
       - run: pnpm test --filter=!@consentinel/scanner
       - run: pnpm build --filter=!@consentinel/scanner
 
+  # Website-only PRs don't touch the scanner, so its browser job is skipped.
+  # A skipped required check counts as passing.
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      scanner: ${{ steps.filter.outputs.scanner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "scanner=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" HEAD)
+          if echo "$files" | grep -qvE '^apps/web/|^$'; then
+            echo "scanner=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scanner=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # Scanner has a Chromium dependency; isolated so a browser cache miss never slows the fast gate.
   scanner:
     name: Scanner (Playwright)
+    needs: changes
+    if: needs.changes.outputs.scanner == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     # The worker test drives a job through a real queue into a real database.
@@ -118,7 +144,10 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - if: steps.browser-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @consentinel/scanner exec playwright install --with-deps chromium
+      # Usually ~12s. If Ubuntu's package mirror stalls, fail fast and re-run
+      # rather than hold the PR for the job's full 25 minutes.
       - if: steps.browser-cache.outputs.cache-hit == 'true'
+        timeout-minutes: 4
         run: pnpm --filter @consentinel/scanner exec playwright install-deps chromium
       - run: pnpm typecheck --filter=@consentinel/scanner
       - run: pnpm test --filter=@consentinel/scanner
