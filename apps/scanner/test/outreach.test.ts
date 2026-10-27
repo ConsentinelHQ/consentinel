@@ -1155,4 +1155,30 @@ assert.equal(
   0,
 );
 
+// A referral names who pointed us there, right after the greeting.
+{
+  const base = render({ domain: "x.com", firstName: "Kreg", ev: rejected, postalAddress: "" });
+  const ref = render({
+    domain: "x.com",
+    firstName: "Kreg",
+    ev: rejected,
+    postalAddress: "",
+    referredBy: "Megan",
+  });
+  assert.ok(
+    ref.text.startsWith("Hi Kreg,\n\nMegan's auto-reply pointed me to you.\n\nSorry to bother"),
+  );
+  assert.ok(ref.html.includes("<p>Megan&#39;s") || ref.html.includes("<p>Megan's auto-reply"));
+  assert.ok(!base.text.includes("auto-reply"));
+  assert.ok(
+    render({
+      domain: "x.com",
+      firstName: "",
+      ev: rejected,
+      postalAddress: "",
+      referredBy: "",
+    }).text.includes("An auto-reply pointed me to you."),
+  );
+}
+
 console.log("outreach: all assertions passed");

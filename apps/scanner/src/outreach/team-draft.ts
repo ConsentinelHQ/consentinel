@@ -83,6 +83,7 @@ export async function draftTeam(
       ? await reportLink(opts.reportApi, domain, ev.latest, log)
       : undefined;
     const role = roleFor(m.title);
+    const leaver = members(row.values).find((o) => /left company/i.test(o.check));
     const email = render({
       domain,
       firstName: m.firstName,
@@ -94,6 +95,7 @@ export async function draftTeam(
         .filter((o) => o.slot !== m.slot && !GONE.test(o.check))
         .map((o) => o.fullName)
         .filter(Boolean),
+      ...(m.check === REFERRED ? { referredBy: leaver?.firstName ?? "" } : {}),
     });
     try {
       const id = await createDraft(opts.from, m.email, email);

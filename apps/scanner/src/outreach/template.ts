@@ -26,6 +26,8 @@ export interface TemplateInput {
   role?: Role;
   /** Colleagues emailed the same day, named so nobody is surprised. */
   alsoSent?: string[];
+  /** First name of the contact who left and whose auto-reply named this person. "" when unknown. */
+  referredBy?: string;
 }
 
 /** One line per role, after the findings. Plain, no pitch. */
@@ -114,6 +116,7 @@ export function render({
   reportUrl,
   role,
   alsoSent = [],
+  referredBy,
 }: TemplateInput): Email {
   const roleLine = role ? ROLE_LINE[role] : null;
   const names = alsoSent.map((n) => n.trim()).filter(Boolean);
@@ -121,6 +124,10 @@ export function render({
     ? `I've also sent this to ${joinNames(names)} so the right person sees it.`
     : null;
   const greeting = `Hi ${firstName.trim() || "there"},`;
+  const referral =
+    referredBy === undefined
+      ? null
+      : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
   const intro =
     "Sorry to bother, my name is Charlie Buckley - I'm the founder of Consentinel, a tool that checks whether websites actually respect their visitors' privacy choices.";
   const lead = `I wanted to reach out as I ran a scan on ${domain} and noticed several issues I wanted to make you aware of:`;
@@ -139,6 +146,7 @@ export function render({
   const text = [
     greeting,
     "",
+    ...(referral ? [referral, ""] : []),
     intro,
     "",
     lead,
@@ -163,6 +171,7 @@ export function render({
   const p = (s: string): string => `<p>${s}</p>`;
   const html = [
     p(esc(greeting)),
+    ...(referral ? [p(esc(referral))] : []),
     p(esc(intro).replace("Consentinel", `<a href="${SITE}">Consentinel</a>`)),
     p(esc(lead)),
     `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`,
