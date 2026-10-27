@@ -144,14 +144,11 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - if: steps.browser-cache.outputs.cache-hit != 'true'
         run: pnpm --filter @consentinel/scanner exec playwright install --with-deps chromium
-      # Usually ~12s. When Ubuntu's package mirror stalls, retry instead of hanging the job.
+      # Usually ~12s. If Ubuntu's package mirror stalls, fail fast and re-run
+      # rather than hold the PR for the job's full 25 minutes.
       - if: steps.browser-cache.outputs.cache-hit == 'true'
-        run: |
-          for i in 1 2 3; do
-            timeout 150 pnpm --filter @consentinel/scanner exec playwright install-deps chromium && exit 0
-            echo "install-deps attempt $i stalled, retrying"
-          done
-          exit 1
+        timeout-minutes: 4
+        run: pnpm --filter @consentinel/scanner exec playwright install-deps chromium
       - run: pnpm typecheck --filter=@consentinel/scanner
       - run: pnpm test --filter=@consentinel/scanner
       - run: pnpm build --filter=@consentinel/scanner
