@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { Reveal } from "@/components/reveal";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteNav } from "@/components/site-nav";
 import "./globals.css";
 
@@ -21,6 +22,11 @@ export const metadata: Metadata = {
   },
   description:
     "Scan any website and get evidence of trackers firing before consent, cookies dropped without permission, and personal data leaking to ad platforms.",
+  metadataBase: new URL("https://www.getconsentinel.com"),
+  // Google Search Console HTML-tag verification. Set the token in Vercel; absent, no tag.
+  ...(process.env["GOOGLE_SITE_VERIFICATION"]
+    ? { verification: { google: process.env["GOOGLE_SITE_VERIFICATION"] } }
+    : {}),
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -31,6 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <SiteNav />
           <Reveal />
           {children}
+          <SiteFooter />
         </body>
       </html>
     </ClerkProvider>
