@@ -66,7 +66,7 @@ import {
   pickLeads,
   saveInboundSince,
 } from "./inbound.js";
-import { fetchReport, prep } from "./prep.js";
+import { prep, reportLink } from "./prep.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
 
@@ -352,17 +352,9 @@ async function run(args: string[]): Promise<Summary> {
     // A link to their own report is the email's call to action, and its opens are the signal.
     // One report per person so an open says who looked. No key, or the scan fails: the email offers to send it.
     const links = await Promise.all(
-      team.map(async (): Promise<string | undefined> => {
-        if (!reportApi) return undefined;
-        try {
-          const got = await fetchReport(reportApi, domain);
-          if (typeof got === "string") log(`       no report link: ${got}`);
-          else return got.reportUrl;
-        } catch (error) {
-          log(`       no report link: ${error instanceof Error ? error.message : String(error)}`);
-        }
-        return undefined;
-      }),
+      team.map((): Promise<string | undefined> =>
+        reportApi ? reportLink(reportApi, domain, ev.latest, log) : Promise.resolve(undefined),
+      ),
     );
     const reportUrl = links[0];
     const contactCols = {
