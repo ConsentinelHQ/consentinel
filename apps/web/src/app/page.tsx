@@ -58,9 +58,6 @@ export default function Home() {
 
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <Link className="hero-badge" href="/gpc">
-              12 states now require Global Privacy Control <span aria-hidden="true">&rarr;</span>
-            </Link>
             <h1>
               Your site is sending data your{" "}
               <span className="gradient-text">visitors said no to.</span>
