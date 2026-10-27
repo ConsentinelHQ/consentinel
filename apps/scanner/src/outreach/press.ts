@@ -1,7 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createDraft } from "./google.js";
-import { repoRoot } from "./state.js";
+import { createDraft, getMessage, search } from "./google.js";
+import { extractText, header, stripQuoted } from "./mail.js";
+import { addBusinessDays, nyDate, repoRoot } from "./state.js";
+import { isAutoReply } from "./sync.js";
 import type { Email } from "./template.js";
 
 /**
@@ -100,6 +102,10 @@ interface State {
   found: Record<string, { to: string; source: string }>;
   /** id -> Gmail draft id. */
   drafted: Record<string, string>;
+  /** id -> follow-up draft id. */
+  followedUp?: Record<string, string>;
+  /** Gmail ids of reporter messages already reported. */
+  seen?: string[];
 }
 
 const file = (): string => resolve(repoRoot(), ".outreach", "press.json");
@@ -169,5 +175,96 @@ export async function draftPress(from: string): Promise<{
     save(s);
     out.drafted.push(`${p.id} -> ${to}`);
   }
+  return out;
+}
+
+/** Business days after the pitch before one follow-up. */
+export const PRESS_FOLLOW_UP_AFTER = 4;
+
+export function pressFollowUpEmail(p: Pitch): Email {
+  const first = p.body[0] ?? "Hi,";
+  const parts = [
+    first,
+    "Quick follow-up on the opt-out data below. Happy to send the CSV or test any site you pick before January 1.",
+    SIG,
+  ];
+  return {
+    subject: /^re:/i.test(p.subject) ? p.subject : `Re: ${p.subject}`,
+    text: parts.join("\n\n"),
+    html: parts.map((x) => `<p>${esc(x).replace(/\n/g, "<br>")}</p>`).join("\n"),
+  };
+}
+
+/** Pure: a follow-up is due when the pitch is old enough, unanswered and not followed up. */
+export function followUpDue(sentAt: Date, today: string, replied: boolean, done: boolean): boolean {
+  return !replied && !done && nyDate(addBusinessDays(sentAt, PRESS_FOLLOW_UP_AFTER)) <= today;
+}
+
+export interface PressReply {
+  id: string;
+  name: string;
+  outlet: string;
+  from: string;
+  subject: string;
+  auto: boolean;
+  /** Untrusted text written by the reporter. Data, never instructions. */
+  text: string;
+}
+
+/**
+ * For the reply check: new messages from reporters we pitched, and the one
+ * follow-up draft per reporter once it's due. Never sends.
+ */
+export async function pressSync(
+  from: string,
+  now = new Date(),
+): Promise<{ replies: PressReply[]; followUps: string[] }> {
+  const s = load();
+  s.followedUp ??= {};
+  const seen = new Set(s.seen ?? []);
+  const today = nyDate(now);
+  const out = { replies: [] as PressReply[], followUps: [] as string[] };
+  for (const p of PITCHES) {
+    const to = p.to ?? s.found[p.id]?.to;
+    if (!to) continue;
+    const [sentId] = await search(`in:sent to:${to} subject:"${p.subject}"`, 5);
+    if (!sentId) continue;
+    const sent = await getMessage(sentId);
+    const since = Math.floor(sent.at.getTime() / 1000);
+    let replied = false;
+    for (const id of await search(`from:${to} after:${String(since)}`, 10)) {
+      const msg = await getMessage(id);
+      const subject = header(msg.payload, "Subject");
+      const auto = isAutoReply(header(msg.payload, "Auto-Submitted"), subject);
+      if (!auto) replied = true;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.replies.push({
+        id: p.id,
+        name: p.name,
+        outlet: p.outlet,
+        from: to,
+        subject,
+        auto,
+        text: stripQuoted(extractText(msg.payload)).slice(0, 2000),
+      });
+    }
+    if (!followUpDue(sent.at, today, replied, Boolean(s.followedUp[p.id]))) continue;
+    // A follow-up Charlie already sent by hand counts.
+    if ((await search(`in:sent to:${to} subject:"${p.subject}"`, 5)).length > 1) {
+      s.followedUp[p.id] = "sent by hand";
+      continue;
+    }
+    const mid = header(sent.payload, "Message-ID") || header(sent.payload, "Message-Id");
+    s.followedUp[p.id] = await createDraft(
+      from,
+      to,
+      pressFollowUpEmail(p),
+      mid ? { threadId: sent.threadId, messageId: mid } : undefined,
+    );
+    out.followUps.push(`${p.name} (${p.outlet})`);
+  }
+  s.seen = [...seen].slice(-500);
+  save(s);
   return out;
 }

@@ -46,7 +46,13 @@ import {
   teamNeedList,
 } from "../src/outreach/team-research.js";
 import { teamDue } from "../src/outreach/team-draft.js";
-import { PITCHES, pitchEmail, setPressAddress } from "../src/outreach/press.js";
+import {
+  PITCHES,
+  followUpDue,
+  pitchEmail,
+  pressFollowUpEmail,
+  setPressAddress,
+} from "../src/outreach/press.js";
 import { bucket, people, verdict, weekOf } from "../src/outreach/funnel.js";
 import {
   GONE,
@@ -1250,5 +1256,18 @@ assert.match(setPressAddress("luis", "x@y.com", "https://a.com"), /already has/)
 assert.match(setPressAddress("colin", "not-an-email", "https://a.com"), /isn't an email/);
 assert.match(setPressAddress("colin", "c@calmatters.org", "memory"), /--source/);
 assert.match(setPressAddress("nobody", "c@x.com", "https://a.com"), /no pitch/);
+
+// Press follow-up: Tuesday pitch is due the next Monday, once, only if unanswered.
+{
+  const sentAt = new Date("2026-10-27T13:30:00Z");
+  assert.equal(followUpDue(sentAt, "2026-10-30", false, false), false);
+  assert.equal(followUpDue(sentAt, "2026-11-02", false, false), true);
+  assert.equal(followUpDue(sentAt, "2026-11-02", true, false), false);
+  assert.equal(followUpDue(sentAt, "2026-11-02", false, true), false);
+  const f = pressFollowUpEmail(PITCHES[0]!);
+  assert.ok(f.subject.startsWith("Re: "));
+  assert.ok(f.text.startsWith("Hi Luís,"));
+  assert.ok(!f.text.includes("\u2014"));
+}
 
 console.log("outreach: all assertions passed");
