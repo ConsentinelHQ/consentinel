@@ -1554,28 +1554,7 @@ dialog.confirm .confirm-body {
 .hero-copy .lede {
   max-width: 34rem;
 }
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 1.5rem;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(215, 0, 21, 0.06);
-  border: 1px solid rgba(215, 0, 21, 0.25);
-  color: #b91c1c;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.hero-badge::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #d70015;
-}
+
 .gradient-text {
   background: linear-gradient(90deg, #d70015, #ff6b5b, #d70015);
   background-size: 200% auto;
@@ -1636,14 +1615,7 @@ dialog.confirm .confirm-body {
   margin-left: 0;
   margin-right: 0;
 }
-.hero-badge {
-  background: rgba(112, 56, 255, 0.07);
-  border-color: rgba(112, 56, 255, 0.25);
-  color: #5b2ee0;
-}
-.hero-badge::before {
-  background: #00d68f;
-}
+
 .gradient-text {
   background: linear-gradient(90deg, #7038ff, #ef008f, #ff8a00, #00b377, #7038ff);
   background-size: 250% auto;
@@ -2156,18 +2128,6 @@ dialog.confirm .confirm-body {
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
   }
-}
-
-/* Homepage badge is now a link */
-a.hero-badge {
-  text-decoration: none;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-a.hero-badge:hover {
-  background: rgba(112, 56, 255, 0.12);
-  border-color: rgba(112, 56, 255, 0.4);
 }
 
 /* GPC reference table */
