@@ -10,6 +10,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/how-it-works`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/pricing`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/gpc`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/gpc-checker`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${BASE}/cipa-demand-letter`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/contact`, changeFrequency: "monthly", priority: 0.5 },
   ];
   return pages.map((page) => ({ ...page, lastModified }));
