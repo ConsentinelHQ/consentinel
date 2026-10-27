@@ -58,7 +58,7 @@ import { RESEARCHED, needList, setContact, skipContact } from "./research.js";
 import { recordOpens } from "./views.js";
 import { computeStats } from "./stats.js";
 import { funnel, renderFunnel } from "./funnel.js";
-import { draftPress, setPressAddress } from "./press.js";
+import { draftPress, pressSync, setPressAddress } from "./press.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
   draftLeads,
@@ -538,7 +538,14 @@ async function main(): Promise<void> {
           inbound = { inboundError: error instanceof Error ? error.message : String(error) };
         }
       }
-      console.log(JSON.stringify({ ...summary, ...inbound, ...opens }, null, 2));
+      // Press is a bonus too: never let it hide prospect replies.
+      let press = {};
+      try {
+        press = { press: await pressSync(cfg("OUTREACH_FROM")) };
+      } catch (error) {
+        press = { pressError: error instanceof Error ? error.message : String(error) };
+      }
+      console.log(JSON.stringify({ ...summary, ...inbound, ...opens, ...press }, null, 2));
       break;
     }
     case "queue": {
