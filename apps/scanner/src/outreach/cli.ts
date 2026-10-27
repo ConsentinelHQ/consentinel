@@ -58,6 +58,7 @@ import { RESEARCHED, needList, setContact, skipContact } from "./research.js";
 import { recordOpens } from "./views.js";
 import { computeStats } from "./stats.js";
 import { funnel, renderFunnel } from "./funnel.js";
+import { draftPress, setPressAddress } from "./press.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
   draftLeads,
@@ -610,6 +611,21 @@ async function main(): Promise<void> {
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
       console.log(JSON.stringify(computeStats((await readSheet(sheetId, tab)).rows), null, 2));
+      break;
+    }
+    case "press": {
+      const [sub = "drafts", ...rest] = args;
+      if (sub === "set") {
+        console.log(
+          setPressAddress(
+            flag(rest, "--id") ?? "",
+            flag(rest, "--to") ?? "",
+            flag(rest, "--source") ?? "",
+          ),
+        );
+      } else {
+        console.log(JSON.stringify(await draftPress(cfg("OUTREACH_FROM")), null, 2));
+      }
       break;
     }
     case "funnel": {

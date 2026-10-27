@@ -46,6 +46,7 @@ import {
   teamNeedList,
 } from "../src/outreach/team-research.js";
 import { teamDue } from "../src/outreach/team-draft.js";
+import { PITCHES, pitchEmail, setPressAddress } from "../src/outreach/press.js";
 import { bucket, people, verdict, weekOf } from "../src/outreach/funnel.js";
 import {
   GONE,
@@ -1237,5 +1238,17 @@ assert.equal(
   );
   assert.match(verdict(b, [{ ...ok, dkim: false }])[0]!, /no DKIM/);
 }
+
+// Press pitches: no em dashes, no share-of-all-stores claims, addresses only with a source.
+for (const p of PITCHES) {
+  const e = pitchEmail(p);
+  assert.ok(!e.text.includes("\u2014"), p.id);
+  assert.ok(!/% of (all )?(stores|sites|websites)/i.test(e.subject + e.text), p.id);
+  assert.ok(e.text.endsWith("getconsentinel.com"), p.id);
+}
+assert.match(setPressAddress("luis", "x@y.com", "https://a.com"), /already has/);
+assert.match(setPressAddress("colin", "not-an-email", "https://a.com"), /isn't an email/);
+assert.match(setPressAddress("colin", "c@calmatters.org", "memory"), /--source/);
+assert.match(setPressAddress("nobody", "c@x.com", "https://a.com"), /no pitch/);
 
 console.log("outreach: all assertions passed");
