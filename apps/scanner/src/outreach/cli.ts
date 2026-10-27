@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { findContact, findContacts, roleFor, type Contact, type RoleContact } from "./contacts.js";
 import { EXTRA_HEADERS, extraCols, pickExtras, type Slot } from "./team.js";
 import { draftTeam } from "./team-draft.js";
-import { setTeam, skipTeam, teamNeedList } from "./team-research.js";
+import { repairTeam, setTeam, skipTeam, teamNeedList } from "./team-research.js";
 import {
   MIN_VENDORS,
   NOT_A_SITE,
@@ -455,6 +455,8 @@ async function run(args: string[]): Promise<Summary> {
   out.sentToday = sentCount;
   if (fromSheet) {
     try {
+      const restored = await repairTeam(sheetId, tab, sheet, log);
+      if (restored.length) log(`restored colleagues: ${restored.join(", ")}`);
       out.colleagues = await draftTeam(
         sheetId,
         tab,

@@ -1,8 +1,8 @@
 import { findPerson, roleFor, type Role } from "./contacts.js";
-import { normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
+import { ensureHeaders, normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { MAX_NAMES, RESEARCHED, cleanName, type SetResult } from "./research.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay } from "./state.js";
-import { SLOTS, col, members, type Slot } from "./team.js";
+import { EXTRA_HEADERS, SLOTS, col, members, type Slot } from "./team.js";
 
 /**
  * Colleague research: rows where contact 1 is already drafted or emailed but
@@ -132,6 +132,8 @@ export async function setTeam(
     });
     return { domain, status: "not found", reason: hit };
   }
+  // The colleague columns may not exist yet; writes to a missing column are dropped.
+  await ensureHeaders(sheetId, tab, sheet, EXTRA_HEADERS);
   const slot = freeSlot(v)!;
   const n = `${today}: outreach bot - ${TRIED}: ${name} (${title}) found via ${hit.source}, source ${source}`;
   const fields = {
@@ -168,4 +170,65 @@ export async function skipTeam(
     Notes: prior ? `${prior} | ${n}` : n,
   });
   return { domain, status: "skipped", reason };
+}
+
+/** "team research: Jane Doe (General Counsel) found via anymail" entries. */
+export function foundNames(notes: string): { name: string; title: string }[] {
+  return [...notes.matchAll(/team research: ([^(|]+?) \(([^)|]*)\) found via/g)].map((m) => ({
+    name: (m[1] ?? "").trim(),
+    title: (m[2] ?? "").trim(),
+  }));
+}
+
+/**
+ * Colleagues research found but the sheet never stored, from before the columns
+ * existed. Re-verifies each address (it isn't in the notes) and fills a slot.
+ * Same window and hands-off rules as research, so nothing stale comes back.
+ */
+export async function repairTeam(
+  sheetId: string,
+  tab: string,
+  sheet: Sheet,
+  log: (s: string) => void = () => undefined,
+): Promise<string[]> {
+  await ensureHeaders(sheetId, tab, sheet, EXTRA_HEADERS);
+  const today = nyDate(new Date());
+  const restored: string[] = [];
+  for (const row of sheet.rows) {
+    const v = row.values;
+    const status = v["Status"] ?? "";
+    if (status !== "Scanned - ready" && status !== "Emailed") continue;
+    const first = parseDay(v["First email"]);
+    if (first && nyDate(addBusinessDays(dayToDate(first), WINDOW_DAYS)) <= today) continue;
+    const have = members(v).map((m) => m.fullName.toLowerCase());
+    for (const { name, title } of foundNames(v["Notes"] ?? "")) {
+      if (have.includes(name.toLowerCase())) continue;
+      const slot = freeSlot(v);
+      if (!slot) break;
+      const domain = normDomain(v["Domain"] ?? "");
+      const hit = await findPerson(
+        domain,
+        name,
+        members(v).map((m) => m.email),
+      );
+      if (typeof hit === "string") {
+        log(`team   ${domain}: couldn't restore ${name}, ${hit}`);
+        continue;
+      }
+      const prior = v["Notes"] ?? "";
+      const n = `${today}: outreach bot - restored colleague ${name}`;
+      const fields = {
+        [col("Contact", slot)]: name,
+        [col("Title", slot)]: title,
+        [col("Email", slot)]: hit.email,
+        [col("Email check", slot)]: RESEARCHED,
+        Notes: prior ? `${prior} | ${n}` : n,
+      };
+      Object.assign(v, fields);
+      await updateRow(sheetId, tab, sheet.headers, row.rowNumber, fields);
+      have.push(name.toLowerCase());
+      restored.push(`${domain} (${name})`);
+    }
+  }
+  return restored;
 }
