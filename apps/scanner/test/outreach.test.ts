@@ -46,6 +46,7 @@ import {
   teamNeedList,
 } from "../src/outreach/team-research.js";
 import { teamDue } from "../src/outreach/team-draft.js";
+import { bucket, people, verdict, weekOf } from "../src/outreach/funnel.js";
 import {
   GONE,
   domainFromSubject,
@@ -1179,6 +1180,62 @@ assert.equal(
       referredBy: "",
     }).text.includes("An auto-reply pointed me to you."),
   );
+}
+
+// Funnel: only sheet contacts count, follow-ups fold into the first send, opens match by report.
+{
+  const sid = "11111111-2222-3333-4444-555555555555";
+  const rows = [
+    tr(5, { "Scan mode": "gpc", "Report link": `https://x/report/${sid}` }),
+    tr(6, { Domain: "y.com", Email: "bo@y.com", Status: "Replied", "Scan mode": "rejected" }),
+  ];
+  const at = new Date("2026-10-20T14:00:00Z");
+  const ps = people(
+    [
+      { to: "ann@x.com", domain: "x.com", at, followUp: false, scanId: sid },
+      {
+        to: "ann@x.com",
+        domain: "x.com",
+        at: new Date("2026-10-27T14:00:00Z"),
+        followUp: true,
+        scanId: null,
+      },
+      { to: "bo@y.com", domain: "y.com", at, followUp: false, scanId: null },
+      { to: "me@consentinelhq.com", domain: "x.com", at, followUp: false, scanId: null },
+    ],
+    rows,
+    [
+      {
+        scanId: sid,
+        views: 2,
+        firstViewedAt: "2026-10-20T20:00:00Z",
+        lastViewedAt: "2026-10-21T00:00:00Z",
+      },
+    ],
+  );
+  assert.equal(ps.length, 2);
+  const ann = ps.find((p) => p.email === "ann@x.com")!;
+  assert.equal(ann.followedUp, true);
+  assert.equal(ann.opened, true);
+  assert.equal(ann.hoursToOpen, 6);
+  assert.equal(ps.find((p) => p.email === "bo@y.com")!.replied, true);
+  const b = bucket("all", ps);
+  assert.deepEqual([b.delivered, b.linked, b.opened, b.replied], [2, 1, 1, 1]);
+  assert.equal(weekOf(new Date("2026-10-28T12:00:00Z")), "2026-10-26");
+  const ok = { domain: "d.com", spf: true, dkim: true, dmarc: "v=DMARC1; p=quarantine" };
+  assert.match(
+    verdict({ label: "all", people: 40, delivered: 40, linked: 20, opened: 1, replied: 0 }, [
+      ok,
+    ]).join(" "),
+    /not being seen/,
+  );
+  assert.match(
+    verdict({ label: "all", people: 40, delivered: 40, linked: 20, opened: 8, replied: 0 }, [
+      ok,
+    ]).join(" "),
+    /ask or the report/,
+  );
+  assert.match(verdict(b, [{ ...ok, dkim: false }])[0]!, /no DKIM/);
 }
 
 console.log("outreach: all assertions passed");
