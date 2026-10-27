@@ -1,10 +1,27 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { getMessage, normDomain, search, updateRow, type Sheet, type SheetRow } from "./google.js";
+import {
+  ensureHeaders,
+  getMessage,
+  normDomain,
+  search,
+  updateRow,
+  type Sheet,
+  type SheetRow,
+} from "./google.js";
 import { address, bouncedRecipients, extractText, header, stripQuoted } from "./mail.js";
 import { DRAFTED as RETOUCH_DRAFTED, SENT as RETOUCH_SENT } from "./retouch.js";
 import { addBusinessDays, nyDate, parseDay, readLedger, repoRoot } from "./state.js";
-import { col, members, stopDrafts, type Slot } from "./team.js";
+import {
+  GONE,
+  LEFT,
+  REFERRED,
+  domainFromSubject,
+  nameFromEmail,
+  referralEmails,
+  saysLeft,
+} from "./referral.js";
+import { EXTRA_HEADERS, SLOTS, col, members, stopDrafts, type Slot } from "./team.js";
 
 /**
  * Keeps the sheet in step with Gmail. Deterministic: it records what happened
@@ -43,6 +60,8 @@ export interface SyncSummary {
   bounces: { domain: string; email: string }[];
   /** Unsent bot drafts removed because someone at that company replied. */
   stopped: { domain: string; emails: string[] }[];
+  /** A contact's auto-reply said they left. `to`: who it pointed to, queued for a 2am draft. */
+  referrals: { domain: string; left: string; to: string | null; queued: boolean }[];
 }
 
 const seenFile = resolve(repoRoot(), ".outreach", "sync-seen.json");
@@ -89,6 +108,7 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
     autoReplies: [],
     bounces: [],
     stopped: [],
+    referrals: [],
   };
   const ledger = readLedger();
   const today = nyDate(new Date());
@@ -103,6 +123,81 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
     const merged = n ? { ...fields, Notes: prior ? `${prior} | ${n}` : n } : fields;
     Object.assign(row.values, merged);
     return updateRow(sheetId, tab, sheet.headers, row.rowNumber, merged);
+  };
+
+  type Msg = Awaited<ReturnType<typeof getMessage>>;
+
+  /** One message from someone at the company: a reply, an auto-reply, or nothing. */
+  const onMessage = async (row: SheetRow, domain: string, msg: Msg): Promise<void> => {
+    const subject = header(msg.payload, "Subject");
+    // Newsletters and receipts from the brand are not replies.
+    if (isBulk(msg.payload)) return;
+    if (isAutoReply(header(msg.payload, "Auto-Submitted"), subject)) {
+      const text = stripQuoted(extractText(msg.payload));
+      if (saysLeft(text)) await onLeft(row, domain, msg.payload, text);
+      else out.autoReplies.push(domain);
+      return;
+    }
+    out.replies.push({
+      domain,
+      from: address(header(msg.payload, "From")),
+      subject,
+      at: msg.at.toISOString(),
+      threadId: msg.threadId,
+      text: stripQuoted(extractText(msg.payload)).slice(0, 2000),
+    });
+    if (!["Meeting", "Proposal", "Customer"].includes(row.values["Status"] ?? "")) {
+      await update(row, {
+        Status: "Replied",
+        "Next action": "Read reply",
+        "Next action date": today,
+        Notes: note(`reply from ${address(header(msg.payload, "From"))}`),
+      });
+    }
+    // One answer speaks for the company: nobody else there gets a cold email or follow-up.
+    const emails = await stopDrafts(ledger, domain, msg.at);
+    if (emails.length) {
+      out.stopped.push({ domain, emails });
+      await update(row, { Notes: note(`deleted unsent drafts to ${emails.join(", ")}`) });
+    }
+  };
+
+  /** A contact left. Mark them gone and queue whoever the auto-reply named. */
+  const onLeft = async (
+    row: SheetRow,
+    domain: string,
+    payload: Msg["payload"],
+    text: string,
+  ): Promise<void> => {
+    const from = address(header(payload, "From"));
+    const team = members(row.values);
+    const leaver = team.find((m) => m.email === from);
+    if (!leaver || GONE.test(leaver.check)) return;
+    const known = new Set(team.map((m) => m.email));
+    const to = referralEmails(text, from, domain).find((e) => !known.has(e)) ?? null;
+    const free = SLOTS.find((n) => !(row.values[col("Email", n)] ?? "").includes("@"));
+    const queued = Boolean(to && free);
+    if (queued) await ensureHeaders(sheetId, tab, sheet, EXTRA_HEADERS);
+    // Contact 1 gone with nobody named: same path as a bounce, so 2am finds a new person.
+    const recover = leaver.slot === 1 && !queued;
+    await update(row, {
+      [col("Email check", leaver.slot)]: recover ? `bounced (${LEFT})` : LEFT,
+      ...(queued && free
+        ? {
+            [col("Contact", free)]: nameFromEmail(to!),
+            [col("Title", free)]: "",
+            [col("Email", free)]: to!,
+            [col("Email check", free)]: REFERRED,
+          }
+        : {}),
+      ...(recover ? { "Next action": "Find new contact", "Next action date": today } : {}),
+      Notes: note(
+        recover
+          ? `bounced: ${from} (left company)`
+          : `${from} left company${to ? `, referred to ${to}${queued ? "" : " (no free slot)"}` : ""}`,
+      ),
+    });
+    out.referrals.push({ domain, left: from, to, queued });
   };
 
   for (const row of withEmail) {
@@ -180,37 +275,36 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
     for (const id of ids.reverse()) {
       if (seen.has(id)) continue;
       seen.add(id);
-      const msg = await getMessage(id);
-      const subject = header(msg.payload, "Subject");
-      // Newsletters and receipts from the brand are not replies.
-      if (isBulk(msg.payload)) continue;
-      if (isAutoReply(header(msg.payload, "Auto-Submitted"), subject)) {
-        out.autoReplies.push(domain);
-        continue;
-      }
-      out.replies.push({
-        domain,
-        from: address(header(msg.payload, "From")),
-        subject,
-        at: msg.at.toISOString(),
-        threadId: msg.threadId,
-        text: stripQuoted(extractText(msg.payload)).slice(0, 2000),
-      });
-      if (!["Meeting", "Proposal", "Customer"].includes(row.values["Status"] ?? "")) {
-        await update(row, {
-          Status: "Replied",
-          "Next action": "Read reply",
-          "Next action date": today,
-          Notes: note(`reply from ${address(header(msg.payload, "From"))}`),
-        });
-      }
-      // One answer speaks for the company: nobody else there gets a cold email or follow-up.
-      const emails = await stopDrafts(ledger, domain, msg.at);
-      if (emails.length) {
-        out.stopped.push({ domain, emails });
-        await update(row, { Notes: note(`deleted unsent drafts to ${emails.join(", ")}`) });
-      }
+      await onMessage(row, domain, await getMessage(id));
     }
+  }
+
+  // 2b. Mail about one of our emails from another domain: a parent company, an agency.
+  // Matched by our subject line, since the sender's domain isn't on the sheet.
+  const byDomain = new Map(withEmail.map((r) => [normDomain(r.values["Domain"] ?? ""), r]));
+  // Own seen key, so left-company auto-replies step 2 already filed as out-of-office get read once.
+  for (const id of await search(
+    'subject:"Privacy issues on" -in:sent -from:me newer_than:60d',
+    50,
+  )) {
+    if (seen.has(`b:${id}`)) continue;
+    seen.add(`b:${id}`);
+    const msg = await getMessage(id);
+    const domain = domainFromSubject(header(msg.payload, "Subject"));
+    const row = domain ? byDomain.get(domain) : undefined;
+    if (!domain || !row?.values["First email"]) continue;
+    if (address(header(msg.payload, "From")).endsWith(`@${domain}`)) {
+      const text = stripQuoted(extractText(msg.payload));
+      const auto = isAutoReply(
+        header(msg.payload, "Auto-Submitted"),
+        header(msg.payload, "Subject"),
+      );
+      if (auto && saysLeft(text)) await onLeft(row, domain, msg.payload, text);
+      continue;
+    }
+    if (seen.has(id)) continue;
+    seen.add(id);
+    await onMessage(row, domain, msg);
   }
 
   // 3. Bounces: the address is bad, so the row needs a new contact.

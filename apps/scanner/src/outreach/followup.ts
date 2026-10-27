@@ -1,3 +1,4 @@
+import { GONE } from "./referral.js";
 import {
   createDraft,
   getMessage,
@@ -67,7 +68,7 @@ export function followUpEmail(input: {
 export function dueForFollowUp(rows: SheetRow[], today: string): SheetRow[] {
   return rows.filter(({ values: v }) => {
     if (v["Status"] !== "Emailed" || v["Follow-up"]?.trim()) return false;
-    if (!(v["Email"] ?? "").includes("@") || /bounced/i.test(v["Email check"] ?? "")) return false;
+    if (!(v["Email"] ?? "").includes("@") || GONE.test(v["Email check"] ?? "")) return false;
     if (HANDS_OFF.test(v["Notes"] ?? "")) return false;
     if (/review follow-up draft/i.test(v["Next action"] ?? "")) return false;
     const first = parseDay(v["First email"]);
@@ -169,7 +170,7 @@ export async function followups(
     // Colleagues get theirs in their own thread, only if Charlie sent them the first email.
     let extra = 0;
     for (const m of members(row.values).filter((m) => m.slot !== 1)) {
-      if (/bounced/i.test(m.check)) continue;
+      if (GONE.test(m.check)) continue;
       const theirs = await search(`in:sent to:${m.email}`, 10);
       if (theirs.length !== 1) continue;
       const msg = await getMessage(theirs[0]!);
