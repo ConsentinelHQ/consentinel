@@ -19,7 +19,7 @@ A thread qualifies when all of these are true:
 - Its URL isn't in any earlier "Forum replies" message in this Slack channel (see Log).
 - It's about US stores or doesn't say. Skip threads that are only about EU or UK rules, since we sell to US stores.
 
-Pick at most 2 threads per day, best first. If none qualify, send nothing.
+Pick at most 1 thread per day, the best one. If none qualify, send nothing.
 
 ## Write the draft
 
@@ -27,7 +27,9 @@ Read the whole thread first, then write 80 to 180 words that:
 
 1. Answers the actual question in the first two sentences, without a link. The reply must be useful even if nobody clicks.
 2. Adds one concrete thing people miss. Examples: a banner that shows isn't the same as tags stopping; Shopify's native banner doesn't block third-party pixels loaded outside Customer Privacy API; test with GPC on and check the network tab.
-3. Is plain paragraphs with one blank line between them. Ends with at most one link to getconsentinel.com (home, /gpc-checker, /cipa-demand-letter or /research/opt-out-report-2026, whichever fits) and the disclosure `(Disclosure: it's my company.)`.
+3. Is plain paragraphs with one blank line between them.
+
+No links of any kind, no mention of Consentinel, and no disclosure line. Our first two posts, which ended with a link, were flagged as spam and hidden. The account has to earn trust with plain help first. Charlie will change this rule when he's ready; until then, a draft with a link is a broken draft.
 
 Voice and rules:
 
@@ -35,7 +37,7 @@ Voice and rules:
 - No hype, no "great question", no sign-off.
 - Not legal advice, and say so in one short clause when the question is legal.
 - Legal facts only from a source you fetched this run. Never claim SB 690 kills wiretap claims: it ends private pen-register (§638.51) claims, while §631 is unaffected.
-- Never name a brand from our scans. Numbers only from `/research/opt-out-report-2026`, described as brands we scanned, never all stores.
+- Never name a brand from our scans. No statistics from our scans.
 - Never reply to someone asking for a free tool by pitching paid plans.
 
 ## Ask Charlie
