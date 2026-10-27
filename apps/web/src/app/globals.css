@@ -5800,3 +5800,77 @@ a.print-button {
   margin-bottom: 0.75rem;
   line-height: 1.6;
 }
+
+/* Research bars: one measure, one color, value at the end */
+.bar-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.bar-list li {
+  display: grid;
+  grid-template-columns: 9rem 1fr 6.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  border-radius: 6px;
+}
+.bar-list li:hover {
+  background: var(--paper-alt);
+}
+.bar-name a {
+  color: inherit;
+}
+.bar-track {
+  height: 14px;
+  display: block;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+.bar-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+@media (max-width: 560px) {
+  .bar-list li {
+    grid-template-columns: 6.5rem 1fr 4.5rem;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+  }
+}
+.research-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.research-stat {
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--paper);
+}
+.research-stat .stat {
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 3rem);
+}
+.research-stat p {
+  margin: 0.35rem 0 0;
+}
+.tile-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.tile-link:hover h3 {
+  text-decoration: underline;
+}
