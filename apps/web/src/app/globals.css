@@ -1555,24 +1555,6 @@ dialog.confirm .confirm-body {
   max-width: 34rem;
 }
 
-.gradient-text {
-  background: linear-gradient(90deg, #d70015, #ff6b5b, #d70015);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-shift 6s linear infinite;
-}
-@keyframes gradient-shift {
-  to {
-    background-position: 200% center;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .gradient-text {
-    animation: none;
-  }
-}
 .hero-visual .specimen {
   margin: 0;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
@@ -1616,12 +1598,6 @@ dialog.confirm .confirm-body {
   margin-right: 0;
 }
 
-.gradient-text {
-  background: linear-gradient(90deg, #7038ff, #ef008f, #ff8a00, #00b377, #7038ff);
-  background-size: 250% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-}
 .hero-visual .specimen {
   box-shadow: 0 30px 80px rgba(50, 20, 120, 0.25);
 }

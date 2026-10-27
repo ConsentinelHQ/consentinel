@@ -58,10 +58,7 @@ export default function Home() {
 
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <h1>
-              Your site is sending data your{" "}
-              <span className="gradient-text">visitors said no to.</span>
-            </h1>
+            <h1>Your site is sending data your visitors said no to.</h1>
             <p className="lede">
               Law firms are suing retailers under California’s wiretap law for exactly this, at up
               to $5,000 per violation. Consentinel loads your site twice, once refusing consent and
