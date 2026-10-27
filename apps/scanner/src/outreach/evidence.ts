@@ -22,6 +22,8 @@ export interface Evidence {
    * whose policy was read. Absent unless every run read the policy.
    */
   notMentioned?: string[];
+  /** The last scan behind this evidence, uploaded as the prospect's report. */
+  latest?: ScanResult;
 }
 
 interface Tally {
@@ -118,11 +120,14 @@ export async function gather(url: string): Promise<Evidence | string> {
       const runs = [normal, await scan(url)];
       const ev = evaluate("rejected", runs);
       const gpcIgnored = gpcIgnoredInAll(runs);
-      return withPolicy(gpcIgnored.length > 0 ? { ...ev, gpcIgnored } : ev, runs);
+      return {
+        ...withPolicy(gpcIgnored.length > 0 ? { ...ev, gpcIgnored } : ev, runs),
+        latest: runs[1] ?? normal,
+      };
     }
     const a = await scan(url, { gpc: true });
     const b = await scan(url, { gpc: true });
-    return withPolicy(evaluate("gpc", [a, b]), [a, b]);
+    return { ...withPolicy(evaluate("gpc", [a, b]), [a, b]), latest: b };
   } catch (error) {
     return `scan failed: ${error instanceof Error ? error.message : String(error)}`;
   }

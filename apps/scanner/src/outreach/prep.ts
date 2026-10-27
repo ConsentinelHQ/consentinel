@@ -1,3 +1,4 @@
+import type { ScanResult } from "@consentinel/shared";
 import { createDraft, getMessage, normDomain, search, updateRow, type Sheet } from "./google.js";
 import { address, header } from "./mail.js";
 import { nyDate } from "./state.js";
@@ -111,6 +112,46 @@ export async function fetchReport(
     scanId,
     ...(scan.critical !== undefined ? { critical: scan.critical } : {}),
   };
+}
+
+/** Store a scan this machine already ran and get its share link. */
+export async function uploadReport(
+  o: ApiOpts,
+  domain: string,
+  result: ScanResult,
+): Promise<{ reportUrl: string; scanId: string }> {
+  return api<{ reportUrl: string; scanId: string }>(o, "/api/internal/prospect-report", {
+    method: "PUT",
+    body: JSON.stringify({ url: domain, result }),
+  });
+}
+
+/**
+ * A report link for an email. The local scan first: it's the evidence the email
+ * cites, and the hosted scanner is often blocked by Cloudflare where this
+ * machine isn't. The hosted scan is the fallback.
+ */
+export async function reportLink(
+  o: ApiOpts,
+  domain: string,
+  local: ScanResult | undefined,
+  log: (s: string) => void = () => undefined,
+): Promise<string | undefined> {
+  if (local) {
+    try {
+      return (await uploadReport(o, domain, local)).reportUrl;
+    } catch (error) {
+      log(`       report upload failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+  try {
+    const got = await fetchReport(o, domain);
+    if (typeof got !== "string") return got.reportUrl;
+    log(`       no report link: ${got}`);
+  } catch (error) {
+    log(`       no report link: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return undefined;
 }
 
 export async function prep(

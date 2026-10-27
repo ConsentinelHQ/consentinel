@@ -1,7 +1,7 @@
 import { roleFor } from "./contacts.js";
 import { MIN_VENDORS, gather, type Evidence } from "./evidence.js";
 import { createDraft, normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
-import { fetchReport, type ApiOpts } from "./prep.js";
+import { reportLink, type ApiOpts } from "./prep.js";
 import { RESEARCHED } from "./research.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record, type Entry } from "./state.js";
 import { WINDOW_DAYS } from "./team-research.js";
@@ -72,15 +72,9 @@ export async function draftTeam(
       log(`team   ${domain}: skipped, ${typeof ev === "string" ? ev : "weak evidence"}`);
       continue;
     }
-    let reportUrl: string | undefined;
-    if (opts.reportApi) {
-      try {
-        const got = await fetchReport(opts.reportApi, domain);
-        if (typeof got !== "string") reportUrl = got.reportUrl;
-      } catch {
-        // No link: the email offers to send the report instead.
-      }
-    }
+    const reportUrl = opts.reportApi
+      ? await reportLink(opts.reportApi, domain, ev.latest, log)
+      : undefined;
     const role = roleFor(m.title);
     const email = render({
       domain,
