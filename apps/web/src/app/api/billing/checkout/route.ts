@@ -14,8 +14,8 @@ import { annualPriceIdFor, hasPrice, priceIdFor, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 
-/** Plans open for purchase. Agency stays closed until workspaces ship. */
-const SELLABLE: ReadonlySet<PaidPlan> = new Set(["monitoring", "growth"]);
+/** Plans open for purchase. A plan still needs its Stripe price set (hasPrice) to sell. */
+const SELLABLE: ReadonlySet<PaidPlan> = new Set(["monitoring", "growth", "agency"]);
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request): Promise<NextResponse> {
