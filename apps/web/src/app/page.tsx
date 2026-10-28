@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CountUp } from "@/components/count-up";
+import { FluidCursor } from "@/components/fluid-cursor";
 import { JiraLoop } from "@/components/jira-loop";
 import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
@@ -49,13 +50,6 @@ export default function Home() {
   return (
     <main>
       <section className="hero hero-split">
-        <div aria-hidden="true" className="hero-gradient">
-          <StripeGradient
-            amplitude={280}
-            colors={["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"]}
-          />
-        </div>
-
         <div className="wrap hero-grid">
           <div className="hero-copy">
             <h1>Your site is sending data your visitors said no to.</h1>
@@ -89,7 +83,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section>
+      <section id="fluid-end">
         <div data-reveal className="wrap">
           <h2>A cookie banner isn’t compliance.</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
@@ -97,7 +91,7 @@ export default function Home() {
             are.
           </p>
 
-          <div className="tiles">
+          <div className="tiles" id="fluid-fade">
             {RISKS.map((risk) => (
               <div className="tile" key={risk.body}>
                 <p className="stat">
@@ -281,6 +275,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <FluidCursor fadeFrom="fluid-fade" fadeTo="fluid-end" />
     </main>
   );
 }
