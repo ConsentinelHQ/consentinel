@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { findContact, findContacts, roleFor, type Contact, type RoleContact } from "./contacts.js";
-import { EXTRA_HEADERS, extraCols, pickExtras, type Slot } from "./team.js";
+import { EXTRA_HEADERS, TEAM_SIZE, extraCols, pickExtras, type Slot } from "./team.js";
 import { draftTeam } from "./team-draft.js";
 import { repairTeam, setTeam, skipTeam, teamNeedList } from "./team-research.js";
 import {
@@ -268,8 +268,9 @@ async function run(args: string[]): Promise<Summary> {
       out.skipped[domain] = "already in sheet or ledger";
       continue;
     }
-    // A capped send run stops before spending scan time or lookup credits.
-    if (sendMode && !pausedState && sentCount >= cap) {
+    // Reserve a full team's sends so a company is never split across nights.
+    // Stops before spending scan time or lookup credits.
+    if (sendMode && !pausedState && sentCount + TEAM_SIZE > cap) {
       out.skipped[domain] = "daily cap reached";
       continue;
     }
