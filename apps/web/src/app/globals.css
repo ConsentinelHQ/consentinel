@@ -5810,3 +5810,18 @@ a.print-button {
 .tile-link:hover h3 {
   text-decoration: underline;
 }
+
+/* Hero fluid cursor. Hidden until the sim starts (fine pointer, motion allowed). */
+.fluid-cursor {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -10;
+  pointer-events: none;
+}
+.fluid-cursor canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
