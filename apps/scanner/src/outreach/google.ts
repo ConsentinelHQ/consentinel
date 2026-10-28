@@ -39,17 +39,37 @@ async function accessToken(): Promise<string> {
   return body.access_token;
 }
 
+/** True for Google's per-minute quota errors, which clear on their own. Rejected calls had no effect, so retrying is safe. */
+export function isRateLimit(status: number, body: string): boolean {
+  return status === 429 || (status === 403 && /rateLimitExceeded|Quota exceeded/i.test(body));
+}
+
+/** Waits for a quota retry: Retry-After when given, else 2s doubling. Tests swap it out. */
+export const backoff = {
+  wait: (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms)),
+};
+
+const RETRIES = 6;
+
 async function google<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${await accessToken()}`,
-      "Content-Type": "application/json",
-      ...(init.headers as Record<string, string> | undefined),
-    },
-  });
-  if (!res.ok) throw new Error(`Google ${String(res.status)}: ${(await res.text()).slice(0, 300)}`);
-  return (await res.json()) as T;
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${await accessToken()}`,
+        "Content-Type": "application/json",
+        ...(init.headers as Record<string, string> | undefined),
+      },
+    });
+    if (res.ok) return (await res.json()) as T;
+    const body = await res.text();
+    if (attempt < RETRIES && isRateLimit(res.status, body)) {
+      const after = Number(res.headers.get("retry-after"));
+      await backoff.wait(after > 0 ? after * 1000 : 2000 * 2 ** attempt);
+      continue;
+    }
+    throw new Error(`Google ${String(res.status)}: ${body.slice(0, 300)}`);
+  }
 }
 
 // ---------- Gmail ----------
