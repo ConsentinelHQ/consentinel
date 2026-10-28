@@ -30,8 +30,8 @@ const ENV = {
   HUNTER_API_KEY: "h",
 };
 
-function setup(env: Partial<typeof ENV>): void {
-  for (const k of Object.keys(ENV)) delete process.env[k];
+function setup(env: Record<string, string>): void {
+  for (const k of [...Object.keys(ENV), "GETPROSPECT_API_KEY"]) delete process.env[k];
   Object.assign(process.env, env);
   resetLookupState();
   routes = {};
@@ -209,6 +209,79 @@ routes[PENRICH] = (_u, body) => {
 {
   const hit = await findPerson("shop.com", "Jane Roe");
   assert.deepEqual(hit, { email: "jane@shop.com", source: "prospeo" });
+}
+
+// 11. GetProspect: free search ranks the owner title, reveal charges only on valid.
+setup({ GETPROSPECT_API_KEY: "g", HUNTER_API_KEY: "h" });
+routes["api.getprospect.com/v2/people/search"] = (_u, body) => {
+  const b = body as {
+    enrich_email: boolean;
+    filters: { company: { domain: { include: string[] } } };
+  };
+  assert.equal(b.enrich_email, false);
+  assert.deepEqual(b.filters.company.domain.include, ["shop.com"]);
+  return {
+    status: 200,
+    body: {
+      success: true,
+      data: [
+        {
+          id: "1",
+          full_name: "Ann Lee",
+          first_name: "Ann",
+          primary_position: { job_title: "CMO" },
+        },
+        {
+          id: "2",
+          full_name: "Raj Pal",
+          first_name: "Raj",
+          primary_position: { job_title: "VP Engineering" },
+        },
+      ],
+    },
+  };
+};
+routes["api.getprospect.com/v2/email/find"] = (_u, body) => {
+  const name = (body as { data: { full_name: string } }).data.full_name;
+  return name === "Raj Pal"
+    ? { status: 200, body: { success: true, data: { email: "Raj@shop.com", status: "valid" } } }
+    : { status: 200, body: { success: false, errors: [{ name: "NOT_FOUND" }] } };
+};
+{
+  const hit = await findContact("shop.com");
+  assert.ok(typeof hit !== "string");
+  assert.equal(hit.source, "getprospect");
+  assert.equal(hit.email, "raj@shop.com");
+  assert.ok(!calls.includes(HSEARCH), "hunter not touched after a hit");
+}
+
+// 12. GetProspect out of credits (402) falls through to Hunter.
+setup({ GETPROSPECT_API_KEY: "g", HUNTER_API_KEY: "h" });
+routes["api.getprospect.com/v2/people/search"] = () => ({
+  status: 402,
+  body: { success: false, errors: [{ name: "PAYMENT_REQUIRED" }] },
+});
+routes[HSEARCH] = () => ({
+  status: 200,
+  body: {
+    data: {
+      emails: [
+        {
+          value: "e@shop.com",
+          first_name: "Eve",
+          last_name: null,
+          position: "Head of Ecommerce",
+          confidence: 90,
+          verification: { status: "valid" },
+        },
+      ],
+    },
+  },
+});
+{
+  const hit = await findContact("shop.com");
+  assert.ok(typeof hit !== "string");
+  assert.equal(hit.source, "hunter");
 }
 
 console.log("contacts: all checks passed");

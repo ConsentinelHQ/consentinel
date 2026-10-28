@@ -1,13 +1,13 @@
 /**
- * Contact lookup. Providers run as a waterfall: Anymail, Prospeo and Tomba
- * charge only on a hit, so they go first; Hunter charges per search, so it's
+ * Contact lookup. Providers run as a waterfall: Anymail, GetProspect, Prospeo
+ * and Tomba charge only on a hit, so they go first; Hunter charges per search, so it's
  * last. A provider that errors (out of credits, bad key, outage) is skipped for
  * the rest of the run. Lookups throw only when every provider errored, so the
  * caller retries the domain on a later run instead of marking it done.
  * Returns a Contact, or a string explaining why there's none.
  */
 
-export type Source = "anymail" | "prospeo" | "tomba" | "hunter";
+export type Source = "anymail" | "getprospect" | "prospeo" | "tomba" | "hunter";
 
 export interface Contact {
   firstName: string;
@@ -315,6 +315,132 @@ const prospeo: Provider = {
   },
 };
 
+// ---------- GetProspect ----------
+
+const GETPROSPECT = "https://api.getprospect.com/v2";
+
+interface GpPerson {
+  id?: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  full_name?: string | null;
+  primary_position?: { job_title?: string | null } | null;
+}
+
+interface GpResponse<T> {
+  success?: boolean;
+  data?: T;
+  errors?: { name?: string }[];
+}
+
+/** Null on NOT_FOUND (a real "nobody"). Throws on credits, auth, timeouts, outages. */
+async function gpPost<T>(key: string, path: string, body: object): Promise<T | null> {
+  const res = await fetch(`${GETPROSPECT}${path}`, {
+    method: "POST",
+    headers: { "x-api-key": key, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const parsed = (await res.json().catch(() => ({}))) as GpResponse<T>;
+  if (parsed.errors?.[0]?.name === "NOT_FOUND") return null;
+  if (!res.ok || parsed.success === false || parsed.data === undefined) {
+    throw new Error(`GetProspect returned ${parsed.errors?.[0]?.name ?? String(res.status)}`);
+  }
+  return parsed.data;
+}
+
+const gpTitle = (p: GpPerson): string => p.primary_position?.job_title ?? "";
+
+/** Searching is free. Only people with a valid email on file come back. Cached per run. */
+const gpSearches = new Map<string, GpPerson[]>();
+
+async function gpPeople(domain: string, key: string): Promise<GpPerson[]> {
+  const cached = gpSearches.get(domain);
+  if (cached) return cached;
+  const people =
+    (await gpPost<GpPerson[]>(key, "/people/search", {
+      filters: {
+        company: { domain: { include: [domain] } },
+        person_job_title: { include: PROSPEO_TITLES, match_mode: "CONTAINS" },
+        contact_details: { email: { status: ["valid"] } },
+      },
+      page: 1,
+      per_page: 25,
+      enrich_email: false,
+    })) ?? [];
+  gpSearches.set(domain, people);
+  return people;
+}
+
+/** One credit, only when the mailbox is confirmed. Accept-all comes back as not found. */
+async function gpReveal(key: string, domain: string, fullName: string): Promise<string | null> {
+  const data = await gpPost<{ email?: string | null; status?: string }>(key, "/email/find", {
+    data: { full_name: fullName, domain },
+  });
+  const email = lower(data?.email);
+  return data?.status === "valid" && email ? email : null;
+}
+
+function gpName(p: GpPerson): string {
+  return (p.full_name ?? [p.first_name ?? "", p.last_name ?? ""].join(" ")).trim();
+}
+
+function gpContact(p: GpPerson, email: string): Contact {
+  const fullName = gpName(p);
+  return {
+    firstName: p.first_name ?? fullName.split(" ")[0] ?? "",
+    fullName,
+    email,
+    title: gpTitle(p),
+    verified: "valid",
+    source: "getprospect",
+  };
+}
+
+const GP_TRIES = 3;
+
+const getprospect: Provider = {
+  name: "getprospect",
+  env: ["GETPROSPECT_API_KEY"],
+  async find(domain, [key = ""], exclude) {
+    const people = await gpPeople(domain, key);
+    const ranked = people
+      .filter((p) => gpName(p))
+      .map((p) => ({ p, tier: tierOf(gpTitle(p)) }))
+      .filter((x) => x.tier >= 0)
+      .sort((a, b) => a.tier - b.tier)
+      .slice(0, GP_TRIES);
+    if (ranked.length === 0) {
+      return `getprospect: no wanted title in ${String(people.length)} results`;
+    }
+    for (const { p } of ranked) {
+      const email = await gpReveal(key, domain, gpName(p));
+      if (email && !exclude.includes(email)) return gpContact(p, email);
+    }
+    return `getprospect: no valid address for ${String(ranked.length)} candidates`;
+  },
+  async person(domain, fullName, [key = ""], exclude) {
+    const email = await gpReveal(key, domain, fullName);
+    if (email && !exclude.includes(email)) return { email };
+    return "getprospect: no valid address";
+  },
+  async roles(domain, [key = ""], roles, exclude) {
+    const people = await gpPeople(domain, key);
+    const out: RoleContact[] = [];
+    let tries = 0;
+    for (const role of roles) {
+      for (const p of people.filter((x) => gpName(x) && roleFor(gpTitle(x)) === role)) {
+        if (tries >= GP_TRIES) return out;
+        tries += 1;
+        const email = await gpReveal(key, domain, gpName(p));
+        if (!email || exclude.includes(email) || out.some((o) => o.email === email)) continue;
+        out.push({ ...gpContact(p, email), role });
+        break;
+      }
+    }
+    return out;
+  },
+};
+
 // ---------- Tomba ----------
 
 const TOMBA = "https://api.tomba.io/v1";
@@ -547,7 +673,7 @@ export async function hunter(
 // ---------- Waterfall ----------
 
 /** Charge-on-hit providers first, per-search Hunter last. */
-const PROVIDERS: readonly Provider[] = [anymail, prospeo, tomba, hunterProvider];
+const PROVIDERS: readonly Provider[] = [anymail, getprospect, prospeo, tomba, hunterProvider];
 
 /** Providers that errored this run (no credits, bad key, outage). Not retried until the next run. */
 const spent = new Map<Source, string>();
@@ -557,6 +683,7 @@ export function resetLookupState(): void {
   spent.clear();
   prospeoSearches.clear();
   tombaSearches.clear();
+  gpSearches.clear();
 }
 
 function configured(skip: Source[] = []): { p: Provider; keys: string[] }[] {
