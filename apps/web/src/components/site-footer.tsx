@@ -43,12 +43,6 @@ export function SiteFooter() {
         </nav>
       </div>
       <div className="wrap">
-        {/* SVG so the wordmark fits the column exactly at every width. */}
-        <svg aria-hidden="true" className="footer-wordmark" data-reveal viewBox="0 0 1000 150">
-          <text lengthAdjust="spacingAndGlyphs" textLength="1000" x="0" y="128">
-            CONSENTINEL
-          </text>
-        </svg>
         <div className="footer-base">
           <span>© {new Date().getFullYear()} Consentinel</span>
           <span>Audit-grade consent testing for e-commerce</span>
