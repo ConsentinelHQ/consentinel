@@ -6,6 +6,7 @@ import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
 import { joinList } from "@/lib/free-report";
+import { guideForCmp } from "@/lib/guides";
 
 type State =
   | { kind: "loading"; status: string }
@@ -230,6 +231,18 @@ function Report({
           ? `${report.cmpName} is installed on ${hostOf(report.url)}, and these trackers ran anyway.`
           : `No consent banner was found on ${hostOf(report.url)}, so everything below runs ungated.`}
       </p>
+
+      {/* Detected platform with a fix guide. Not on white-label reports: it's our content. */}
+      {!branded &&
+        (() => {
+          const guide = guideForCmp(report.cmpName);
+          return guide ? (
+            <p className="quiet" style={{ marginTop: "0.75rem" }}>
+              Why this happens with {guide.cmp}, and how to fix it:{" "}
+              <a href={`/guides/${guide.slug}`}>read the {guide.cmp} guide</a>.
+            </p>
+          ) : null;
+        })()}
 
       {/* Why it matters. GPC-specific, so only on reports observed under GPC. */}
       {report.counts.critical > 0 && report.gpc && (

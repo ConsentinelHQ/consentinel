@@ -229,3 +229,7 @@ export const GUIDES: Guide[] = [
     ],
   },
 ];
+
+/** The fix guide for a detected consent platform, by its display name. */
+export const guideForCmp = (name: string | null | undefined): Guide | undefined =>
+  name ? GUIDES.find((g) => g.cmp.toLowerCase() === name.toLowerCase()) : undefined;
