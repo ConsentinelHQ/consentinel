@@ -94,7 +94,10 @@ export default function Guides() {
         <section className={i % 2 === 0 ? "tinted" : undefined} key={group.title}>
           <div data-reveal className="wrap">
             <h2>{group.title}</h2>
-            <div className="tiles" style={{ marginTop: "2rem" }}>
+            <div
+              className={group.items.length === 2 ? "tiles tiles-2" : "tiles"}
+              style={{ marginTop: "2rem" }}
+            >
               {group.items.map((item) => (
                 <Link className="tile tile-link" href={item.href} key={item.href}>
                   <h3>{item.name}</h3>

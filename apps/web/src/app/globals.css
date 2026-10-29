@@ -331,10 +331,13 @@ button:disabled {
   line-height: 1;
 }
 
+/* Dividers come from each tile's 1px spread shadow filling the gap, not a grey
+   grid background, so a short last row leaves blank space instead of a grey block.
+   overflow: hidden clips the shadow at the outer edges. */
 .tiles {
   display: grid;
   gap: 1px;
-  background: var(--hairline);
+  overflow: hidden;
   border-block: 1px solid var(--hairline);
   grid-template-columns: 1fr;
   margin-top: 3.5rem;
@@ -343,11 +346,15 @@ button:disabled {
   .tiles {
     grid-template-columns: repeat(3, 1fr);
   }
+  .tiles.tiles-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .tile {
   background: var(--paper);
   padding: 2rem 1.75rem;
+  box-shadow: 0 0 0 1px var(--hairline);
 }
 .tinted .tile {
   background: var(--paper-alt);
