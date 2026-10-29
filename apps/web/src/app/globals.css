@@ -5828,7 +5828,7 @@ a.print-button {
 
 /* ==========================================================================
    Editorial pass (Oct 2026): serif display, marquee, stacking cards, FAQ,
-   footer wordmark. Overrides earlier rules, so it stays at the end.
+   CTA trust strip. Overrides earlier rules, so it stays at the end.
    ========================================================================== */
 
 :root {
