@@ -42,6 +42,12 @@ export function SiteFooter() {
           <Link href="/contact">Contact</Link>
         </nav>
       </div>
+      <div className="wrap">
+        <div className="footer-base">
+          <span>© {new Date().getFullYear()} Consentinel</span>
+          <span>Audit-grade consent testing for e-commerce</span>
+        </div>
+      </div>
     </footer>
   );
 }

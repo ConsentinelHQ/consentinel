@@ -5825,3 +5825,603 @@ a.print-button {
   width: 100vw;
   height: 100vh;
 }
+
+/* ==========================================================================
+   Editorial pass (Oct 2026): serif display, marquee, stacking cards, FAQ,
+   CTA trust strip. Overrides earlier rules, so it stays at the end.
+   ========================================================================== */
+
+:root {
+  --font-display: var(--font-newsreader), "Iowan Old Style", "Times New Roman", Georgia, serif;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Serif for statements, sans for everything you read or click. */
+h1,
+h2,
+.stat {
+  font-family: var(--font-display);
+  font-weight: 420;
+  font-optical-sizing: auto;
+  letter-spacing: -0.022em;
+}
+h1 {
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.028em;
+}
+h2 {
+  line-height: 1.04;
+}
+.stat {
+  font-weight: 380;
+  letter-spacing: -0.03em;
+}
+.hero-copy h1 {
+  font-size: clamp(2.75rem, 5.6vw, 4.6rem);
+}
+
+/* ---------- proof marquee ---------- */
+
+.proof {
+  padding: clamp(3rem, 7vw, 5rem) 0 0;
+}
+.marquee + .marquee {
+  margin-top: 1.75rem;
+}
+.marquee-label {
+  margin-bottom: 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.marquee-viewport {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: marquee 46s linear infinite;
+}
+.marquee[data-reverse] .marquee-track {
+  animation-direction: reverse;
+  animation-duration: 30s;
+}
+.marquee-viewport:hover .marquee-track {
+  animation-play-state: paused;
+}
+.marquee-track li {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  opacity: 0.55;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+}
+.marquee-track li:hover {
+  opacity: 1;
+}
+.marquee-track li::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin: 0 clamp(1.5rem, 3vw, 2.5rem);
+  border-radius: 50%;
+  background: var(--hairline);
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- pinned finding deck ---------- */
+
+/* Static list by default: phones and reduced motion get this. */
+.stack {
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+}
+.stack-deck {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stack-nav {
+  display: none;
+}
+.stack-card {
+  position: relative;
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: center;
+  padding: clamp(1.75rem, 4vw, 3.25rem);
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 30px 60px -36px rgb(0 0 0 / 0.28);
+}
+
+/* Desktop: the stage pins and cards slide over each other. JS sets transforms. */
+@media (min-width: 56rem) and (prefers-reduced-motion: no-preference) {
+  .stack {
+    /* One screen per card of scroll travel. */
+    height: calc(var(--n) * 80vh + 20vh);
+  }
+  .stack-stage {
+    position: sticky;
+    top: 4.5rem;
+    height: calc(100vh - 4.5rem);
+  }
+  .stack-deck {
+    position: relative;
+    display: block;
+    height: 100%;
+  }
+  .stack-card {
+    position: absolute;
+    inset: 50% 0 auto;
+    min-height: min(30rem, 70vh);
+    transform: translate3d(0, 100vh, 0);
+    transform-origin: 50% 0;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  /* Cards behind fade under a white veil. Opacity is composited, unlike a
+     per-frame blur filter, which repaints the whole card and stutters. */
+  .stack-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--paper-alt);
+    opacity: var(--shade, 0);
+    pointer-events: none;
+  }
+  .stack-card:first-child {
+    transform: translate3d(0, -50%, 0);
+  }
+  /* The deck stops above the index and clips its bottom edge, so incoming
+     cards rise from behind a clean line instead of sliding over the index. */
+  .stack-deck {
+    height: calc(100% - 6.5rem);
+    clip-path: inset(-100vh -100vw 0 -100vw);
+  }
+  /* Section index: rolling serif counter plus one progress segment per card. */
+  .stack-nav {
+    position: absolute;
+    right: 0;
+    bottom: clamp(1.25rem, 3.5vh, 2.25rem);
+    left: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2.5rem;
+    align-items: end;
+  }
+  .stack-count {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0;
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stack-roll {
+    display: block;
+    height: 1em;
+    overflow: hidden;
+    font-size: 2.75rem;
+    letter-spacing: -0.03em;
+    /* Mask the edges so digits roll in and out rather than clip. */
+    mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  }
+  .stack-roll > span {
+    display: grid;
+    transform: translate3d(0, calc(var(--p) * -1em), 0);
+    will-change: transform;
+  }
+  .stack-roll > span > span {
+    height: 1em;
+  }
+  .stack-total {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+  }
+  .stack-tabs {
+    display: grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Scoped under .stack-nav to outrank the global dark button hover. */
+  .stack-nav .stack-tab,
+  .stack-nav .stack-tab:hover:not(:disabled) {
+    display: grid;
+    gap: 0.7rem;
+    width: 100%;
+    padding: 0.5rem 0;
+    text-align: left;
+    color: var(--ink-soft);
+    background: transparent;
+    border-radius: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    transition: color 0.35s ease;
+  }
+  .stack-nav .stack-tab:hover:not(:disabled),
+  .stack-nav .stack-tab[aria-current] {
+    color: var(--ink);
+  }
+  .stack-nav .stack-tab:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 6px;
+    border-radius: 4px;
+  }
+  /* Hover previews the jump: the label nudges right and its bar hints a fill. */
+  .stack-nav .stack-tab-label {
+    transition: transform 0.45s var(--ease-out);
+  }
+  .stack-nav .stack-tab:hover:not([aria-current]) .stack-tab-label {
+    transform: translateX(4px);
+  }
+  .stack-nav .stack-tab:hover .stack-tab-bar {
+    background: rgb(0 0 0 / 0.18);
+  }
+  .stack-tab-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  /* Severity dot only on the card in front. */
+  .stack-tab-label::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--critical);
+    transform: scale(0);
+    transition: transform 0.45s var(--ease-out);
+  }
+  .stack-tab[aria-current] .stack-tab-label::before {
+    transform: scale(1);
+  }
+  .stack-tab-bar {
+    position: relative;
+    height: 2px;
+    transition: background 0.3s ease;
+    overflow: hidden;
+    border-radius: 2px;
+    background: rgb(0 0 0 / 0.1);
+  }
+  .stack-tab-bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: scaleX(var(--fill, 0));
+    transform-origin: 0 50%;
+  }
+}
+
+@media (min-width: 56rem) {
+  .stack-card {
+    grid-template-columns: 1fr 1.1fr;
+  }
+}
+.stack-card h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+  font-weight: 420;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+}
+.stack-body {
+  margin-top: 1rem;
+  max-width: 30rem;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+}
+.chip {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--paper-alt);
+  border-radius: 6px;
+}
+
+/* Evidence panel: what the scanner actually records. */
+.ev {
+  padding: 1.25rem 1.35rem;
+  background: var(--paper-alt);
+  border-radius: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+.ev-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.ev-bad,
+.ev-warn {
+  font-weight: 600;
+  color: var(--critical);
+}
+.ev-warn {
+  color: var(--warning);
+}
+.ev code {
+  display: block;
+  padding: 0.55rem 0.7rem;
+  margin-top: 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--paper);
+  border-radius: 8px;
+  font-family: inherit;
+}
+.ev mark {
+  color: var(--critical);
+  background: rgb(215 0 21 / 0.08);
+  border-radius: 3px;
+}
+
+/* Lines arrive one by one once the card is on screen. */
+@media (prefers-reduced-motion: no-preference) {
+  .stack-card .ev code {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
+  }
+  .stack-card.is-in .ev code {
+    opacity: 1;
+    transform: none;
+  }
+  .stack-card.is-in .ev code:nth-of-type(2) {
+    transition-delay: 0.18s;
+  }
+  .stack-card.is-in .ev code:nth-of-type(3) {
+    transition-delay: 0.36s;
+  }
+}
+
+/* ---------- FAQ ---------- */
+
+.qa-grid {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+}
+@media (min-width: 56rem) {
+  .qa-grid {
+    grid-template-columns: 0.8fr 1.2fr;
+    align-items: start;
+  }
+}
+.qa {
+  border-top: 1px solid var(--hairline);
+}
+.qa-item {
+  border-bottom: 1px solid var(--hairline);
+}
+.qa .qa-q,
+.qa .qa-q:hover:not(:disabled) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.4rem 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border-radius: 0;
+}
+.qa-icon {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+.qa-icon::before,
+.qa-icon::after {
+  content: "";
+  position: absolute;
+  inset: 6px 0 auto;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+  transition: transform 0.35s var(--ease-out);
+}
+.qa-icon::after {
+  transform: rotate(90deg);
+}
+.qa-item[data-open] .qa-icon::after {
+  transform: rotate(0deg);
+}
+.qa-a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease-out);
+}
+.qa-a > div {
+  overflow: hidden;
+}
+.qa-a p {
+  max-width: 38rem;
+  padding-bottom: 1.4rem;
+  color: var(--ink-soft);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.45s var(--ease-out);
+}
+.qa-item[data-open] .qa-a {
+  grid-template-rows: 1fr;
+}
+.qa-item[data-open] .qa-a p {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.08s;
+}
+
+/* ---------- CTA trust strip ---------- */
+
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.25rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.trust li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.trust li::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gated);
+}
+
+/* ---------- staggered tiles ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] .tile {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.6s var(--ease-out);
+  }
+  [data-reveal].is-in .tile {
+    opacity: 1;
+    transform: none;
+  }
+  [data-reveal].is-in .tile:nth-child(2) {
+    transition-delay: 0.08s;
+  }
+  [data-reveal].is-in .tile:nth-child(3) {
+    transition-delay: 0.16s;
+  }
+}
+
+.footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+  }
+  .marquee-track li:nth-child(n + 13) {
+    display: none;
+  }
+}
+
+/* Grid children default to min-width: auto, so one nowrap line in the hero
+   specimen or an evidence panel pushed the page wider than a phone. */
+.hero-grid > *,
+.stack-card > * {
+  min-width: 0;
+}
+@media (max-width: 1023px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 55.99rem) {
+  .stack-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Sections fade up as they enter, children one after another. Reveal.tsx adds
+   .is-in; content is visible by default if JS never runs (no data-reveal). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  [data-reveal] > *,
+  [data-reveal] > .split > * {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(6px);
+    transition:
+      opacity 0.9s var(--ease-out),
+      transform 0.9s var(--ease-out),
+      filter 0.9s var(--ease-out);
+  }
+  [data-reveal].is-in > *,
+  [data-reveal].is-in > .split > * {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  [data-reveal].is-in > :nth-child(2),
+  [data-reveal].is-in > .split > :nth-child(2) {
+    transition-delay: 0.1s;
+  }
+  [data-reveal].is-in > :nth-child(3) {
+    transition-delay: 0.2s;
+  }
+  [data-reveal].is-in > :nth-child(n + 4) {
+    transition-delay: 0.3s;
+  }
+  /* The split itself shouldn't fade as one block on top of its children. */
+  [data-reveal] > .split {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}

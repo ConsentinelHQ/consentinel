@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { Reveal } from "@/components/reveal";
 import { SiteFooter } from "@/components/site-footer";
@@ -12,6 +13,14 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-inter",
+});
+
+// Display serif for headlines. Self-hosted from the package, so no network at build.
+const newsreader = localFont({
+  src: "../../node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2",
+  display: "swap",
+  variable: "--font-newsreader",
+  weight: "200 800",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +41,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider>
-      <html className={inter.variable} lang="en">
+      <html className={`${inter.variable} ${newsreader.variable}`} lang="en">
         <body>
           <SiteNav />
           <Reveal />
