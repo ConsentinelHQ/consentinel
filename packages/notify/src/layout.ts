@@ -33,7 +33,7 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px">
       <tr><td style="padding:0 4px 20px">
         <a href="${esc(base)}" style="text-decoration:none;color:#1d1d1f">
-          <img src="${esc(base)}/email-logo.png" width="27" height="30" alt="" style="vertical-align:middle;border:0">
+          <img src="${esc(base)}/email-mark.png" width="28" height="28" alt="" style="vertical-align:middle;border:0">
           <span style="vertical-align:middle;font-size:17px;font-weight:600;letter-spacing:-0.01em;margin-left:8px">Consentinel</span>
         </a>
       </td></tr>
