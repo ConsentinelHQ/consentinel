@@ -95,6 +95,78 @@ export const PITCHES: readonly Pitch[] = [
       "If it's useful for your advocacy or a future report, I'm glad to share the method in detail or run tests on sites you choose.",
     ],
   },
+  // Law firm and legal press targets (Oct 29, 2026). Backlinks from firm blogs and
+  // the legal trade press, plus a possible audit partner in Tubis.
+  {
+    id: "tubis",
+    name: "Stuart Tubis",
+    outlet: "Jeffer Mangels",
+    to: "stubis@jeffer.com",
+    subject: "Opt-out data from 313 US stores, for your CIPA defense work",
+    body: [
+      "Hi Stuart,",
+      "I saw you built Jeffer Mangels' response program for the serial CIPA claims, including forensic audits of pre-consent tracking. That's exactly what we measure.",
+      "We load e-commerce sites with Global Privacy Control on and record every request. Across 313 US brands where tracking continued after an opt-out, Meta still fired on 47% of them, Google Ads on 45% and TikTok on 36%. On 86%, there was no reject button we could click.",
+      `The report, method and CSV are here, free to cite: ${REPORT}`,
+      "Our scanner produces request-level evidence for each site and rescans daily. If it would save your team time on client audits, I'd be glad to run a few sites you're working on, no charge.",
+    ],
+  },
+  {
+    id: "stortz",
+    name: "Michael Stortz",
+    outlet: "K&L Gates",
+    to: "michael.stortz@klgates.com",
+    subject: "Data on what survives SB 690: trackers firing after opt-out on 313 stores",
+    body: [
+      "Hi Michael,",
+      "I read your October 8 alert on SB 690. Pen register claims go away on January 1, but the opt-out failures behind most wiretap claims and regulator actions don't. We've been measuring how common they are.",
+      "Across 313 US e-commerce brands where tracking continued after a visitor opted out, Meta still fired on 47% of them, Google Ads on 45% and TikTok on 36%. On 86%, there was no reject button we could click, so the browser signal was the only opt-out to test.",
+      `The report, method and CSV, free to cite: ${REPORT}`,
+      "Happy to walk through the method or test a client site.",
+    ],
+  },
+  {
+    id: "winchester",
+    name: "Alan Winchester",
+    outlet: "Harris Beach Murtha",
+    to: "awinchester@harrisbeachmurtha.com",
+    subject: "Data for clients facing CIPA demand letters",
+    body: [
+      "Hi Alan,",
+      "I read your piece on CIPA demand letters. The first thing a client usually needs to know is whether trackers actually fire after a visitor opts out. We test that at scale.",
+      "Across 313 US e-commerce brands where tracking continued after an opt-out, Meta still fired on 47% of them, Google Ads on 45% and TikTok on 36%. On 86%, there was no reject button we could click.",
+      `The report, method and CSV, free to cite: ${REPORT}`,
+      "If it helps with a client, I'm glad to run their site and send the request-level evidence.",
+    ],
+  },
+  {
+    id: "schrager",
+    name: "Daniel Schrager",
+    outlet: "Daily Journal",
+    to: "daniel_schrager@dailyjournal.com",
+    subject: "Data: trackers still firing after opt-out on 313 stores, ahead of SB 690",
+    body: [
+      "Hi Daniel,",
+      "You covered the rulings narrowing CIPA in July. With SB 690 ending pen register claims on January 1, the open question is how often sites still ignore an opt-out. We've measured it.",
+      "Across 313 US e-commerce brands where tracking continued after a visitor opted out, Meta still fired on 47% of them, Google Ads on 45% and TikTok on 36%. On 86%, there was no reject button we could click, so we tested the browser signal, and the tags ignored it.",
+      `Write-up, method and data: ${REPORT}`,
+      "Happy to share the method or test any company's site for a story.",
+    ],
+  },
+  {
+    id: "tonsager",
+    name: "Lindsey Tonsager",
+    outlet: "Covington",
+    to: null,
+    subject: "Opt-out compliance data from 313 US stores, post SB 690",
+    body: [
+      "Hi Lindsey,",
+      "I read the Inside Privacy post on SB 690. With pen register claims ending January 1, opt-out failures become the main exposure. We've been measuring how often they happen.",
+      "Across 313 US e-commerce brands where tracking continued after a visitor opted out, Meta still fired on 47% of them, Google Ads on 45% and TikTok on 36%. On 86%, there was no reject button we could click.",
+      `The report, method and CSV, free to cite: ${REPORT}`,
+      "Glad to walk through how we tested.",
+    ],
+  },
 ];
 
 interface State {
