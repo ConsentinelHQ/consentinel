@@ -6,6 +6,10 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # BullMQ pins ioredis 5.x exactly; a 6.x client breaks its types. Drop when BullMQ moves.
+      - dependency-name: ioredis
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }

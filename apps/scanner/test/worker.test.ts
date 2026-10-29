@@ -86,7 +86,13 @@ async function main(): Promise<void> {
   if (owned.status !== "queued") throw new Error("site scan not queued");
   check("site scan completes", (await waitForStatus(db, owned.scan.id, "complete")) === "complete");
   const ownedRow = await getScan(db, owned.scan.id);
-  const versions = (await listPolicyVersions(db, site.id, org.id)) ?? [];
+  // The worker marks the scan complete before archiving the policy, so poll
+  // briefly instead of reading once. A single read raced on slow CI runners.
+  let versions = (await listPolicyVersions(db, site.id, org.id)) ?? [];
+  for (let i = 0; i < 50 && versions.length === 0; i++) {
+    await new Promise((r) => setTimeout(r, 100));
+    versions = (await listPolicyVersions(db, site.id, org.id)) ?? [];
+  }
   check(
     "policy version archived, hash matches the sealed result",
     versions.length === 1 &&
