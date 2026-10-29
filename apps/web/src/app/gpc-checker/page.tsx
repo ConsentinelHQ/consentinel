@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BrowserGpcCheck } from "@/components/browser-gpc-check";
 import { ScanForm } from "@/components/scan-form";
 
 export const metadata: Metadata = {
-  title: "Global Privacy Control checker: test if your site honors GPC",
+  title: "GPC checker: test your browser and your site for Global Privacy Control",
   description:
-    "Free GPC test. We load your page with Global Privacy Control on, without touching the banner, and list every ad tag that kept running, with the request that proves it.",
+    "Free GPC checker. See instantly whether your browser sends Global Privacy Control, then test whether your site obeys it, with every ad tag that kept running and the request that proves it.",
   alternates: { canonical: "/gpc-checker" },
 };
 
@@ -13,6 +14,10 @@ const FAQ: { q: string; a: string }[] = [
   {
     q: "Is the GPC check free?",
     a: "Yes. Scan any page on a site you're authorized to test. No account, no install.",
+  },
+  {
+    q: "How do I check if my browser sends GPC?",
+    a: "Open this page. The live check reads both places a site can see the signal: the Sec-GPC request header and navigator.globalPrivacyControl in page scripts.",
   },
   {
     q: "How is this different from a GPC browser extension?",
@@ -47,10 +52,21 @@ export default function GpcChecker() {
     <main>
       <section className="hero center">
         <div className="wrap">
+          <p className="bgpc-eyebrow">GPC checker</p>
           <h1>Does your site honor Global Privacy Control?</h1>
           <p className="lede">
-            Test it free. We load your page with the signal on, don&apos;t touch the banner, and
-            list every ad tag that kept running, with the request that proves it.
+            First, see if your own browser sends the signal. Then test a site: we load it with GPC
+            on and list every ad tag that kept running, with the request that proves it.
+          </p>
+          <BrowserGpcCheck />
+        </div>
+      </section>
+
+      <section className="tinted" id="site-check">
+        <div data-reveal className="wrap center">
+          <h2>Now test a site.</h2>
+          <p className="lede" style={{ marginTop: "1rem" }}>
+            Free, no account. Results in about a minute.
           </p>
           <div style={{ marginTop: "1.75rem" }}>
             <ScanForm />
