@@ -6425,3 +6425,212 @@ h2 {
     filter: none;
   }
 }
+
+/* ---------- live browser GPC check (/gpc-checker) ---------- */
+
+.bgpc-eyebrow {
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.bgpc {
+  position: relative;
+  max-width: 36rem;
+  margin: 2.5rem auto 0;
+  padding: 1.4rem;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px -32px rgb(0 0 0 / 0.22);
+  text-align: left;
+  overflow: hidden;
+  animation: gpc-test-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* Scan line while checking; settles into a green edge once the signal is found. */
+.bgpc::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 40%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--ink-soft), transparent);
+  animation: gpc-test-sweep 1.4s ease-in-out infinite;
+}
+.bgpc-done::before {
+  animation: none;
+  width: 100%;
+  background: var(--warning);
+  opacity: 0.55;
+}
+.bgpc-done.on::before {
+  background: var(--gated);
+}
+
+.bgpc-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.bgpc-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.bgpc-signal {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hairline);
+  transition: background 0.3s ease;
+}
+.bgpc-checking .bgpc-signal {
+  animation: bgpc-blink 0.9s ease-in-out infinite;
+  background: var(--ink-soft);
+}
+.bgpc-done .bgpc-signal {
+  background: var(--warning);
+}
+.bgpc-done.on .bgpc-signal {
+  background: var(--gated);
+  box-shadow: 0 0 0 4px rgb(0 121 92 / 0.14);
+}
+.bgpc-verdict {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.bgpc-done .bgpc-verdict {
+  animation: bgpc-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bgpc-layers {
+  list-style: none;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--hairline);
+}
+.bgpc-layer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.bgpc-layer div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.bgpc-layer code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.bgpc-layer span:not(.bgpc-pill) {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.bgpc-pill {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--paper-alt);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.bgpc-pill.on {
+  background: rgb(0 121 92 / 0.1);
+  color: var(--gated);
+  animation: bgpc-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.bgpc-pill.off {
+  background: rgb(178 80 0 / 0.1);
+  color: var(--warning);
+  animation: bgpc-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.bgpc-layer + .bgpc-layer .bgpc-pill {
+  animation-delay: 90ms;
+}
+
+.bgpc-enable {
+  margin-top: 1.1rem;
+  animation: bgpc-rise 480ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both;
+}
+.bgpc-enable-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.bgpc-enable dl {
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.bgpc-enable dl div {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+}
+.bgpc-enable dt {
+  font-weight: 600;
+}
+.bgpc-enable dd {
+  margin: 0;
+  color: var(--ink-soft);
+}
+@media (max-width: 520px) {
+  .bgpc-layer code {
+    font-size: 0.74rem;
+  }
+  .bgpc-enable dl div {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
+
+.bgpc-next {
+  margin-top: 1.1rem;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  animation: bgpc-rise 480ms cubic-bezier(0.2, 0.8, 0.2, 1) 180ms both;
+}
+.bgpc-next a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+@keyframes bgpc-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes bgpc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bgpc,
+  .bgpc::before,
+  .bgpc *,
+  .bgpc-checking .bgpc-signal {
+    animation: none !important;
+  }
+}
