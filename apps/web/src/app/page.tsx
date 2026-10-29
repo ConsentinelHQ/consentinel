@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { CountUp } from "@/components/count-up";
+import { Faq } from "@/components/faq";
 import { FluidCursor } from "@/components/fluid-cursor";
 import { JiraLoop } from "@/components/jira-loop";
+import { Marquee } from "@/components/marquee";
 import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
+import { StackCards } from "@/components/stack-cards";
 import { StripeGradient } from "@/components/stripe-gradient";
 
 // The hero object is a real finding set, not an illustration. What the product
@@ -46,6 +49,112 @@ const RISKS = [
   },
 ] as const;
 
+// Names only, set as type. These are vendors the scanner classifies, not customers.
+const VENDORS = [
+  "Meta Pixel",
+  "Google Analytics 4",
+  "Google Ads",
+  "TikTok Pixel",
+  "Amazon Advertising",
+  "Pinterest Tag",
+  "Snap Pixel",
+  "Microsoft Clarity",
+  "Klaviyo",
+  "Criteo",
+  "Xandr",
+  "Hotjar",
+] as const;
+
+// The banners our detection registry reads today. Keep in sync with the scanner.
+const CMPS = ["OneTrust", "Cookiebot", "Osano", "Didomi", "TrustArc"] as const;
+
+const FINDINGS = [
+  {
+    eyebrow: "Finding 01",
+    title: "Trackers that ignore consent",
+    body: "Tags that load and send data while consent is refused, including ones that read the denied signal and fire anyway. This is the core of most wiretap claims.",
+    chip: "The pattern behind CIPA suits",
+    visual: (
+      <div className="ev">
+        <p className="ev-head">
+          <span>Pass 1 · consent refused</span>
+          <span className="ev-bad">fired</span>
+        </p>
+        <code>GET connect.facebook.net/en_US/fbevents.js</code>
+        <code>POST facebook.com/tr?ev=PageView</code>
+        <code>GET analytics.tiktok.com/i18n/pixel/events.js</code>
+      </div>
+    ),
+  },
+  {
+    eyebrow: "Finding 02",
+    title: "Personal data in plain sight",
+    body: "Email addresses and other identifiers passed to ad and analytics platforms in query strings. That’s a data leak, not a tracking setting.",
+    chip: "Leaked identifiers, with the request",
+    visual: (
+      <div className="ev">
+        <p className="ev-head">
+          <span>Outbound request</span>
+          <span className="ev-bad">PII</span>
+        </p>
+        <code>GET google-analytics.com/g/collect</code>
+        <code>
+          ?tid=G-XXXX&amp;<mark>uid=jane%40example.com</mark>
+        </code>
+        <code>&amp;en=page_view&amp;dl=/checkout</code>
+      </div>
+    ),
+  },
+  {
+    eyebrow: "Finding 03",
+    title: "Scripts nobody approved",
+    body: "Third-party scripts on payment pages with no record of why they’re there. PCI DSS 4.0.1 requires an inventory of every one, and a missing script can fail your audit.",
+    chip: "Maps to PCI DSS 6.4.3 and 11.6.1",
+    visual: (
+      <div className="ev">
+        <p className="ev-head">
+          <span>/checkout · script inventory</span>
+          <span className="ev-warn">2 new</span>
+        </p>
+        <code>js.stripe.com/v3 · approved</code>
+        <code>
+          <mark>cdn.unknown-widget.io/w.js · no record</mark>
+        </code>
+        <code>
+          <mark>tag.adsrvr.org/up_loader.js · no record</mark>
+        </code>
+      </div>
+    ),
+  },
+] as const;
+
+const FAQ = [
+  {
+    q: "Do I need an account for the free scan?",
+    a: "No. Enter a page you own and you’ll get the headline in about a minute, with the full report by email. An account is only for monitoring.",
+  },
+  {
+    q: "We already have a cookie banner. Aren’t we covered?",
+    a: "A banner records a choice. It doesn’t prove anything honored it. Most sites that get sued have one. The problem is the tags behind it that keep firing after a visitor says no.",
+  },
+  {
+    q: "How does the scan work?",
+    a: "A real browser loads your page twice, once refusing consent and once accepting it. Anything that fires both times ignored the refusal, and the report shows the exact request or cookie that proves it.",
+  },
+  {
+    q: "Which consent banners do you support?",
+    a: "We detect OneTrust, Cookiebot, Osano, Didomi and TrustArc automatically. If we can’t find your reject button, the report says so instead of guessing.",
+  },
+  {
+    q: "Do I have to install anything on my site?",
+    a: "No code, no tag, no plugin. We scan from the outside the same way a visitor, or a plaintiff’s firm, would. Sites behind Cloudflare bot protection can allowlist our scanner.",
+  },
+  {
+    q: "How is this different from the scanner in my CMP?",
+    a: "CMP scanners list cookies so you can categorize them. Consentinel tests whether your banner actually works, records evidence counsel can use, and rescans daily so a new tag can’t quietly break it.",
+  },
+] as const;
+
 export default function Home() {
   return (
     <main>
@@ -80,6 +189,13 @@ export default function Home() {
               </div>
             </Parallax>
           </div>
+        </div>
+      </section>
+
+      <section className="proof">
+        <div className="wrap">
+          <Marquee items={VENDORS} label="Catches what fires on" />
+          <Marquee items={CMPS} label="Reads the banner from" reverse />
         </div>
       </section>
 
@@ -122,30 +238,9 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          <div className="tiles">
-            <div className="tile">
-              <h3>Trackers that ignore consent</h3>
-              <p>
-                Tags that load and send data while consent is refused, including ones that read the
-                denied signal and fire anyway. This is the core of most wiretap claims.
-              </p>
-            </div>
-            <div className="tile">
-              <h3>Personal data in plain sight</h3>
-              <p>
-                Email addresses and other identifiers passed to ad and analytics platforms in query
-                strings. That’s a data leak, not a tracking setting.
-              </p>
-            </div>
-            <div className="tile">
-              <h3>Scripts nobody approved</h3>
-              <p>
-                Third-party scripts on payment pages with no record of why they’re there. PCI DSS
-                4.0.1 requires an inventory of every one, and a missing script can fail your audit.
-              </p>
-            </div>
-          </div>
+        </div>
+        <div className="wrap">
+          <StackCards cards={FINDINGS} />
         </div>
       </section>
 
@@ -256,6 +351,19 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="faq-section">
+        <div data-reveal className="wrap qa-grid">
+          <div>
+            <p className="eyebrow">FAQ</p>
+            <h2>Questions, answered.</h2>
+            <p className="lede" style={{ marginTop: "1.25rem" }}>
+              Anything else, <Link href="/contact">ask us directly</Link>.
+            </p>
+          </div>
+          <Faq items={FAQ} />
+        </div>
+      </section>
+
       <section className="cta-section">
         <div data-reveal className="wrap">
           <div className="cta-panel">
@@ -271,6 +379,11 @@ export default function Home() {
               <div style={{ marginTop: "1.5rem" }}>
                 <ScanForm />
               </div>
+              <ul className="trust">
+                <li>Two-pass browser scan</li>
+                <li>Hashed, dated records</li>
+                <li>PCI DSS 6.4.3 · 11.6.1</li>
+              </ul>
             </div>
           </div>
         </div>
