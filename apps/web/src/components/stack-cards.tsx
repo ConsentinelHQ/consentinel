@@ -7,6 +7,8 @@ export type StackCard = {
   title: string;
   body: string;
   chip: string;
+  /** Short label for the section index. */
+  nav: string;
   visual: ReactNode;
 };
 
@@ -24,7 +26,8 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     if (!root) return;
     const stage = root.querySelector<HTMLElement>(".stack-stage");
     const items = Array.from(root.querySelectorAll<HTMLElement>(".stack-card"));
-    const dots = Array.from(root.querySelectorAll<HTMLElement>(".stack-dots button"));
+    const tabs = Array.from(root.querySelectorAll<HTMLElement>(".stack-tab"));
+    const roll = root.querySelector<HTMLElement>(".stack-roll");
     if (!stage || items.length === 0) return;
 
     const still = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 55.99rem)");
@@ -32,8 +35,6 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     let frame = 0;
     let shown = 0; // eased position the deck is drawn at
     let last = -1;
-    let prev = 0;
-    const lens = root.querySelector<HTMLElement>(".stack-lens");
 
     const reset = (): void => {
       items.forEach((card) => {
@@ -69,25 +70,19 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
         }
         if (p > i - 0.35) card.classList.add("is-in");
       });
-      // Glass lens glides between marks and stretches with speed, like a droplet.
+      // Index: the counter rolls with scroll, each segment fills as its card arrives.
+      roll?.style.setProperty("--p", p.toFixed(4));
+      tabs.forEach((tab, i) => {
+        tab.style.setProperty("--fill", Math.min(1, Math.max(0, p - i + 1)).toFixed(4));
+      });
       const now = Math.min(items.length - 1, Math.round(p));
       if (now !== last) {
-        dots.forEach((dot, i) => {
-          dot.toggleAttribute("data-on", i === now);
+        tabs.forEach((tab, i) => {
+          if (i === now) tab.setAttribute("aria-current", "step");
+          else tab.removeAttribute("aria-current");
         });
         last = now;
       }
-      if (lens && dots.length > 1) {
-        // Measure the list items: the buttons' offsetParent is their own li.
-        const first = dots[0]?.parentElement;
-        const second = dots[1]?.parentElement;
-        if (first && second) {
-          const step = second.offsetTop - first.offsetTop;
-          const speed = Math.min(1, Math.abs(p - prev) * 14);
-          lens.style.transform = `translate3d(-50%, ${(first.offsetTop + first.offsetHeight / 2 + p * step).toFixed(2)}px, 0) translateY(-50%) scale(${(1 - speed * 0.18).toFixed(3)}, ${(1 + speed * 0.55).toFixed(3)})`;
-        }
-      }
-      prev = p;
     };
 
     // Chase the scroll position instead of jumping to it, so wheel steps glide.
@@ -111,7 +106,7 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     shown = still.matches ? 0 : target();
     if (still.matches) reset();
     else draw(shown);
-    const jumps = dots.map((dot, i) => {
+    const jumps = tabs.map((tab, i) => {
       const go = (): void => {
         const travel = root.offsetHeight - stage.offsetHeight;
         const top = root.getBoundingClientRect().top + window.scrollY;
@@ -120,9 +115,9 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
           behavior: "smooth",
         });
       };
-      dot.addEventListener("click", go);
+      tab.addEventListener("click", go);
       return () => {
-        dot.removeEventListener("click", go);
+        tab.removeEventListener("click", go);
       };
     });
 
@@ -158,18 +153,32 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
             </li>
           ))}
         </ol>
-        <ol className="stack-dots">
-          {cards.map((card, i) => (
-            <li key={card.title}>
-              <button
-                aria-label={`Show finding ${String(i + 1)}: ${card.title}`}
-                data-on={i === 0 ? "" : undefined}
-                type="button"
-              />
-            </li>
-          ))}
-          <li aria-hidden="true" className="stack-lens" />
-        </ol>
+        <nav aria-label="Findings" className="stack-nav">
+          <p aria-hidden="true" className="stack-count">
+            <span className="stack-roll" style={{ "--p": 0 } as CSSProperties}>
+              <span>
+                {cards.map((card, i) => (
+                  <span key={card.title}>{String(i + 1).padStart(2, "0")}</span>
+                ))}
+              </span>
+            </span>
+            <span className="stack-total">/ {String(cards.length).padStart(2, "0")}</span>
+          </p>
+          <ol className="stack-tabs">
+            {cards.map((card, i) => (
+              <li key={card.title}>
+                <button
+                  aria-current={i === 0 ? "step" : undefined}
+                  className="stack-tab"
+                  type="button"
+                >
+                  <span className="stack-tab-label">{card.nav}</span>
+                  <span aria-hidden="true" className="stack-tab-bar" />
+                </button>
+              </li>
+            ))}
+          </ol>
+        </nav>
       </div>
     </div>
   );

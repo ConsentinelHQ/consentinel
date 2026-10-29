@@ -72,6 +72,7 @@ const FINDINGS = [
   {
     eyebrow: "Finding 01",
     title: "Trackers that ignore consent",
+    nav: "Ignored consent",
     body: "Tags that load and send data while consent is refused, including ones that read the denied signal and fire anyway. This is the core of most wiretap claims.",
     chip: "The pattern behind CIPA suits",
     visual: (
@@ -89,6 +90,7 @@ const FINDINGS = [
   {
     eyebrow: "Finding 02",
     title: "Personal data in plain sight",
+    nav: "Leaked identifiers",
     body: "Email addresses and other identifiers passed to ad and analytics platforms in query strings. That’s a data leak, not a tracking setting.",
     chip: "Leaked identifiers, with the request",
     visual: (
@@ -108,6 +110,7 @@ const FINDINGS = [
   {
     eyebrow: "Finding 03",
     title: "Scripts nobody approved",
+    nav: "Unapproved scripts",
     body: "Third-party scripts on payment pages with no record of why they’re there. PCI DSS 4.0.1 requires an inventory of every one, and a missing script can fail your audit.",
     chip: "Maps to PCI DSS 6.4.3 and 11.6.1",
     visual: (
