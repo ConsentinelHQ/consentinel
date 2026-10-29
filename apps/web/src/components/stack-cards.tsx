@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 export type StackCard = {
   eyebrow: string;
@@ -18,13 +18,13 @@ export type StackCard = {
  */
 export function StackCards({ cards }: { cards: readonly StackCard[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const stage = root.querySelector<HTMLElement>(".stack-stage");
     const items = Array.from(root.querySelectorAll<HTMLElement>(".stack-card"));
+    const dots = Array.from(root.querySelectorAll<HTMLElement>(".stack-dots button"));
     if (!stage || items.length === 0) return;
 
     const still = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 55.99rem)");
@@ -67,11 +67,13 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
         }
         if (p > i - 0.35) card.classList.add("is-in");
       });
+      // Indicator: the front card's mark stretches into a pill; each fills as its card arrives.
       const now = Math.min(items.length - 1, Math.round(p));
-      if (now !== last) {
-        last = now;
-        setActive(now);
-      }
+      dots.forEach((dot, i) => {
+        dot.style.setProperty("--fill", Math.min(1, Math.max(0, p - i + 1)).toFixed(3));
+        if (now !== last) dot.toggleAttribute("data-on", i === now);
+      });
+      last = now;
     };
 
     // Chase the scroll position instead of jumping to it, so wheel steps glide.
@@ -95,10 +97,28 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     shown = still.matches ? 0 : target();
     if (still.matches) reset();
     else draw(shown);
+    const jumps = dots.map((dot, i) => {
+      const go = (): void => {
+        const travel = root.offsetHeight - stage.offsetHeight;
+        const top = root.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({
+          top: top + (travel * i) / Math.max(1, items.length - 1),
+          behavior: "smooth",
+        });
+      };
+      dot.addEventListener("click", go);
+      return () => {
+        dot.removeEventListener("click", go);
+      };
+    });
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     still.addEventListener("change", onScroll);
     return () => {
+      jumps.forEach((off) => {
+        off();
+      });
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       still.removeEventListener("change", onScroll);
@@ -124,9 +144,17 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
             </li>
           ))}
         </ol>
-        <ol aria-hidden="true" className="stack-dots">
+        <ol className="stack-dots">
           {cards.map((card, i) => (
-            <li data-on={i <= active ? "" : undefined} key={card.title} />
+            <li key={card.title}>
+              <button
+                aria-label={`Show finding ${String(i + 1)}: ${card.title}`}
+                data-on={i === 0 ? "" : undefined}
+                type="button"
+              >
+                <span />
+              </button>
+            </li>
           ))}
         </ol>
       </div>
