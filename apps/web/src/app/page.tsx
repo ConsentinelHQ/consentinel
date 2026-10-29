@@ -160,7 +160,7 @@ export default function Home() {
     <main>
       <section className="hero hero-split">
         <div className="wrap hero-grid">
-          <div className="hero-copy">
+          <div className="hero-copy" data-reveal>
             <h1>Your site is sending data your visitors said no to.</h1>
             <p className="lede">
               Law firms are suing retailers under California’s wiretap law for exactly this, at up
@@ -170,7 +170,7 @@ export default function Home() {
             <ScanForm />
           </div>
 
-          <div className="hero-visual">
+          <div className="hero-visual" data-reveal>
             <Parallax speed={0.1}>
               <div className="specimen" aria-hidden="true">
                 <div className="specimen-head">
@@ -193,7 +193,7 @@ export default function Home() {
       </section>
 
       <section className="proof">
-        <div className="wrap">
+        <div className="wrap" data-reveal>
           <Marquee items={VENDORS} label="Catches what fires on" />
           <Marquee items={CMPS} label="Reads the banner from" reverse />
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 export type StackCard = {
   eyebrow: string;
@@ -11,50 +11,64 @@ export type StackCard = {
 };
 
 /**
- * Cards pin under the nav and stack as you scroll. Each one shrinks and dims a
- * little as the next covers it. Sticky does the layout; JS only sets a scale.
+ * Pinned card deck. The stage sticks under the nav while the section scrolls.
+ * Each new card slides up from below and covers the last one, which shrinks,
+ * blurs and lifts so the deck reads as stacked behind it. Below 56rem, or with
+ * reduced motion, it falls back to a plain list (CSS does that layout).
  */
 export function StackCards({ cards }: { cards: readonly StackCard[] }) {
-  const ref = useRef<HTMLOListElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const root = ref.current;
+    const root = rootRef.current;
     if (!root) return;
+    const stage = root.querySelector<HTMLElement>(".stack-stage");
     const items = Array.from(root.querySelectorAll<HTMLElement>(".stack-card"));
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      items.forEach((card) => card.classList.add("is-in"));
-      return;
-    }
+    if (!stage || items.length === 0) return;
 
-    // Evidence lines type in once a card is mostly on screen.
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add("is-in");
-          io.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.45 },
-    );
-    items.forEach((card) => {
-      io.observe(card);
-    });
+    const still = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 55.99rem)");
     let frame = 0;
+
+    const reset = (): void => {
+      items.forEach((card) => {
+        card.style.transform = "";
+        card.style.filter = "";
+        card.classList.add("is-in");
+      });
+    };
 
     const update = (): void => {
       frame = 0;
+      if (still.matches) {
+        reset();
+        return;
+      }
+      const rect = root.getBoundingClientRect();
+      const stageH = stage.offsetHeight;
+      const travel = Math.max(1, root.offsetHeight - stageH);
+      // 0 at the first card, n - 1 at the last.
+      const p = Math.min(1, Math.max(0, -rect.top / travel)) * (items.length - 1);
+
       items.forEach((card, i) => {
-        const next = items[i + 1];
-        if (!next) return;
-        // 0 when the next card starts covering this one, 1 when fully covered.
-        const top = card.getBoundingClientRect().top;
-        const nextTop = next.getBoundingClientRect().top;
-        const h = card.offsetHeight || 1;
-        const p = Math.min(1, Math.max(0, 1 - (nextTop - top) / h));
-        card.style.setProperty("--covered", p.toFixed(3));
+        if (p < i) {
+          // Still below the stage, sliding up into place.
+          const t = Math.min(1, i - p);
+          card.style.transform = `translate3d(0, calc(-50% + ${(t * stageH).toFixed(1)}px), 0)`;
+          card.style.filter = "";
+        } else {
+          // In place, then pushed back as later cards arrive. Depth caps at 2.
+          const d = Math.min(2, p - i);
+          const lift = d * 26;
+          const scale = 1 - d * 0.045;
+          card.style.transform = `translate3d(0, calc(-50% - ${lift.toFixed(1)}px), 0) scale(${scale.toFixed(4)})`;
+          card.style.filter = d > 0.02 ? `blur(${(d * 1.6).toFixed(2)}px)` : "";
+        }
+        if (p > i - 0.35) card.classList.add("is-in");
       });
+      setActive(Math.min(items.length - 1, Math.round(p)));
     };
+
     const onScroll = (): void => {
       if (frame === 0) frame = window.requestAnimationFrame(update);
     };
@@ -62,29 +76,39 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
+    still.addEventListener("change", onScroll);
     return () => {
-      io.disconnect();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      still.removeEventListener("change", onScroll);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
 
   return (
-    <ol className="stack" ref={ref}>
-      {cards.map((card, i) => (
-        <li className="stack-card" key={card.title} style={{ "--i": i } as CSSProperties}>
-          <div className="stack-copy">
-            <p className="eyebrow">{card.eyebrow}</p>
-            <h3>{card.title}</h3>
-            <p className="stack-body">{card.body}</p>
-            <span className="chip">{card.chip}</span>
-          </div>
-          <div className="stack-visual" aria-hidden="true">
-            {card.visual}
-          </div>
-        </li>
-      ))}
-    </ol>
+    <div className="stack" ref={rootRef} style={{ "--n": cards.length } as CSSProperties}>
+      <div className="stack-stage">
+        <ol className="stack-deck">
+          {cards.map((card, i) => (
+            <li className="stack-card" key={card.title} style={{ zIndex: i + 1 }}>
+              <div className="stack-copy">
+                <p className="eyebrow">{card.eyebrow}</p>
+                <h3>{card.title}</h3>
+                <p className="stack-body">{card.body}</p>
+                <span className="chip">{card.chip}</span>
+              </div>
+              <div className="stack-visual" aria-hidden="true">
+                {card.visual}
+              </div>
+            </li>
+          ))}
+        </ol>
+        <ol aria-hidden="true" className="stack-dots">
+          {cards.map((card, i) => (
+            <li data-on={i <= active ? "" : undefined} key={card.title} />
+          ))}
+        </ol>
+      </div>
+    </div>
   );
 }

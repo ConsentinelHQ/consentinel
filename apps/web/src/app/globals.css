@@ -5925,22 +5925,27 @@ h2 {
   }
 }
 
-/* ---------- stacking finding cards ---------- */
+/* ---------- pinned finding deck ---------- */
 
+/* Static list by default: phones and reduced motion get this. */
 .stack {
-  margin: clamp(3rem, 6vw, 4.5rem) 0 0;
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+}
+.stack-deck {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
+.stack-dots {
+  display: none;
+}
 .stack-card {
-  --covered: 0;
-  position: sticky;
-  top: calc(5.5rem + var(--i) * 1.1rem);
+  position: relative;
   display: grid;
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: center;
-  min-height: 25rem;
-  margin-bottom: clamp(1.5rem, 4vh, 2.5rem);
   padding: clamp(1.75rem, 4vw, 3.25rem);
   background: var(--paper);
   border: 1px solid var(--hairline);
@@ -5948,13 +5953,61 @@ h2 {
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.04),
     0 30px 60px -36px rgb(0 0 0 / 0.28);
-  transform-origin: 50% 0;
-  transform: scale(calc(1 - var(--covered) * 0.05));
-  filter: brightness(calc(1 - var(--covered) * 0.04));
-  will-change: transform;
 }
-.stack-card:last-child {
-  margin-bottom: 0;
+
+/* Desktop: the stage pins and cards slide over each other. JS sets transforms. */
+@media (min-width: 56rem) and (prefers-reduced-motion: no-preference) {
+  .stack {
+    /* One screen per card of scroll travel. */
+    height: calc(var(--n) * 80vh + 20vh);
+  }
+  .stack-stage {
+    position: sticky;
+    top: 4.5rem;
+    height: calc(100vh - 4.5rem);
+  }
+  .stack-deck {
+    position: relative;
+    display: block;
+    height: 100%;
+  }
+  .stack-card {
+    position: absolute;
+    inset: 50% 0 auto;
+    min-height: min(30rem, 70vh);
+    transform: translate3d(0, 100vh, 0);
+    transform-origin: 50% 0;
+    will-change: transform, filter;
+  }
+  .stack-card:first-child {
+    transform: translate3d(0, -50%, 0);
+  }
+  .stack-dots {
+    position: absolute;
+    top: 50%;
+    right: -2.75rem;
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform: translateY(-50%);
+  }
+  .stack-dots li {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--hairline);
+    transition: background 0.3s ease;
+  }
+  .stack-dots li[data-on] {
+    background: var(--ink);
+  }
+}
+@media (max-width: 70rem) {
+  .stack-dots {
+    display: none !important;
+  }
 }
 @media (min-width: 56rem) {
   .stack-card {
@@ -6199,10 +6252,6 @@ h2 {
   .marquee-track li:nth-child(n + 13) {
     display: none;
   }
-  .stack-card {
-    position: relative;
-    top: 0;
-  }
 }
 
 /* Grid children default to min-width: auto, so one nowrap line in the hero
@@ -6219,6 +6268,47 @@ h2 {
 @media (max-width: 55.99rem) {
   .stack-card {
     grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
+  }
+}
+
+/* Sections fade up as they enter, children one after another. Reveal.tsx adds
+   .is-in; content is visible by default if JS never runs (no data-reveal). */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  [data-reveal] > *,
+  [data-reveal] > .split > * {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(6px);
+    transition:
+      opacity 0.9s var(--ease-out),
+      transform 0.9s var(--ease-out),
+      filter 0.9s var(--ease-out);
+  }
+  [data-reveal].is-in > *,
+  [data-reveal].is-in > .split > * {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  [data-reveal].is-in > :nth-child(2),
+  [data-reveal].is-in > .split > :nth-child(2) {
+    transition-delay: 0.1s;
+  }
+  [data-reveal].is-in > :nth-child(3) {
+    transition-delay: 0.2s;
+  }
+  [data-reveal].is-in > :nth-child(n + 4) {
+    transition-delay: 0.3s;
+  }
+  /* The split itself shouldn't fade as one block on top of its children. */
+  [data-reveal] > .split {
+    opacity: 1;
+    transform: none;
+    filter: none;
   }
 }
