@@ -386,12 +386,6 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          {/* SVG so the wordmark fits the column exactly at every width. */}
-          <svg aria-hidden="true" className="cta-wordmark" data-reveal viewBox="0 0 1000 150">
-            <text lengthAdjust="spacingAndGlyphs" textLength="1000" x="0" y="128">
-              CONSENTINEL
-            </text>
-          </svg>
         </div>
       </section>
       <FluidCursor fadeFrom="fluid-fade" fadeTo="fluid-end" />

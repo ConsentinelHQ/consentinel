@@ -6180,21 +6180,6 @@ h2 {
   }
 }
 
-/* ---------- wordmark under the final CTA ---------- */
-
-.cta-wordmark {
-  display: block;
-  width: 100%;
-  height: auto;
-  margin: 0.5rem 0 clamp(2.5rem, 6vw, 4.5rem);
-  overflow: visible;
-}
-.cta-wordmark text {
-  font-family: var(--font-sans);
-  font-size: 160px;
-  font-weight: 700;
-  fill: var(--ink);
-}
 .footer-base {
   display: flex;
   flex-wrap: wrap;
@@ -6203,14 +6188,6 @@ h2 {
   margin-top: 1.5rem;
   font-size: 0.8rem;
   color: var(--ink-soft);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cta-wordmark[data-reveal] {
-    transform: translateY(32px);
-    transition:
-      opacity 1s var(--ease-out),
-      transform 1.1s var(--ease-out);
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .marquee-track {
