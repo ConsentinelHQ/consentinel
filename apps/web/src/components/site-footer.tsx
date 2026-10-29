@@ -36,10 +36,13 @@ export function SiteFooter() {
           <Link href="/cipa-demand-letter">Got a CIPA demand letter?</Link>
           <Link href="/research/opt-out-report-2026">2026 opt-out report</Link>
           <Link href="/vendors">Pixels that ignore opt-outs</Link>
+          <Link href="/guides">Consent platform fix guides</Link>
         </nav>
         <nav aria-label="Company">
           <p className="site-footer-head">Company</p>
           <Link href="/contact">Contact</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
         </nav>
       </div>
       <div className="wrap">

@@ -6634,3 +6634,60 @@ h2 {
     animation: none !important;
   }
 }
+
+/* ---------- fix guide steps ---------- */
+.guide-steps {
+  list-style: none;
+  padding: 0;
+  counter-reset: step;
+  max-width: 44rem;
+}
+.guide-steps li {
+  position: relative;
+  padding-left: 2.75rem;
+  margin-bottom: 1.1rem;
+  counter-increment: step;
+}
+.guide-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+}
+
+/* ---------- legal pages ---------- */
+.legal {
+  max-width: 44rem;
+}
+.legal h2 {
+  font-size: clamp(1.4rem, 2.6vw, 1.75rem);
+  margin: 2.75rem 0 0.75rem;
+}
+.legal p,
+.legal li {
+  line-height: 1.65;
+  color: var(--ink);
+}
+.legal p + p {
+  margin-top: 0.85rem;
+}
+.legal ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.25rem;
+}
+.legal li {
+  margin-bottom: 0.5rem;
+}
+.legal-meta {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
