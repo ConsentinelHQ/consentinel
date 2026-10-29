@@ -86,6 +86,15 @@ export default function Guides() {
                 <p>{g.description}</p>
               </Link>
             ))}
+            {/* Fills the last cell: the scanner detects far more platforms than we have guides for. */}
+            <Link className="tile tile-link tile-cta" href="/#scan">
+              <h3>Using another platform?</h3>
+              <p>
+                We also detect Shopify Consent, Usercentrics, CookieYes, Ketch, Termly and more.
+                Scan your site to see which tags ignore it.
+              </p>
+              <span className="tile-cta-btn">Scan your site</span>
+            </Link>
           </div>
         </div>
       </section>
