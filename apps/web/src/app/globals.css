@@ -6051,8 +6051,9 @@ h2 {
     padding: 0;
     list-style: none;
   }
-  .stack-tab,
-  .stack-tab:hover:not(:disabled) {
+  /* Scoped under .stack-nav to outrank the global dark button hover. */
+  .stack-nav .stack-tab,
+  .stack-nav .stack-tab:hover:not(:disabled) {
     display: grid;
     gap: 0.7rem;
     width: 100%;
@@ -6066,9 +6067,24 @@ h2 {
     letter-spacing: -0.005em;
     transition: color 0.35s ease;
   }
-  .stack-tab:hover:not(:disabled),
-  .stack-tab[aria-current] {
+  .stack-nav .stack-tab:hover:not(:disabled),
+  .stack-nav .stack-tab[aria-current] {
     color: var(--ink);
+  }
+  .stack-nav .stack-tab:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 6px;
+    border-radius: 4px;
+  }
+  /* Hover previews the jump: the label nudges right and its bar hints a fill. */
+  .stack-nav .stack-tab-label {
+    transition: transform 0.45s var(--ease-out);
+  }
+  .stack-nav .stack-tab:hover:not([aria-current]) .stack-tab-label {
+    transform: translateX(4px);
+  }
+  .stack-nav .stack-tab:hover .stack-tab-bar {
+    background: rgb(0 0 0 / 0.18);
   }
   .stack-tab-label {
     display: flex;
@@ -6091,6 +6107,7 @@ h2 {
   .stack-tab-bar {
     position: relative;
     height: 2px;
+    transition: background 0.3s ease;
     overflow: hidden;
     border-radius: 2px;
     background: rgb(0 0 0 / 0.1);
