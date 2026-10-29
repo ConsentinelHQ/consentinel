@@ -32,6 +32,8 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     let frame = 0;
     let shown = 0; // eased position the deck is drawn at
     let last = -1;
+    let prev = 0;
+    const lens = root.querySelector<HTMLElement>(".stack-lens");
 
     const reset = (): void => {
       items.forEach((card) => {
@@ -67,13 +69,25 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
         }
         if (p > i - 0.35) card.classList.add("is-in");
       });
-      // Indicator: the front card's mark stretches into a pill; each fills as its card arrives.
+      // Glass lens glides between marks and stretches with speed, like a droplet.
       const now = Math.min(items.length - 1, Math.round(p));
-      dots.forEach((dot, i) => {
-        dot.style.setProperty("--fill", Math.min(1, Math.max(0, p - i + 1)).toFixed(3));
-        if (now !== last) dot.toggleAttribute("data-on", i === now);
-      });
-      last = now;
+      if (now !== last) {
+        dots.forEach((dot, i) => {
+          dot.toggleAttribute("data-on", i === now);
+        });
+        last = now;
+      }
+      if (lens && dots.length > 1) {
+        // Measure the list items: the buttons' offsetParent is their own li.
+        const first = dots[0]?.parentElement;
+        const second = dots[1]?.parentElement;
+        if (first && second) {
+          const step = second.offsetTop - first.offsetTop;
+          const speed = Math.min(1, Math.abs(p - prev) * 14);
+          lens.style.transform = `translate3d(-50%, ${(first.offsetTop + first.offsetHeight / 2 + p * step).toFixed(2)}px, 0) translateY(-50%) scale(${(1 - speed * 0.18).toFixed(3)}, ${(1 + speed * 0.55).toFixed(3)})`;
+        }
+      }
+      prev = p;
     };
 
     // Chase the scroll position instead of jumping to it, so wheel steps glide.
@@ -151,11 +165,10 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
                 aria-label={`Show finding ${String(i + 1)}: ${card.title}`}
                 data-on={i === 0 ? "" : undefined}
                 type="button"
-              >
-                <span />
-              </button>
+              />
             </li>
           ))}
+          <li aria-hidden="true" className="stack-lens" />
         </ol>
       </div>
     </div>
