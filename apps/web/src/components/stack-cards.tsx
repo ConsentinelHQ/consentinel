@@ -13,7 +13,7 @@ export type StackCard = {
 /**
  * Pinned card deck. The stage sticks under the nav while the section scrolls.
  * Each new card slides up from below and covers the last one, which shrinks,
- * blurs and lifts so the deck reads as stacked behind it. Below 56rem, or with
+ * dims and lifts so the deck reads as stacked behind it. Below 56rem, or with
  * reduced motion, it falls back to a plain list (CSS does that layout).
  */
 export function StackCards({ cards }: { cards: readonly StackCard[] }) {
@@ -28,52 +28,73 @@ export function StackCards({ cards }: { cards: readonly StackCard[] }) {
     if (!stage || items.length === 0) return;
 
     const still = window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 55.99rem)");
+    const ease = (t: number): number => 1 - Math.pow(1 - t, 3);
     let frame = 0;
+    let shown = 0; // eased position the deck is drawn at
+    let last = -1;
 
     const reset = (): void => {
       items.forEach((card) => {
         card.style.transform = "";
-        card.style.filter = "";
+        card.style.removeProperty("--shade");
         card.classList.add("is-in");
       });
     };
 
-    const update = (): void => {
-      frame = 0;
-      if (still.matches) {
-        reset();
-        return;
-      }
-      const rect = root.getBoundingClientRect();
-      const stageH = stage.offsetHeight;
-      const travel = Math.max(1, root.offsetHeight - stageH);
-      // 0 at the first card, n - 1 at the last.
-      const p = Math.min(1, Math.max(0, -rect.top / travel)) * (items.length - 1);
+    // Where scrolling says the deck should be: 0 at the first card, n - 1 at the last.
+    const target = (): number => {
+      const travel = Math.max(1, root.offsetHeight - stage.offsetHeight);
+      const top = root.getBoundingClientRect().top;
+      return Math.min(1, Math.max(0, -top / travel)) * (items.length - 1);
+    };
 
+    const draw = (p: number): void => {
+      const stageH = stage.offsetHeight;
       items.forEach((card, i) => {
         if (p < i) {
-          // Still below the stage, sliding up into place.
-          const t = Math.min(1, i - p);
-          card.style.transform = `translate3d(0, calc(-50% + ${(t * stageH).toFixed(1)}px), 0)`;
-          card.style.filter = "";
+          // Below the stage, easing up into place.
+          const t = ease(Math.max(0, 1 - Math.min(1, i - p)));
+          const y = (1 - t) * stageH;
+          card.style.transform = `translate3d(0, calc(-50% + ${y.toFixed(2)}px), 0)`;
+          card.style.setProperty("--shade", "0");
         } else {
           // In place, then pushed back as later cards arrive. Depth caps at 2.
           const d = Math.min(2, p - i);
           const lift = d * 26;
           const scale = 1 - d * 0.045;
-          card.style.transform = `translate3d(0, calc(-50% - ${lift.toFixed(1)}px), 0) scale(${scale.toFixed(4)})`;
-          card.style.filter = d > 0.02 ? `blur(${(d * 1.6).toFixed(2)}px)` : "";
+          card.style.transform = `translate3d(0, calc(-50% - ${lift.toFixed(2)}px), 0) scale(${scale.toFixed(4)})`;
+          card.style.setProperty("--shade", (d * 0.5).toFixed(3));
         }
         if (p > i - 0.35) card.classList.add("is-in");
       });
-      setActive(Math.min(items.length - 1, Math.round(p)));
+      const now = Math.min(items.length - 1, Math.round(p));
+      if (now !== last) {
+        last = now;
+        setActive(now);
+      }
+    };
+
+    // Chase the scroll position instead of jumping to it, so wheel steps glide.
+    const tick = (): void => {
+      frame = 0;
+      if (still.matches) {
+        reset();
+        return;
+      }
+      const goal = target();
+      shown += (goal - shown) * 0.14;
+      if (Math.abs(goal - shown) < 0.0005) shown = goal;
+      draw(shown);
+      if (shown !== goal) frame = window.requestAnimationFrame(tick);
     };
 
     const onScroll = (): void => {
-      if (frame === 0) frame = window.requestAnimationFrame(update);
+      if (frame === 0) frame = window.requestAnimationFrame(tick);
     };
 
-    update();
+    shown = still.matches ? 0 : target();
+    if (still.matches) reset();
+    else draw(shown);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     still.addEventListener("change", onScroll);

@@ -5977,7 +5977,19 @@ h2 {
     min-height: min(30rem, 70vh);
     transform: translate3d(0, 100vh, 0);
     transform-origin: 50% 0;
-    will-change: transform, filter;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+  /* Cards behind fade under a white veil. Opacity is composited, unlike a
+     per-frame blur filter, which repaints the whole card and stutters. */
+  .stack-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--paper-alt);
+    opacity: var(--shade, 0);
+    pointer-events: none;
   }
   .stack-card:first-child {
     transform: translate3d(0, -50%, 0);
