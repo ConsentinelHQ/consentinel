@@ -1,0 +1,34 @@
+# Consentinel Shopify app config. Deploy with the Shopify CLI from this folder:
+#   shopify app deploy
+# The app itself is served by apps/web (/shopify and /api/shopify/*).
+
+client_id = "REPLACE_WITH_CLIENT_ID"
+name = "Consentinel"
+handle = "consentinel"
+application_url = "https://www.getconsentinel.com/shopify"
+embedded = true
+
+[access_scopes]
+# None needed: we scan the public storefront and bill through the Billing API.
+scopes = ""
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = ["https://www.getconsentinel.com/shopify"]
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled", "app_subscriptions/update"]
+  uri = "https://www.getconsentinel.com/api/shopify/webhooks"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+  uri = "https://www.getconsentinel.com/api/shopify/webhooks"
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = false
