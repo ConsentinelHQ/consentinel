@@ -136,7 +136,7 @@ export function bearer(request: Request): string | null {
   return match?.[1] ?? null;
 }
 
-/** Trades a session token for an offline Admin API token. */
+/** Trades a session token for a short-lived (expiring) offline Admin API token. */
 export async function exchangeToken(session: SessionToken, config: ShopifyConfig): Promise<string> {
   const response = await fetch(`https://${session.shop}/admin/oauth/access_token`, {
     method: "POST",
@@ -148,6 +148,9 @@ export async function exchangeToken(session: SessionToken, config: ShopifyConfig
       subject_token: session.raw,
       subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
       requested_token_type: "urn:shopify:params:oauth:token-type:offline-access-token",
+      // Public apps must use expiring offline tokens. We exchange per request and
+      // never store the token, so the refresh token is simply dropped.
+      expiring: "1",
     }),
   });
   if (!response.ok) {
