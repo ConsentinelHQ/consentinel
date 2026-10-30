@@ -105,6 +105,7 @@ export interface AppState {
     scannedAt: string | null;
     error: string | null;
     blockedBy: string | null;
+    passwordProtected: boolean;
     headline: string | null;
     counts: { critical: number; warning: number; info: number } | null;
     cmpName: string | null;
@@ -147,6 +148,7 @@ export async function appState(shop: string, org: ShopifyOrg): Promise<AppState>
       scannedAt: scan.finishedAt?.toISOString() ?? null,
       error: scan.status === "failed" ? (scan.error ?? "The scan couldn't be completed.") : null,
       blockedBy: scan.blockedBy ?? null,
+      passwordProtected: scan.status === "failed" && (await storefrontLocked(scan.url)),
       headline: report?.headline ?? null,
       counts: report
         ? {
@@ -166,4 +168,22 @@ export async function appState(shop: string, org: ShopifyOrg): Promise<AppState>
       reportUrl: token ? `${ORIGIN}/report/${scan.id}?t=${encodeURIComponent(token)}` : null,
     },
   };
+}
+
+/**
+ * Shopify sends visitors of a password-protected store to /password. Checked only
+ * after a failed scan, so a locked dev store gets a clear fix instead of a bot-block guess.
+ */
+async function storefrontLocked(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, {
+      redirect: "manual",
+      signal: AbortSignal.timeout(4000),
+      headers: { "user-agent": "Mozilla/5.0 (compatible; ConsentinelBot/1.0)" },
+    });
+    const location = response.headers.get("location") ?? "";
+    return /\/password(\b|$|\?)/.test(location) || response.url.includes("/password");
+  } catch {
+    return false;
+  }
 }
