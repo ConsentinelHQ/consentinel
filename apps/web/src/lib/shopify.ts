@@ -150,7 +150,10 @@ export async function exchangeToken(session: SessionToken, config: ShopifyConfig
       requested_token_type: "urn:shopify:params:oauth:token-type:offline-access-token",
     }),
   });
-  if (!response.ok) throw new Error(`token exchange failed: ${response.status}`);
+  if (!response.ok) {
+    const text = (await response.text().catch(() => "")).slice(0, 300);
+    throw new Error(`token exchange failed: ${response.status} ${text}`);
+  }
   const data = (await response.json()) as { access_token?: string };
   if (!data.access_token) throw new Error("token exchange returned no token");
   return data.access_token;
@@ -167,7 +170,10 @@ export async function adminGraphql<T>(
     headers: { "content-type": "application/json", "x-shopify-access-token": accessToken },
     body: JSON.stringify({ query, variables }),
   });
-  if (!response.ok) throw new Error(`admin api ${response.status}`);
+  if (!response.ok) {
+    const text = (await response.text().catch(() => "")).slice(0, 300);
+    throw new Error(`admin api ${response.status} ${text}`);
+  }
   const body = (await response.json()) as { data?: T; errors?: unknown };
   if (body.errors || !body.data) throw new Error(`admin api error: ${JSON.stringify(body.errors)}`);
   return body.data;
@@ -288,6 +294,11 @@ export function toPlanStatusFromShopify(status: string): "active" | "canceled" |
 export function adminAppUrl(shop: string, appHandle: string): string {
   const store = shop.replace(/\.myshopify\.com$/, "");
   return `https://admin.shopify.com/store/${store}/apps/${appHandle}`;
+}
+
+/** Short, safe reason for the merchant's toast and for Sentry. Never includes secrets. */
+export function errorDetail(error: unknown): string {
+  return (error instanceof Error ? error.message : String(error)).slice(0, 300);
 }
 
 /** frame-ancestors for the embedded page. Shopify requires the shop and the admin. */

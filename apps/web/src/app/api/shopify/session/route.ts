@@ -1,4 +1,6 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
+import { errorDetail } from "@/lib/shopify";
 import { appState, authenticate, ensureInstalled } from "@/lib/shopify-server";
 
 export const runtime = "nodejs";
@@ -13,8 +15,12 @@ export async function GET(request: Request): Promise<NextResponse> {
     return NextResponse.json(await appState(ctx.session.shop, org));
   } catch (error) {
     console.error("shopify session failed", { shop: ctx.session.shop, error });
+    Sentry.captureException(error, {
+      tags: { area: "shopify", op: "session" },
+      extra: { shop: ctx.session.shop },
+    });
     return NextResponse.json(
-      { error: "We couldn't load your store. Try again in a minute." },
+      { error: "We couldn't load your store. Try again in a minute.", detail: errorDetail(error) },
       { status: 502 },
     );
   }
