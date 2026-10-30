@@ -22,7 +22,7 @@ Shopify billing.
 1. Create a free Shopify Partner account at partners.shopify.com.
 2. Dev Dashboard > Create app > name it Consentinel. Copy the Client ID and secret.
 3. Vercel env (Production): `SHOPIFY_API_KEY` = Client ID, `SHOPIFY_API_SECRET` = secret.
-   Optional: `SHOPIFY_APP_HANDLE` if the handle isn't `consentinel`. Redeploy.
+   Optional: `SHOPIFY_APP_HANDLE` if the handle isn't `consentinel-opt-out-checker`. Redeploy.
 4. Put the Client ID in `shopify/shopify.app.toml`, then from `shopify/` run
    `npx @shopify/cli@latest app deploy`. This sets the app URL, webhooks and
    GDPR endpoints.

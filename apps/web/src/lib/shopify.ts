@@ -29,7 +29,7 @@ export function shopifyConfig(env: NodeJS.ProcessEnv = process.env): ShopifyConf
   const apiKey = env["SHOPIFY_API_KEY"];
   const apiSecret = env["SHOPIFY_API_SECRET"];
   if (!apiKey || !apiSecret) return null;
-  return { apiKey, apiSecret, appHandle: env["SHOPIFY_APP_HANDLE"] ?? "consentinel" };
+  return { apiKey, apiSecret, appHandle: env["SHOPIFY_APP_HANDLE"] ?? "consentinel-opt-out-checker" };
 }
 
 const SHOP_RE = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/;

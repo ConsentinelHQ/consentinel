@@ -4,7 +4,7 @@
 
 client_id = "eef62e847d2c0e5abccb7b2e5f89915e"
 name = "Consentinel"
-handle = "consentinel"
+handle = "consentinel-opt-out-checker"
 application_url = "https://www.getconsentinel.com/shopify"
 embedded = true
 
