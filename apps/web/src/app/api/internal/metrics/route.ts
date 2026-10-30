@@ -54,6 +54,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       database
         .select({
           orgId: orgs.id,
+          key: orgs.clerkOrgId,
           plan: orgs.plan,
           planStatus: orgs.planStatus,
           planQuantity: orgs.planQuantity,
@@ -100,9 +101,18 @@ export async function GET(request: Request): Promise<NextResponse> {
     ]);
 
   const internalUsers = new Set(userRows.filter((u) => isInternal(u.email)).map((u) => u.id));
-  const internalOrgs = new Set(
-    memberRows.filter((m) => internalUsers.has(m.userId)).map((m) => m.orgId),
+  // Shopify dev stores we own (test charges) plus METRICS_EXCLUDE_SHOPS.
+  const testShops = new Set(
+    ["consentinel-test.myshopify.com"]
+      .concat((process.env["METRICS_EXCLUDE_SHOPS"] ?? "").split(","))
+      .map((d) => d.trim().toLowerCase())
+      .filter(Boolean)
+      .map((d) => `shopify:${d}`),
   );
+  const internalOrgs = new Set([
+    ...memberRows.filter((m) => internalUsers.has(m.userId)).map((m) => m.orgId),
+    ...orgRows.filter((o) => testShops.has(o.key)).map((o) => o.orgId),
+  ]);
   const internalSites = new Set(siteRows.filter((s) => internalOrgs.has(s.orgId)).map((s) => s.id));
   const realScan = (siteId: string | null): boolean => !siteId || !internalSites.has(siteId);
   const realUsers = userRows.filter((u) => !internalUsers.has(u.id));
