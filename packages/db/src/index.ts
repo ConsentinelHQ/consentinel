@@ -12,3 +12,4 @@ export * from "./plans.js";
 export * from "./jira.js";
 export * from "./portfolio.js";
 export * from "./policies.js";
+export * from "./shopify.js";

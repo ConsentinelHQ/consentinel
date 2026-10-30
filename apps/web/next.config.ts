@@ -23,7 +23,9 @@ const config: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        // Everything except the Shopify app, which must load inside the admin
+        // iframe and sets its own frame-ancestors CSP per store.
+        source: "/:path((?!shopify(?:/|$)).*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
