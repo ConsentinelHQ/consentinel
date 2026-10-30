@@ -232,7 +232,7 @@ const JS = `
     clearInterval(stepTimer); stepTimer = null;
     if (scan.status === "failed") {
       show("failed");
-      var locked = scan.blockedBy && (state.siteUrl || "").indexOf(".myshopify.com") !== -1;
+      var locked = scan.passwordProtected;
       $("fail-title").textContent = locked ? "Your store is password protected"
         : scan.blockedBy ? "Your bot protection blocked the scan" : "We couldn't scan your storefront";
       $("fail-detail").textContent = locked
