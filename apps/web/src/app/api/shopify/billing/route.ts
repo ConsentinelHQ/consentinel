@@ -1,5 +1,12 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
-import { adminAppUrl, createSubscription, exchangeToken, fetchShopInfo } from "@/lib/shopify";
+import {
+  adminAppUrl,
+  errorDetail,
+  createSubscription,
+  exchangeToken,
+  fetchShopInfo,
+} from "@/lib/shopify";
 import { authenticate } from "@/lib/shopify-server";
 
 export const runtime = "nodejs";
@@ -28,8 +35,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ confirmationUrl });
   } catch (error) {
     console.error("shopify billing failed", { shop: ctx.session.shop, error });
+    Sentry.captureException(error, {
+      tags: { area: "shopify", op: "billing" },
+      extra: { shop: ctx.session.shop },
+    });
     return NextResponse.json(
-      { error: "Shopify didn't accept the charge. Try again in a minute." },
+      { error: "Shopify didn't accept the charge.", detail: errorDetail(error) },
       { status: 502 },
     );
   }

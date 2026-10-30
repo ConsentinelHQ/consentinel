@@ -198,7 +198,7 @@ const JS = `
   async function api(path, method){
     var res = await fetch(path, { method: method || "GET", headers: { Authorization: "Bearer " + (await token()) } });
     var body = await res.json().catch(function(){ return {}; });
-    if (!res.ok) throw new Error(body.error || "Something went wrong.");
+    if (!res.ok) throw new Error((body.error || "Something went wrong.") + (body.detail ? " " + body.detail : ""));
     return body;
   }
 
@@ -232,10 +232,14 @@ const JS = `
     clearInterval(stepTimer); stepTimer = null;
     if (scan.status === "failed") {
       show("failed");
-      $("fail-title").textContent = scan.blockedBy ? "Your bot protection blocked the scan" : "We couldn't scan your storefront";
-      $("fail-detail").textContent = scan.blockedBy
-        ? scan.blockedBy + " refused our scanner. If your storefront is password protected, remove the password and try again."
-        : (scan.error || "Try again in a minute.");
+      var locked = scan.blockedBy && (state.siteUrl || "").indexOf(".myshopify.com") !== -1;
+      $("fail-title").textContent = locked ? "Your store is password protected"
+        : scan.blockedBy ? "Your bot protection blocked the scan" : "We couldn't scan your storefront";
+      $("fail-detail").textContent = locked
+        ? "We can only test what shoppers see. Turn off the storefront password in Online Store > Preferences, then scan again."
+        : scan.blockedBy
+          ? scan.blockedBy.charAt(0).toUpperCase() + scan.blockedBy.slice(1) + " refused our scanner. Allow it in your bot protection settings, then try again."
+          : (scan.error || "Try again in a minute.");
       return;
     }
     show("result");
