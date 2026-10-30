@@ -2,7 +2,7 @@
 #   shopify app deploy
 # The app itself is served by apps/web (/shopify and /api/shopify/*).
 
-client_id = "REPLACE_WITH_CLIENT_ID"
+client_id = "eef62e847d2c0e5abccb7b2e5f89915e"
 name = "Consentinel"
 handle = "consentinel"
 application_url = "https://www.getconsentinel.com/shopify"
@@ -17,7 +17,7 @@ use_legacy_install_flow = false
 redirect_urls = ["https://www.getconsentinel.com/shopify"]
 
 [webhooks]
-api_version = "2026-07"
+api_version = "2026-10"
 
   [[webhooks.subscriptions]]
   topics = ["app/uninstalled", "app_subscriptions/update"]
