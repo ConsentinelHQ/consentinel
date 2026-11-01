@@ -180,6 +180,10 @@ export default async function Billing({
                           plan={p.id}
                         />
                       ) : null}
+                      <p className="quiet" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
+                        7 days free on your first plan. Cancel before then and you&apos;re not
+                        charged.
+                      </p>
                     </>
                   )}
                 </div>

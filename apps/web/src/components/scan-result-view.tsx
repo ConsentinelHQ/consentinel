@@ -468,7 +468,7 @@ function MonitorCta({ report }: { report: FreeReport }) {
         Monitor {host}
       </a>
       <p className="quiet" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
-        $99/mo per site. Cancel anytime.
+        7 days free, then $99/mo per site. Cancel anytime.
       </p>
     </div>
   );
