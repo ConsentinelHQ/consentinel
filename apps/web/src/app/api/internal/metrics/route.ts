@@ -1,3 +1,4 @@
+import { readFunnel } from "@/lib/funnel";
 import { NextResponse } from "next/server";
 import {
   PLANS,
@@ -155,8 +156,23 @@ export async function GET(request: Request): Promise<NextResponse> {
     .from(scans)
     .where(and(sql`${scans.siteId} is null`, gt(scans.shareLastViewedAt, since)));
 
+  // Free scan to paid, in order. Counters are daily, so this is whole days.
+  const days = Math.max(1, Math.ceil(hours / 24));
+  const counted = await readFunnel(days).catch(() => null);
+  const funnel = counted && {
+    days,
+    reportViews: counted.report_view,
+    ctaClicks: counted.cta_click,
+    emails: leadRows[0]?.n ?? 0,
+    waitEmails: counted.notify_email,
+    signups: realUsers.filter((u) => u.createdAt > new Date(Date.now() - days * 86_400_000)).length,
+    checkoutStarts: counted.checkout_start,
+    paying,
+  };
+
   return NextResponse.json({
     hours,
+    funnel,
     reportOpens: opens?.n ?? 0,
     users: {
       total: realUsers.length,

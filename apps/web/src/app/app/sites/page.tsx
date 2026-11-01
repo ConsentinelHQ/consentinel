@@ -11,8 +11,14 @@ import { blockedLabel, displayHost } from "@/lib/format";
 export const metadata: Metadata = { title: "Sites" };
 export const dynamic = "force-dynamic";
 
-export default async function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ add?: string | string[] }>;
+}) {
   const session = await requireSession();
+  const { add } = await searchParams;
+  const initialUrl = typeof add === "string" ? add.slice(0, 2048) : "";
   const [sites, archived] = await Promise.all([
     listSitesForOrg(db(), session.orgId),
     listArchivedSitesForOrg(db(), session.orgId),
@@ -72,7 +78,7 @@ export default async function Dashboard() {
         </ul>
       )}
 
-      <AddSiteForm />
+      <AddSiteForm initialUrl={initialUrl} />
 
       {archived.length > 0 && (
         <details className="archived-sites">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getScan, leads } from "@consentinel/db";
 import { db } from "@/lib/server";
+import { recordFunnel } from "@/lib/funnel";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -44,5 +45,6 @@ export async function POST(
     scanId: id,
     contactConsent: parsed.data.contactConsent,
   });
+  await recordFunnel("notify_email");
   return NextResponse.json({ ok: true });
 }
