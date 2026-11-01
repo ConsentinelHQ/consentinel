@@ -20,6 +20,7 @@ import {
 import { scanDetailed, ScanBlockedError, UncredibleScanError } from "./index.js";
 import { alertOnDisclosure, alertOnPolicyChange, alertOnRegression } from "./alerting.js";
 import { postJiraScanFailure, postJiraVerdict } from "./jira-sync.js";
+import { notifyWaitingLeads } from "./notify-ready.js";
 import { Sentry } from "./instrument.js";
 
 /**
@@ -136,6 +137,14 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       } catch (error) {
         console.error("policy alert failed", { scanId, error });
         Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
+      }
+
+      // "Email me the results" from a visitor who didn't wait. Never fails the scan.
+      try {
+        await notifyWaitingLeads(db, scanId, config);
+      } catch (error) {
+        console.error("ready email failed", { scanId, error });
+        Sentry.captureException(error, { tags: { area: "email" }, extra: { scanId } });
       }
 
       // Closes the loop on a ticket moved to Done. Never fails the scan.
