@@ -13,6 +13,8 @@ export function GET(): Response {
     `summary,brands with trackers firing after an opt-out,${String(REPORT.sites)},100`,
     `summary,caught with Global Privacy Control,${String(REPORT.underGpc)},${String(Math.round((REPORT.underGpc / REPORT.sites) * 100))}`,
     `summary,caught after a reject click,${String(REPORT.afterReject)},${String(Math.round((REPORT.afterReject / REPORT.sites) * 100))}`,
+    `pipeline_sample,nightly scans including clean sites,${String(REPORT.pipeline.scanned)},100`,
+    `pipeline_sample,leaking in that sample,${String(REPORT.pipeline.leaking)},${String(Math.round((REPORT.pipeline.leaking / REPORT.pipeline.scanned) * 100))}`,
     ...[...VENDORS, ...OTHER_VENDORS].map(
       (v) => `vendor,${q(v.name)},${String(v.sites)},${String(v.share)}`,
     ),
