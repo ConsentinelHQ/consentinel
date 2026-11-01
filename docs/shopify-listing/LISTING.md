@@ -29,14 +29,12 @@ Your consent app says it blocks trackers. We check. Consentinel visits your stor
 1. `01-findings.png`
 2. `02-scanning.png`
 3. `03-monitoring.png`
-4. `04-clean.png`
 
 Alt text:
 
 1. Scan results listing ad vendors that kept tracking after Reject all
 2. Scan in progress across reject, accept and Global Privacy Control
 3. Daily monitoring offer at $99 per month with a 7-day free trial
-4. Clean scan with daily monitoring switched on
 
 ## Pricing
 
