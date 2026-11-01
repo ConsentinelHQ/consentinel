@@ -156,6 +156,11 @@ function Report({
 }) {
   const clean = report.findings.length === 0;
 
+  // Funnel: a public report seen. Once per mount, fire and forget.
+  useEffect(() => {
+    if (upsell) track("report_view");
+  }, [upsell]);
+
   // A clean site is a result, not an empty screen. It’s also the moment to offer
   // monitoring: nothing is worth protecting until there’s a clean baseline.
   if (clean) {
@@ -221,6 +226,17 @@ function Report({
               This page is clean today. Consentinel can re-scan it on a schedule and tell you the
               moment someone ships a tag that’s not.
             </p>
+            {upsell && (
+              <p style={{ marginTop: "1rem" }}>
+                <a
+                  className="tier-cta primary"
+                  href={monitorHref(report.url)}
+                  onClick={() => track("cta_click")}
+                >
+                  Monitor {hostOf(report.url)}
+                </a>
+              </p>
+            )}
             <p style={{ marginTop: "1rem" }}>
               <a href="/">Scan another page</a>
             </p>
@@ -396,12 +412,65 @@ function Report({
         )}
       </div>
 
+      {upsell && <MonitorCta report={report} />}
+
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
       {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
 
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
     </>
+  );
+}
+
+/** Sign up, land on Sites with this URL filled in. */
+function monitorHref(url: string): string {
+  return `/sign-up?redirect_url=${encodeURIComponent(`/app/sites?add=${encodeURIComponent(url)}`)}`;
+}
+
+/** Fire and forget. Never blocks a click or a render. */
+function track(event: "report_view" | "cta_click"): void {
+  try {
+    const payload = JSON.stringify({ event });
+    if (!navigator.sendBeacon?.("/api/funnel", new Blob([payload], { type: "application/json" }))) {
+      void fetch("/api/funnel", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: payload,
+        keepalive: true,
+      });
+    }
+  } catch {
+    // Tracking is never worth an error.
+  }
+}
+
+/** The step after a bad report: watch it so the fix stays fixed. */
+function MonitorCta({ report }: { report: FreeReport }) {
+  const host = hostOf(report.url);
+  const critical = report.counts.critical;
+  return (
+    <div className="gate monitor-cta">
+      <h3>
+        {critical > 0
+          ? `Fix ${critical === 1 ? "it" : "these"} once. Know if ${critical === 1 ? "it comes" : "they come"} back.`
+          : "Clean it up once. Know if it comes back."}
+      </h3>
+      <p className="quiet">
+        Tags change every time marketing ships a campaign. Consentinel rescans {host} every day and
+        emails you the moment something fires before consent, with the request that proves it.
+      </p>
+      <a
+        className="tier-cta primary"
+        href={monitorHref(report.url)}
+        onClick={() => track("cta_click")}
+      >
+        Monitor {host}
+      </a>
+      <p className="quiet" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
+        $99/mo per site. Cancel anytime.
+      </p>
+    </div>
   );
 }
 

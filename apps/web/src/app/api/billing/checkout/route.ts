@@ -9,6 +9,7 @@ import {
   type PaidPlan,
 } from "@consentinel/db";
 import { requireSession } from "@/lib/auth";
+import { recordFunnel } from "@/lib/funnel";
 import { db } from "@/lib/server";
 import { annualPriceIdFor, hasPrice, priceIdFor, stripe } from "@/lib/stripe";
 
@@ -105,5 +106,6 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!checkout.url) {
     return NextResponse.json({ error: "Stripe returned no checkout URL." }, { status: 502 });
   }
+  await recordFunnel("checkout_start");
   return NextResponse.json({ url: checkout.url });
 }

@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState, type FormEvent } from "react";
 
-export function AddSiteForm() {
+export function AddSiteForm({ initialUrl = "" }: { initialUrl?: string } = {}) {
   const router = useRouter();
-  const [url, setUrl] = useState("");
+  // Prefilled when they came from a free report's "Monitor" button.
+  const [url, setUrl] = useState(initialUrl);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
