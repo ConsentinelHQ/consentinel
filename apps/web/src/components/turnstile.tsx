@@ -8,7 +8,13 @@ const SITE_KEY = process.env["NEXT_PUBLIC_TURNSTILE_SITE_KEY"];
 interface TurnstileApi {
   render: (
     el: HTMLElement,
-    opts: { sitekey: string; callback: (token: string) => void; "expired-callback": () => void },
+    opts: {
+      sitekey: string;
+      callback: (token: string) => void;
+      "expired-callback": () => void;
+      appearance?: "always" | "execute" | "interaction-only";
+      theme?: "auto" | "light" | "dark";
+    },
   ) => string;
 }
 
@@ -32,6 +38,9 @@ export function Turnstile({ onToken }: { onToken: (token: string | undefined) =>
       sitekey: SITE_KEY,
       callback: (token) => onToken(token),
       "expired-callback": () => onToken(undefined),
+      // Hidden unless Cloudflare needs the visitor to click something.
+      appearance: "interaction-only",
+      theme: "light",
     });
   }, [scriptReady, onToken]);
 
@@ -43,7 +52,7 @@ export function Turnstile({ onToken }: { onToken: (token: string | undefined) =>
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         onReady={() => setScriptReady(true)}
       />
-      <div ref={ref} style={{ marginTop: "1rem" }} />
+      <div className="turnstile-slot" ref={ref} />
     </>
   );
 }

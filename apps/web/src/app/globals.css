@@ -1936,11 +1936,11 @@ dialog.confirm .confirm-body {
 .cta-panel {
   background: #ffffff;
 }
-/* Rises from the footer: full strength at the bottom edge, fading out upward. */
+/* Rises from the footer: solid at the bottom edge, gone by mid-panel, white above. */
 .cta-panel canvas {
-  opacity: 0.28;
-  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 30%, transparent 100%);
-  mask-image: linear-gradient(to top, #000 0%, #000 30%, transparent 100%);
+  opacity: 0.45;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 12%, transparent 58%);
+  mask-image: linear-gradient(to top, #000 0%, #000 12%, transparent 58%);
 }
 .cta-card {
   background: rgba(255, 255, 255, 0.75);
@@ -6746,5 +6746,29 @@ a.arrow-link:focus-visible span {
 
 /* The CTA gradient runs right into the footer line, no white strip between. */
 main:has(> .cta-section) + .site-footer {
+  margin-top: 0;
+}
+
+/* Turnstile only takes space when it shows a challenge. */
+.turnstile-slot:has(iframe:not([style*="display: none"])) {
+  margin-top: 1rem;
+}
+
+/* A short band of the brand gradient rising out of the footer on content pages. */
+.footer-glow {
+  position: relative;
+  height: clamp(140px, 18vw, 240px);
+  /* Takes over the sticky-footer push, so the band always meets the footer. */
+  margin-top: auto;
+  flex-shrink: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.footer-glow canvas {
+  opacity: 0.45;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 100%);
+}
+.site-footer.has-glow {
   margin-top: 0;
 }
