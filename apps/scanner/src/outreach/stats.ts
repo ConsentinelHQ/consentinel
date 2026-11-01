@@ -31,7 +31,12 @@ const VENDORS: [string, RegExp][] = [
 
 export interface Stats {
   population: string;
+  /** Leaking sites: a nameable vendor kept firing after an opt-out. The base for every share. */
   sites: number;
+  /** Every successful scan in the sheet, leaking or not. */
+  scanned: number;
+  /** Scans the nightly pipeline logged, clean ones included: the only sample with a fair pass rate. */
+  pipeline: { scanned: number; leaking: number; share: number };
   afterReject: number;
   underGpc: number;
   medianCritical: number | null;
@@ -42,10 +47,15 @@ export interface Stats {
 const pct = (n: number, d: number): number => (d === 0 ? 0 : Math.round((n / d) * 100));
 
 export function computeStats(rows: SheetRow[]): Stats {
-  const sites = rows.filter(({ values: v }) => {
+  const scanned = rows.filter(({ values: v }) => {
     const mode = (v["Scan mode"] ?? "").trim().toLowerCase();
     return (mode === "gpc" || mode === "rejected") && v["Status"] !== "Scan failed";
   });
+  // A scan with no named vendor is a clean (or unprovable) site, not a leak.
+  const leaks = (r: SheetRow): boolean => (r.values["Key finding"] ?? "").trim() !== "";
+  const sites = scanned.filter(leaks);
+  // Rows the nightly run wrote carry its note; imported rows were leak-only, so they'd skew a pass rate.
+  const piped = scanned.filter((r) => (r.values["Notes"] ?? "").includes("outreach bot"));
   const mode = (r: SheetRow): string => (r.values["Scan mode"] ?? "").trim().toLowerCase();
 
   const criticals = sites
@@ -75,8 +85,14 @@ export function computeStats(rows: SheetRow[]): Stats {
   }
 
   return {
-    population: `US e-commerce brands where Consentinel found trackers still firing after a visitor opted out (clicked reject, or sent Global Privacy Control). Clean sites aren't in this data, so never state what share of all sites leak.`,
+    population: `US e-commerce brands where Consentinel found trackers still firing after a visitor opted out (clicked reject, or sent Global Privacy Control). Every share is over leaking sites only. For how common leaks are, use pipeline.share (nightly scans, clean ones included) and say it's from that sample, never all sites.`,
     sites: sites.length,
+    scanned: scanned.length,
+    pipeline: {
+      scanned: piped.length,
+      leaking: piped.filter(leaks).length,
+      share: pct(piped.filter(leaks).length, piped.length),
+    },
     afterReject: sites.filter((r) => mode(r) === "rejected").length,
     underGpc: sites.filter((r) => mode(r) === "gpc").length,
     medianCritical: median,

@@ -592,14 +592,27 @@ const st = computeStats([
   }),
   bounceRow(5, { "Scan mode": "gpc", Status: "Scan failed", "Key finding": "Meta" }),
   bounceRow(6, { "Scan mode": "", "Key finding": "Meta" }),
+  bounceRow(7, {
+    "Scan mode": "gpc",
+    Status: "Dead",
+    "Key finding": "",
+    Notes: "2026-10-20: outreach bot - weak evidence: 0 nameable ad vendors (gpc)",
+  }),
+  bounceRow(8, {
+    "Scan mode": "rejected",
+    "Key finding": "Meta fire after reject (3 ad vendors)",
+    Notes: "2026-10-21: outreach bot - drafted",
+  }),
 ]);
-assert.equal(st.sites, 3);
-assert.equal(st.afterReject, 1);
+assert.equal(st.sites, 4);
+assert.equal(st.scanned, 5);
+assert.deepEqual(st.pipeline, { scanned: 2, leaking: 1, share: 50 });
+assert.equal(st.afterReject, 2);
 assert.equal(st.underGpc, 2);
 assert.equal(st.medianCritical, 10);
-assert.deepEqual(st.vendors[0], { vendor: "Meta", sites: 2, share: 67 });
+assert.deepEqual(st.vendors[0], { vendor: "Meta", sites: 3, share: 75 });
 assert.deepEqual(st.bySegment[0], { segment: "Apparel", sites: 2 });
-assert.match(st.population, /never state what share of all sites leak/);
+assert.match(st.population, /never all sites/);
 
 // GPC re-touch: who qualifies.
 const rt = (n: number, v: Record<string, string>): SheetRow => ({
