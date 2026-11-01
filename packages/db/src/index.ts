@@ -3,6 +3,7 @@ export * from "./client.js";
 export * from "./repository.js";
 export * from "./fingerprint.js";
 export * from "./evidence.js";
+export * from "./queue-info.js";
 
 // Re-exported so consumers build queries without taking a direct drizzle
 // dependency. Keeps the ORM an implementation detail of this package.

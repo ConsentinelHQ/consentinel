@@ -14,7 +14,9 @@ const body = z.object({
 });
 
 const SCANS_PER_HOUR = 5;
-const CACHE_MAX_AGE_MS = 15 * 60 * 1000;
+// Same domain within this window gets the cached result, not a fresh scan.
+// Long on launch days so a popular domain costs one browser, not hundreds.
+const CACHE_MAX_AGE_MS = (Number(process.env["SCAN_CACHE_MINUTES"] ?? "360") || 360) * 60 * 1000;
 
 export async function POST(request: Request): Promise<NextResponse> {
   const parsed = body.safeParse(await request.json().catch(() => null));

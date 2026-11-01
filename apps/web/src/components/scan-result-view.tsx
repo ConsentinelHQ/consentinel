@@ -7,9 +7,10 @@ import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from
 import type { FreeReport } from "@/lib/free-report";
 import { joinList } from "@/lib/free-report";
 import { guideForCmp } from "@/lib/guides";
+import { waitCopy } from "@/lib/queue-copy";
 
 type State =
-  | { kind: "loading"; status: string }
+  | { kind: "loading"; status: string; position?: number; etaSeconds?: number }
   | { kind: "failed"; message: string; blockedBy?: string }
   | { kind: "ready"; report: FreeReport };
 
@@ -18,12 +19,15 @@ const POLL_MS = 2000;
 export function ScanResultView({
   scanId,
   shareToken,
+  leadId,
   actions,
   branded = false,
   upsell = false,
 }: {
   scanId: string;
   shareToken?: string | undefined;
+  /** From a "your scan is ready" email link. Unlocks the full report. */
+  leadId?: string | undefined;
   /** Rendered between the lede and the report card. */
   actions?: ReactNode;
   /** White-label share: no Consentinel upsell or funnel links in the body. */
@@ -42,13 +46,17 @@ export function ScanResultView({
         const response = await fetch(
           shareToken
             ? `/api/scan/${scanId}?t=${encodeURIComponent(shareToken)}`
-            : `/api/scan/${scanId}`,
+            : leadId
+              ? `/api/scan/${scanId}?lead=${encodeURIComponent(leadId)}`
+              : `/api/scan/${scanId}`,
         );
         const data = (await response.json()) as {
           status?: string;
           report?: FreeReport;
           error?: string;
           blockedBy?: string;
+          position?: number;
+          etaSeconds?: number;
         };
         if (!live) return;
 
@@ -64,7 +72,12 @@ export function ScanResultView({
           });
           return;
         }
-        setState({ kind: "loading", status: data.status ?? "queued" });
+        setState({
+          kind: "loading",
+          status: data.status ?? "queued",
+          ...(data.position ? { position: data.position } : {}),
+          ...(data.etaSeconds ? { etaSeconds: data.etaSeconds } : {}),
+        });
         timer = setTimeout(() => void poll(), POLL_MS);
       } catch {
         if (live) timer = setTimeout(() => void poll(), POLL_MS);
@@ -76,7 +89,7 @@ export function ScanResultView({
       live = false;
       clearTimeout(timer);
     };
-  }, [scanId, shareToken]);
+  }, [scanId, shareToken, leadId]);
 
   // A block isn’t a failure, it’s a finding about their infrastructure. Saying
   // "something went wrong" throws away the only useful thing we learned.
@@ -107,6 +120,12 @@ export function ScanResultView({
           This takes a minute or two.
         </p>
         <ScanProgress status={state.status} />
+        {(state.position ?? 0) > 1 || (state.etaSeconds ?? 0) > 0 ? (
+          <p className="quiet" style={{ marginTop: "1rem" }}>
+            {waitCopy(state.position, state.etaSeconds)}
+          </p>
+        ) : null}
+        {!shareToken && !leadId && <NotifyForm scanId={scanId} />}
       </>
     );
   }
@@ -383,6 +402,79 @@ function Report({
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
     </>
+  );
+}
+
+/** "Email me the results" so a queued visitor can leave. */
+function NotifyForm({ scanId }: { scanId: string }) {
+  const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = useCallback(
+    async (event: FormEvent): Promise<void> => {
+      event.preventDefault();
+      if (busy) return;
+      setBusy(true);
+      setError(null);
+      try {
+        const response = await fetch(`/api/scan/${scanId}/notify`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, contactConsent: consent }),
+        });
+        const data = (await response.json()) as { error?: string };
+        if (!response.ok) {
+          setError(data.error ?? "That didn't work. Try again.");
+          setBusy(false);
+          return;
+        }
+        setDone(true);
+      } catch {
+        setError("That didn't work. Check your connection and try again.");
+        setBusy(false);
+      }
+    },
+    [busy, consent, email, scanId],
+  );
+
+  if (done) {
+    return (
+      <p className="quiet" style={{ marginTop: "1.5rem" }}>
+        Got it. We&apos;ll email {email} a link to the full report as soon as it&apos;s done. You
+        can close this tab.
+      </p>
+    );
+  }
+
+  return (
+    <form className="gate" onSubmit={(e) => void submit(e)} style={{ marginTop: "1.5rem" }}>
+      <h3>Don&apos;t want to wait?</h3>
+      <p className="quiet">We&apos;ll email you a link to the full report when it&apos;s done.</p>
+      <input
+        aria-label="Email"
+        autoComplete="email"
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="you@company.com"
+        required
+        type="email"
+        value={email}
+      />
+      <label>
+        <input checked={consent} onChange={(e) => setConsent(e.target.checked)} type="checkbox" />
+        <span>Email me occasionally about consent and tracking issues. Optional.</span>
+      </label>
+      <button disabled={busy} type="submit">
+        {busy ? "Saving" : "Email me the results"}
+      </button>
+      {error ? (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </form>
   );
 }
 

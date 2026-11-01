@@ -1,4 +1,10 @@
-import { createScan, findCachedScan, type Database, type ScanRow } from "@consentinel/db";
+import {
+  createScan,
+  findCachedScan,
+  findInFlightPublicScan,
+  type Database,
+  type ScanRow,
+} from "@consentinel/db";
 import { scanJobOptions, type ScanQueue } from "./queue.js";
 import { assertScannableUrl } from "./safety.js";
 
@@ -36,6 +42,8 @@ export async function enqueueScan(
   if (cacheMaxAgeMs > 0 && opts.siteId === undefined) {
     const cached = await findCachedScan(db, check.url, cacheMaxAgeMs);
     if (cached) return { status: "cached", scan: cached };
+    const inFlight = await findInFlightPublicScan(db, check.url);
+    if (inFlight) return { status: "cached", scan: inFlight };
   }
 
   const row = await createScan(db, {
