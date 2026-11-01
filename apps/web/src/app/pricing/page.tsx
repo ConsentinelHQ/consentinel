@@ -62,7 +62,7 @@ export default function Pricing() {
             </ul>
             {/* Signed-out visitors go through sign-up and land on the plan picker. */}
             <Link className="tier-cta primary" href="/app/billing">
-              Start monitoring
+              Start 7-day free trial
             </Link>
           </div>
 

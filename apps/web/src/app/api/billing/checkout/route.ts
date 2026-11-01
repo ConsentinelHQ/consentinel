@@ -19,6 +19,9 @@ export const runtime = "nodejs";
 const SELLABLE: ReadonlySet<PaidPlan> = new Set(["monitoring", "growth", "agency"]);
 export const dynamic = "force-dynamic";
 
+/** Free days before the first charge. Card is still taken up front. Same as Shopify. */
+const TRIAL_DAYS = 7;
+
 export async function POST(request: Request): Promise<NextResponse> {
   const session = await requireSession();
   const database = db();
@@ -85,6 +88,12 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   const origin = new URL(request.url).origin;
 
+  // First subscription only gets the trial, so cancel-and-resubscribe can't repeat it.
+  const prior = state.stripeCustomerId
+    ? await stripe().subscriptions.list({ customer: customerId, status: "all", limit: 1 })
+    : null;
+  const trial = TRIAL_DAYS > 0 && (prior?.data.length ?? 0) === 0;
+
   const checkout = await stripe().checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
@@ -92,7 +101,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Both carried so the webhook can resolve the org from either object.
     client_reference_id: session.orgId,
     metadata: { orgId: session.orgId },
-    subscription_data: { metadata: { orgId: session.orgId } },
+    subscription_data: {
+      metadata: { orgId: session.orgId },
+      ...(trial ? { trial_period_days: TRIAL_DAYS } : {}),
+    },
     allow_promotion_codes: true,
     billing_address_collection: "auto",
     success_url: fromImport
