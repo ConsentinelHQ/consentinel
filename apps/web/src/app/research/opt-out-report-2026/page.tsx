@@ -5,9 +5,9 @@ import { ScanForm } from "@/components/scan-form";
 import { OTHER_VENDORS, POPULATION, REPORT, SEGMENTS, VENDORS, pct } from "@/lib/research";
 
 export const metadata: Metadata = {
-  title: "Who keeps tracking after visitors opt out: 313 e-commerce brands",
+  title: "Who keeps tracking after visitors opt out: 311 e-commerce brands",
   description:
-    "Consentinel's 2026 opt-out report. Across 313 US e-commerce brands where trackers kept firing after a visitor opted out, Meta ran on 47%, Google Ads on 45% and TikTok on 36%. 86% were caught with Global Privacy Control.",
+    "Consentinel's 2026 opt-out report. Across 311 US e-commerce brands where trackers kept firing after a visitor opted out, Google Ads ran on 57%, Meta on 48% and TikTok on 37%. 86% were caught with Global Privacy Control.",
   alternates: { canonical: `/research/${REPORT.slug}` },
 };
 
@@ -89,6 +89,12 @@ export default function OptOutReport() {
           </div>
           <p className="quiet" style={{ marginTop: "1rem" }}>
             {POPULATION}
+          </p>
+          <p className="quiet" style={{ marginTop: "0.5rem" }}>
+            How common is it? Our nightly scans log clean sites too: {REPORT.pipeline.leaking} of
+            the {REPORT.pipeline.scanned} DTC brands they picked had at least one ad vendor firing
+            after an opt-out. That sample isn&apos;t random, and whether a given store must honor an
+            opt-out depends on whether a state privacy law applies to it.
           </p>
         </div>
       </section>
