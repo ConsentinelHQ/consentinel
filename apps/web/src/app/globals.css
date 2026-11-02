@@ -1934,7 +1934,7 @@ dialog.confirm .confirm-body {
 
 /* CTA gradient: subtle wash, not a second hero */
 .cta-panel {
-  background: #ffffff;
+  background: transparent;
 }
 /* Rises from the footer: solid at the bottom edge, gone by mid-panel, white above. */
 .cta-panel canvas {
@@ -6753,17 +6753,20 @@ a.arrow-link:focus-visible span {
    fading out toward the footer's top edge. Links sit above it. */
 .site-footer.has-glow {
   position: relative;
-  overflow: hidden;
-  isolation: isolate;
+  z-index: 0;
+  /* The gradient rises past the footer's top edge, so no divider line. */
+  border-top-color: transparent;
 }
 .footer-glow {
   position: absolute;
   inset: 0;
+  /* Starts this far above the footer and fades in, strongest at the page bottom. */
+  top: -200px;
   z-index: -1;
   pointer-events: none;
 }
 .footer-glow canvas {
   opacity: 0.45;
-  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 20%, transparent 100%);
-  mask-image: linear-gradient(to top, #000 0%, #000 20%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 25%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, #000 25%, transparent 100%);
 }
