@@ -52,6 +52,7 @@ import {
   shouldPause,
 } from "./state.js";
 import { fetchMetrics, lastCronAt, renderBrief, windowHours } from "./brief.js";
+import { hnSection } from "./hn.js";
 import { followups } from "./followup.js";
 import { retouch } from "./retouch.js";
 import { RESEARCHED, needList, setContact, skipContact } from "./research.js";
@@ -587,7 +588,7 @@ async function main(): Promise<void> {
       const now = new Date();
       const hours = Number(flag(args, "--hours") ?? windowHours(now));
       const key = process.env["OUTREACH_API_KEY"];
-      const [sheet, metrics, drafts] = await Promise.all([
+      const [sheet, metrics, drafts, hn] = await Promise.all([
         readSheet(sheetId, tab),
         key
           ? fetchMetrics(
@@ -597,6 +598,7 @@ async function main(): Promise<void> {
             ).catch((e: unknown) => (e instanceof Error ? e.message : String(e)))
           : Promise.resolve("OUTREACH_API_KEY not set"),
         countDrafts().catch((e: unknown) => (e instanceof Error ? e.message : String(e))),
+        hnSection(now),
       ]);
       const ledger = readLedger();
       const done = new Set([...sheet.domains, ...ledger.map((e) => e.domain)]);
@@ -611,8 +613,12 @@ async function main(): Promise<void> {
           queuePending: readQueue().filter((d) => !done.has(d)).length,
           paused: paused(),
           lastCronAt: lastCronAt(),
-        }),
+        }) + `\n\n${hn}`,
       );
+      break;
+    }
+    case "hn": {
+      console.log(await hnSection(new Date()));
       break;
     }
     case "stats": {
@@ -799,7 +805,7 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | retouch [--limit n] | contacts need [--limit n] | contacts set --domain d --name n --title t --source url | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
+        "usage: outreach run [--domains a,b | --file f | --from-sheet] [--send] [--limit n] | sync | followups [--limit n] | retouch [--limit n] | contacts need [--limit n] | contacts set --domain d --name n --title t --source url | prep --domain d | leads [--limit n] | queue add a,b | queue status | queue known | brief [--hours n] | hn | stats | mark --domain d [--status s] [--next t] [--date d] [--note n] | status | pause | resume | auth",
       );
       process.exit(2);
   }
