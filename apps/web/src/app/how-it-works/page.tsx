@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ScanForm } from "@/components/scan-form";
-import { StripeGradient } from "@/components/stripe-gradient";
 
 export const metadata: Metadata = {
   title: "How it works - Consentinel",
   description:
     "Consentinel loads your site twice, once refusing consent and once accepting it, and reports every tracker that ignored the difference. Every finding carries the request or cookie that proves it.",
 };
-
-const BRAND = ["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"];
 
 // Anonymized from a real store: one ad tag pulled in eight more through cookie syncs.
 const CHAIN = [
@@ -299,7 +296,6 @@ export default function HowItWorks() {
       <section className="cta-section">
         <div data-reveal className="wrap">
           <div className="cta-panel">
-            <StripeGradient colors={BRAND} />
             <div className="cta-card">
               <h2>Point it at a page you own.</h2>
               <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>

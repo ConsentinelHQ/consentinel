@@ -6744,11 +6744,6 @@ a.arrow-link:focus-visible span {
   }
 }
 
-/* The CTA gradient runs right into the footer line, no white strip between. */
-main:has(> .cta-section) + .site-footer {
-  margin-top: 0;
-}
-
 /* Turnstile only takes space when it shows a challenge. */
 .turnstile-slot:has(iframe:not([style*="display: none"])) {
   margin-top: 1rem;
