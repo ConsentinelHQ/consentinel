@@ -20,14 +20,14 @@ export function SiteFooter() {
   const glow = !/^\/(privacy|terms|unsubscribe|sign-in|sign-up|shopify)/.test(pathname);
   return (
     <>
-      {glow && (
-        <div aria-hidden="true" className="footer-glow">
-          <StripeGradient
-            colors={["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"]}
-          />
-        </div>
-      )}
       <footer className={`site-footer${glow ? " has-glow" : ""}`}>
+        {glow && (
+          <div aria-hidden="true" className="footer-glow">
+            <StripeGradient
+              colors={["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"]}
+            />
+          </div>
+        )}
         <div className="wrap site-footer-inner">
           <div>
             <p className="site-footer-mark">Consentinel</p>

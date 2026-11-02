@@ -6749,21 +6749,21 @@ a.arrow-link:focus-visible span {
   margin-top: 1rem;
 }
 
-/* A short band of the brand gradient rising out of the footer on content pages. */
-.footer-glow {
+/* The brand gradient lives inside the footer: strongest at the bottom of the page,
+   fading out toward the footer's top edge. Links sit above it. */
+.site-footer.has-glow {
   position: relative;
-  height: clamp(140px, 18vw, 240px);
-  /* Takes over the sticky-footer push, so the band always meets the footer. */
-  margin-top: auto;
-  flex-shrink: 0;
   overflow: hidden;
+  isolation: isolate;
+}
+.footer-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
 }
 .footer-glow canvas {
   opacity: 0.45;
-  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 100%);
-  mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 100%);
-}
-.site-footer.has-glow {
-  margin-top: 0;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 20%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0%, #000 20%, transparent 100%);
 }
