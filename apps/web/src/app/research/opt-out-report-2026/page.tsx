@@ -191,7 +191,7 @@ export default function OptOutReport() {
         </div>
       </section>
 
-      <section className="tinted">
+      <section>
         <div data-reveal className="wrap center">
           <h2>Is your store in the next report?</h2>
           <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>

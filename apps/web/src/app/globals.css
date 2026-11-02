@@ -6765,6 +6765,10 @@ a.arrow-link:focus-visible span {
   z-index: -1;
   pointer-events: none;
 }
+/* The last section sits under the gradient's fade. Tint there shows as a seam, so keep it white. */
+main > section.tinted:last-of-type {
+  background: var(--paper);
+}
 .footer-glow canvas {
   opacity: 0.45;
   -webkit-mask-image: linear-gradient(to top, #000 0%, #000 25%, transparent 100%);

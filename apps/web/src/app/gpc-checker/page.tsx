@@ -144,7 +144,7 @@ export default function GpcChecker() {
         </div>
       </section>
 
-      <section className="tinted">
+      <section>
         <div data-reveal className="wrap center">
           <h2>Run the check again whenever tags change.</h2>
           <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>

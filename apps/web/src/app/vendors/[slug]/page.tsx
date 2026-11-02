@@ -123,7 +123,7 @@ export default async function VendorPage({ params }: { params: Promise<{ slug: s
         </div>
       </section>
 
-      <section className="tinted">
+      <section>
         <div data-reveal className="wrap center">
           <h2>Check {v.name} on your site.</h2>
           <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>
