@@ -16,9 +16,8 @@ export function SiteFooter() {
     pathname.startsWith("/scan/")
   )
     return null;
-  // Home has its own full CTA gradient. Legal pages stay plain.
-  const glow =
-    pathname !== "/" && !/^\/(privacy|terms|unsubscribe|sign-in|sign-up|shopify)/.test(pathname);
+  // The one brand gradient on the site lives here. Legal and auth pages stay plain.
+  const glow = !/^\/(privacy|terms|unsubscribe|sign-in|sign-up|shopify)/.test(pathname);
   return (
     <>
       {glow && (

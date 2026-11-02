@@ -7,7 +7,6 @@ import { Marquee } from "@/components/marquee";
 import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
 import { StackCards } from "@/components/stack-cards";
-import { StripeGradient } from "@/components/stripe-gradient";
 
 // The hero object is a real finding set, not an illustration. What the product
 // produces is the most persuasive thing it has.
@@ -364,9 +363,6 @@ export default function Home() {
       <section className="cta-section">
         <div data-reveal className="wrap">
           <div className="cta-panel">
-            <StripeGradient
-              colors={["#7038FF", "#6EC3F4", "#FFFFFF", "#EF008F", "#FFBA27", "#00D68F"]}
-            />
             <div className="cta-card">
               <h2>See what your site is sharing.</h2>
               <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>
