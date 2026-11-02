@@ -445,7 +445,7 @@ export default function GpcPage() {
         </div>
       </section>
 
-      <section className="tinted">
+      <section>
         <div data-reveal className="wrap center">
           <h2>Check your site before January 1.</h2>
           <p className="lede" style={{ marginTop: "1rem", marginInline: "auto" }}>

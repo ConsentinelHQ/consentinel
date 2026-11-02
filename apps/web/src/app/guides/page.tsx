@@ -99,8 +99,12 @@ export default function Guides() {
         </div>
       </section>
 
+      {/* Alternate from the end so the last section is white above the footer gradient. */}
       {GROUPS.map((group, i) => (
-        <section className={i % 2 === 0 ? "tinted" : undefined} key={group.title}>
+        <section
+          className={(GROUPS.length - 1 - i) % 2 === 1 ? "tinted" : undefined}
+          key={group.title}
+        >
           <div data-reveal className="wrap">
             <h2>{group.title}</h2>
             <div
