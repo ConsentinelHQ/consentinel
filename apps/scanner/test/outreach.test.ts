@@ -92,22 +92,22 @@ assert.equal(
 );
 assert.match(bullets(gpc)[0], /starting January 1\), 2 ad vendors still fire/);
 
-// Template: his wording, no "manual scan", link, opt-out and postal address present.
+// Template: short first touch, one finding, a small ask, no links.
 const email = render({
   domain: "chomps.com",
   firstName: "",
   ev: rejected,
   postalAddress: "PO Box 1, Boonton NJ",
 });
-assert.equal(email.subject, "Privacy issues on chomps.com");
+assert.equal(email.subject, "Opt-out check on chomps.com");
 assert.match(email.text, /^Hi there,\n/);
-assert.match(email.text, /Sorry to bother, my name is Charlie Buckley/);
-assert.match(email.text, /I ran a scan on chomps\.com/);
-assert.doesNotMatch(email.text, /manual scan/);
-assert.match(email.text, /Sephora \$1\.2M and Healthline \$1\.55M/);
+assert.match(email.text, /I'm Charlie, I build Consentinel/);
+assert.match(email.text, /chomps\.com/);
+assert.match(email.text, /Want me to send over the evidence\?/);
+assert.doesNotMatch(email.text + email.html, /https?:\/\/|href=/, "no links in the first email");
+assert.doesNotMatch(email.text, /Sorry to bother|Sephora|also sent/);
 assert.match(email.text, /PO Box 1, Boonton NJ$/);
-assert.match(email.html, /<a href="https:\/\/www\.getconsentinel\.com\/">Consentinel<\/a>/);
-assert.equal((email.html.match(/<li>/g) ?? []).length, 3);
+assert.ok(email.text.split(/\s+/).length < 120, "stays short");
 const noAddr = render({ domain: "x.com", firstName: "A", ev: rejected, postalAddress: "" });
 assert.match(noAddr.text, /I won't email again\.$/);
 assert.doesNotMatch(noAddr.text + noAddr.html, /POSTAL ADDRESS/);
@@ -783,7 +783,7 @@ assert.equal(
   0,
 );
 
-// Cold email: with a report link, it's the call to action.
+// Cold email: a report link is not put in the first touch; it goes out on reply.
 const linked = render({
   domain: "olipop.com",
   firstName: "Brian",
@@ -791,19 +791,9 @@ const linked = render({
   postalAddress: "",
   reportUrl: `https://www.getconsentinel.com/report/${sid}?t=abc`,
 });
-assert.match(
-  linked.text,
-  /I put the full report here: https:\/\/www\.getconsentinel\.com\/report\/e870acda[^\n]*\?t=abc\nWe also offer ongoing monitoring/,
-);
-assert.doesNotMatch(linked.text, /I'd love to share/);
-assert.match(
-  linked.html,
-  /href="https:\/\/www\.getconsentinel\.com\/report\/e870acda-31ad-4e14-bc05-974ed292f3c6\?t=abc"/,
-);
-assert.match(
-  render({ domain: "x.com", firstName: "", ev: rejected, postalAddress: "" }).text,
-  /I'd love to share the full report/,
-);
+assert.doesNotMatch(linked.text + linked.html, /report\//);
+assert.equal(domainFromSubject("Re: Opt-out check on www.Olipop.com"), "olipop.com");
+assert.equal(domainFromSubject("Privacy issues on olipop.com"), "olipop.com");
 
 // ---------- Multi-contact ----------
 assert.equal(roleFor("VP, E-commerce"), "owner");
@@ -923,7 +913,7 @@ assert.deepEqual(
   [["x.com", "Raj Patel"]],
 );
 
-// Role line and also-sent line.
+// Colleagues are never named, and roles don't change the copy.
 const team = render({
   domain: "x.com",
   firstName: "Raj",
@@ -932,18 +922,8 @@ const team = render({
   role: "risk",
   alsoSent: ["Ann Smith", "Bo Lee"],
 });
-assert.match(team.text, /legal exposure here sits with the company/);
-assert.match(
-  team.text,
-  /I've also sent this to Ann Smith and Bo Lee so the right person sees it\.\n\nHappy to connect/,
-);
-assert.match(team.html, /also sent this to Ann Smith and Bo Lee/);
-assert.match(
-  render({ domain: "x.com", firstName: "A", ev: gpc, postalAddress: "", role: "budget" }).text,
-  /Most of these are marketing tags/,
-);
-const solo = render({ domain: "x.com", firstName: "A", ev: gpc, postalAddress: "", role: "owner" });
-assert.doesNotMatch(solo.text, /sending this to you because|marketing tags, so|also sent/);
+assert.doesNotMatch(team.text + team.html, /Ann Smith|Bo Lee|legal exposure/);
+assert.match(team.text, /Global Privacy Control/);
 
 // ---------- Colleague research ----------
 const tr = (n: number, v: Record<string, string>): SheetRow =>
@@ -1029,7 +1009,7 @@ assert.deepEqual(
   ],
 );
 
-// Drafting: only researched colleagues not yet drafted or sent.
+// Drafting: colleagues wait COLLEAGUE_AFTER business days, then go if not already drafted or sent.
 const researched = tr(3, {
   "Contact 2": "Raj Patel",
   "Title 2": "General Counsel",
@@ -1040,11 +1020,13 @@ const researched = tr(3, {
   "Email 3": "bo@x.com",
   "Email check 3": "valid (anymail)",
 });
+assert.equal(teamDue([researched], [], tday).length, 0, "too soon after contact 1");
+const cday = "2026-10-29";
 assert.deepEqual(
-  teamDue([researched], [], tday).map((d) => d.m.email),
-  ["raj@x.com"],
+  teamDue([researched], [], cday).map((d) => d.m.email),
+  ["raj@x.com", "bo@x.com"],
 );
-assert.equal(
+assert.deepEqual(
   teamDue(
     [researched],
     [
@@ -1056,9 +1038,9 @@ assert.equal(
         messageId: "d",
       },
     ],
-    tday,
-  ).length,
-  0,
+    cday,
+  ).map((d) => d.m.email),
+  ["bo@x.com"],
 );
 assert.equal(teamDue([researched], [], "2026-11-02").length, 0);
 
@@ -1089,14 +1071,7 @@ const withPol = render({
   ev: { ...gpc, notMentioned: ["TikTok"] },
   postalAddress: "",
 });
-assert.match(
-  withPol.text,
-  /- Your privacy policy doesn't mention TikTok, but it runs on your site\n\n/,
-);
-assert.match(
-  withPol.html,
-  /<li>Your privacy policy doesn&#39;t mention TikTok|<li>Your privacy policy doesn't mention TikTok/,
-);
+assert.match(withPol.text, /aren't named in your privacy policy either/);
 
 const disc = (status: "checked" | "unreadable", notNamed: string[], cmp: string | null = null) =>
   ({
@@ -1187,7 +1162,7 @@ assert.equal(
     referredBy: "Megan",
   });
   assert.ok(
-    ref.text.startsWith("Hi Kreg,\n\nMegan's auto-reply pointed me to you.\n\nSorry to bother"),
+    ref.text.startsWith("Hi Kreg,\n\nMegan's auto-reply pointed me to you.\n\nI'm Charlie"),
   );
   assert.ok(ref.html.includes("<p>Megan&#39;s") || ref.html.includes("<p>Megan's auto-reply"));
   assert.ok(!base.text.includes("auto-reply"));

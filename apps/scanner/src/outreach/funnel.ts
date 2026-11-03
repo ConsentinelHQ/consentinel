@@ -4,6 +4,7 @@ import { address, extractText, header } from "./mail.js";
 import { getMessage, normDomain, search, type SheetRow } from "./google.js";
 import { domainFromSubject } from "./referral.js";
 import { members } from "./team.js";
+import { SUBJECT_QUERY } from "./template.js";
 import { fetchViews, scanIdFromLink, type View } from "./views.js";
 
 /**
@@ -220,7 +221,7 @@ export async function funnel(
   api: { base: string; key: string } | null,
   days = 120,
 ): Promise<Funnel> {
-  const ids = await search(`in:sent subject:"Privacy issues on" newer_than:${String(days)}d`, 500);
+  const ids = await search(`in:sent ${SUBJECT_QUERY} newer_than:${String(days)}d`, 500);
   const sends: Send[] = [];
   const from = new Set<string>();
   for (const id of ids) {

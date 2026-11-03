@@ -376,8 +376,10 @@ async function run(args: string[]): Promise<Summary> {
     } as Row;
 
     const results: { email: string; sent: boolean; why: string }[] = [];
-    for (const [i, m] of team.entries()) {
-      const others = team.filter((o) => o !== m).map((o) => o.c.fullName);
+    // Contact 1 only. Colleagues are saved on the row and drafted a few days later by
+    // draftTeam if nobody has replied: three people at one company in the same minute reads as a blast.
+    for (const [i, m] of team.slice(0, 1).entries()) {
+      const others: string[] = [];
       const email = render({
         domain,
         firstName: m.c.firstName,
@@ -421,7 +423,7 @@ async function run(args: string[]): Promise<Summary> {
 
     const first = results.find((r) => r.email === contact.email);
     if (!first) continue;
-    const who = team.length > 1 ? ` for ${String(team.length)} contacts` : "";
+    const who = team.length > 1 ? ` (${String(team.length - 1)} colleague(s) queued)` : "";
     if (first.sent) {
       await write({
         ...base(domain, ev),
@@ -438,8 +440,7 @@ async function run(args: string[]): Promise<Summary> {
         ...base(domain, ev),
         ...contactCols,
         Status: "Scanned - ready",
-        "Next action":
-          team.length > 1 ? "Review Gmail drafts and send" : "Review Gmail draft and send",
+        "Next action": "Review Gmail draft and send",
         "Next action date": today,
         Notes: note(
           `drafted${who} (${first.why})${recover ? `, replacing bounced ${exclude.join(", ")}` : ""}`,

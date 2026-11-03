@@ -2,7 +2,7 @@ import type { ScanResult } from "@consentinel/shared";
 import { createDraft, getMessage, normDomain, search, updateRow, type Sheet } from "./google.js";
 import { address, header } from "./mail.js";
 import { nyDate } from "./state.js";
-import type { Email } from "./template.js";
+import { subjectFor, type Email } from "./template.js";
 
 /**
  * Hot lead: rescan the prospect's site through the production API, get a share
@@ -188,7 +188,7 @@ export async function prep(
       firstName: firstNameFrom(header(msg.payload, "From")),
       domain,
       reportUrl: scan.reportUrl,
-      subject: header(msg.payload, "Subject") || `Privacy issues on ${domain}`,
+      subject: header(msg.payload, "Subject") || subjectFor(domain),
     });
     await createDraft(
       opts.from,

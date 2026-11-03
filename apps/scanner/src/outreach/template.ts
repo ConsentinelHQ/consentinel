@@ -6,8 +6,6 @@ import { byProminence, joinNames, type Evidence } from "./evidence.js";
  * bullets comes straight from Evidence, so nothing here is model-written.
  */
 
-const SITE = "https://www.getconsentinel.com/";
-
 export interface Email {
   subject: string;
   text: string;
@@ -20,11 +18,11 @@ export interface TemplateInput {
   ev: Evidence;
   /** Optional footer line. Empty leaves it out. */
   postalAddress: string;
-  /** Share link to their full report. Without one, the email offers to send it. */
+  /** Ignored by the first email (no links in a cold first touch); kept for callers. */
   reportUrl?: string;
-  /** Why this person in particular. The owner (who fixes it) needs no extra line. */
+  /** Ignored: one short email fits every role. */
   role?: Role;
-  /** Colleagues emailed the same day, named so nobody is surprised. */
+  /** Ignored: colleagues are emailed later, never named. */
   alsoSent?: string[];
   /** First name of the contact who left and whose auto-reply named this person. "" when unknown. */
   referredBy?: string;
@@ -108,40 +106,45 @@ const MIN_GPC_BULLET = 2;
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export function render({
-  domain,
-  firstName,
-  ev,
-  postalAddress,
-  reportUrl,
-  role,
-  alsoSent = [],
-  referredBy,
-}: TemplateInput): Email {
-  const roleLine = role ? ROLE_LINE[role] : null;
-  const names = alsoSent.map((n) => n.trim()).filter(Boolean);
-  const also = names.length
-    ? `I've also sent this to ${joinNames(names)} so the right person sees it.`
-    : null;
+/** Neutral subject. "Privacy issues" read like a demand letter. Older sends keep the old one. */
+export const subjectFor = (domain: string): string => `Opt-out check on ${domain}`;
+/** Gmail search for every first email we've sent, old subject and new. */
+export const SUBJECT_QUERY = '(subject:"Privacy issues on" OR subject:"Opt-out check on")';
+
+/** The one finding the first email leads with: GPC when we have it, else the reject click. */
+export function headline(ev: Evidence, domain: string): string {
+  const gpc = ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
+  if (ev.mode !== "rejected" || gpc.length >= MIN_GPC_BULLET) {
+    return `On ${domain}, with the browser's opt-out signal (Global Privacy Control) turned on, ${stillFire(gpc)}.`;
+  }
+  return `On ${domain}, after a visitor declines cookies, ${stillFire(ev.firing)}.`;
+}
+
+/**
+ * First email, kept short on purpose: one finding, a small ask, no links. The report
+ * goes out when they reply, so the first touch reads like a person, not a campaign.
+ * Colleagues get their own email later (team-draft), never named here.
+ */
+export function render({ domain, firstName, ev, postalAddress, referredBy }: TemplateInput): Email {
   const greeting = `Hi ${firstName.trim() || "there"},`;
   const referral =
     referredBy === undefined
       ? null
       : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
   const intro =
-    "Sorry to bother, my name is Charlie Buckley - I'm the founder of Consentinel, a tool that checks whether websites actually respect their visitors' privacy choices.";
-  const lead = `I wanted to reach out as I ran a scan on ${domain} and noticed several issues I wanted to make you aware of:`;
-  const items = bullets(ev);
-  const law =
-    "This is the exact pattern behind a wave of lawsuits right now. Plaintiffs' firms are suing retailers under California's wiretap law (CIPA) when trackers fire after a visitor opts out, and regulators have fined Sephora $1.2M and Healthline $1.55M for not honoring opt-outs.";
-  const monitoring =
-    "We also offer ongoing monitoring that rescans your site daily and alerts you if something new starts firing.";
-  const offer = reportUrl
-    ? `I put the full report here: ${reportUrl}`
-    : `I'd love to share the full report with you if you're interested. ${monitoring}`;
-  const close = "Happy to connect if interested - just wanted to make you aware of these gaps.";
-  const sig = ["Thank you,", "Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
-  const optOut = "If you'd rather not hear from me, just reply and I won't email again.";
+    "I'm Charlie, I build Consentinel, a scanner that checks whether sites honor privacy opt-outs.";
+  const finding = headline(ev, domain);
+  const policy = ev.notMentioned?.length
+    ? "Some of them aren't named in your privacy policy either."
+    : null;
+  const gpcLed = ev.mode !== "rejected" || (ev.gpcIgnored ?? []).length >= MIN_GPC_BULLET;
+  const why = gpcLed
+    ? "California requires sites to honor that signal, and tags firing after an opt-out is the pattern behind the current wave of CIPA suits."
+    : "Tags firing after an opt-out is the pattern behind the current wave of CIPA suits.";
+  const ask = "Want me to send over the evidence? It shows each request and when it fired.";
+  const sig = ["Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
+  const optOut = "If you'd rather not hear from me, just say so and I won't email again.";
+  const body = [finding, ...(policy ? [policy] : []), why].join(" ");
 
   const text = [
     greeting,
@@ -149,18 +152,9 @@ export function render({
     ...(referral ? [referral, ""] : []),
     intro,
     "",
-    lead,
+    body,
     "",
-    ...items.map((i) => `- ${i}`),
-    "",
-    ...(roleLine ? [roleLine, ""] : []),
-    law,
-    "",
-    offer,
-    ...(reportUrl ? [monitoring] : []),
-    "",
-    ...(also ? [also, ""] : []),
-    close,
+    ask,
     "",
     ...sig,
     "",
@@ -168,30 +162,16 @@ export function render({
     ...(postalAddress.trim() ? [postalAddress.trim()] : []),
   ].join("\n");
 
-  const p = (s: string): string => `<p>${s}</p>`;
+  const p = (x: string): string => `<p>${x}</p>`;
   const html = [
     p(esc(greeting)),
     ...(referral ? [p(esc(referral))] : []),
-    p(esc(intro).replace("Consentinel", `<a href="${SITE}">Consentinel</a>`)),
-    p(esc(lead)),
-    `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>`,
-    ...(roleLine ? [p(esc(roleLine))] : []),
-    p(esc(law)),
-    reportUrl
-      ? p(
-          `I put the full report here: <a href="${esc(reportUrl)}">${esc(reportUrl.replace(/\?.*$/, ""))}</a><br>${esc(monitoring)}`,
-        )
-      : p(esc(offer)),
-    ...(also ? [p(esc(also))] : []),
-    p(esc(close)),
-    p(
-      sig
-        .map(esc)
-        .join("<br>")
-        .replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`),
-    ),
+    p(esc(intro)),
+    p(esc(body)),
+    p(esc(ask)),
+    p(sig.map(esc).join("<br>")),
     `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,
   ].join("\n");
 
-  return { subject: `Privacy issues on ${domain}`, text, html };
+  return { subject: subjectFor(domain), text, html };
 }
