@@ -112,17 +112,34 @@ export const subjectFor = (domain: string): string => `Opt-out check on ${domain
 export const SUBJECT_QUERY = '(subject:"Privacy issues on" OR subject:"Opt-out check on")';
 
 /** The one finding the first email leads with: GPC when we have it, else the reject click. */
-export function headline(ev: Evidence, domain: string): string {
-  const gpc = ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
-  if (ev.mode !== "rejected" || gpc.length >= MIN_GPC_BULLET) {
-    return `On ${domain}, with the browser's opt-out signal (Global Privacy Control) turned on, ${stillFire(gpc)}.`;
+const SITE = "https://www.getconsentinel.com/";
+
+/** "9 ad vendors were still firing, including Meta, Google Ads and TikTok". */
+function wereFiring(list: string[]): string {
+  const n = list.length;
+  const named = joinNames(byProminence(list).slice(0, 3));
+  return n <= 3
+    ? `${String(n)} ad vendors were still firing: ${named}`
+    : `${String(n)} ad vendors were still firing, including ${named}`;
+}
+
+/** GPC leads when we have it; the reject click otherwise. */
+function gpcLed(ev: Evidence): boolean {
+  return ev.mode !== "rejected" || (ev.gpcIgnored ?? []).length >= MIN_GPC_BULLET;
+}
+
+/** The finding sentence. `site` is the domain as text, or as a link in HTML. */
+export function headline(ev: Evidence, site: string): string {
+  if (gpcLed(ev)) {
+    const list = ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
+    return `I ran a scan on ${site} with the browser's opt-out signal (Global Privacy Control) turned on, and ${wereFiring(list)}.`;
   }
-  return `On ${domain}, after a visitor declines cookies, ${stillFire(ev.firing)}.`;
+  return `I ran a scan on ${site}, and after declining cookies, ${wereFiring(ev.firing)}.`;
 }
 
 /**
- * First email, kept short on purpose: one finding, a small ask, no links. The report
- * goes out when they reply, so the first touch reads like a person, not a campaign.
+ * First email, Charlie's wording (Nov 3, 2026): one finding, why it's usually an
+ * easy fix, an offer to send the report. Two links only: Consentinel and their site.
  * Colleagues get their own email later (team-draft), never named here.
  */
 export function render({ domain, firstName, ev, postalAddress, referredBy }: TemplateInput): Email {
@@ -131,28 +148,32 @@ export function render({ domain, firstName, ev, postalAddress, referredBy }: Tem
     referredBy === undefined
       ? null
       : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
-  const intro =
-    "I'm Charlie, I build Consentinel, a scanner that checks whether sites honor privacy opt-outs.";
-  const finding = headline(ev, domain);
+  const intro = (name: string): string =>
+    `I'm Charlie, I build ${name} - a tool that checks whether sites honor privacy opt-outs.`;
   const policy = ev.notMentioned?.length
     ? "Some of them aren't named in your privacy policy either."
     : null;
-  const gpcLed = ev.mode !== "rejected" || (ev.gpcIgnored ?? []).length >= MIN_GPC_BULLET;
-  const why = gpcLed
+  const why = gpcLed(ev)
     ? "California requires sites to honor that signal, and tags firing after an opt-out is the pattern behind the current wave of CIPA suits."
-    : "Tags firing after an opt-out is the pattern behind the current wave of CIPA suits.";
-  const ask = "Want me to send over the evidence? It shows each request and when it fired.";
-  const sig = ["Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
+    : "Tags firing after a visitor opts out is the pattern behind the current wave of CIPA suits.";
+  const body = (site: string): string =>
+    [headline(ev, site), ...(policy ? [policy] : []), why].join(" ");
+  const peer =
+    "I've spent years managing marketing tags for different companies, and these gaps almost always come from a tag that hasn't been connected to the consent setup, so it's typically a quick and easy fix.";
+  const ask =
+    "If you'd like, I'm happy to send over the full report. It shows each request and when it fired. Hope this helps!";
+  const sig = ["Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather not hear from me, just say so and I won't email again.";
-  const body = [finding, ...(policy ? [policy] : []), why].join(" ");
 
   const text = [
     greeting,
     "",
     ...(referral ? [referral, ""] : []),
-    intro,
+    intro("Consentinel"),
     "",
-    body,
+    body(domain),
+    "",
+    peer,
     "",
     ask,
     "",
@@ -162,12 +183,14 @@ export function render({ domain, firstName, ev, postalAddress, referredBy }: Tem
     ...(postalAddress.trim() ? [postalAddress.trim()] : []),
   ].join("\n");
 
+  const a = (href: string, label: string): string => `<a href="${esc(href)}">${esc(label)}</a>`;
   const p = (x: string): string => `<p>${x}</p>`;
   const html = [
     p(esc(greeting)),
     ...(referral ? [p(esc(referral))] : []),
-    p(esc(intro)),
-    p(esc(body)),
+    p(esc(intro("\u0000")).replace("\u0000", a(SITE, "Consentinel"))),
+    p(esc(body("\u0000")).replace("\u0000", a(`https://${domain}`, domain))),
+    p(esc(peer)),
     p(esc(ask)),
     p(sig.map(esc).join("<br>")),
     `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,

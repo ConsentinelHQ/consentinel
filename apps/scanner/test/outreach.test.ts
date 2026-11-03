@@ -92,7 +92,7 @@ assert.equal(
 );
 assert.match(bullets(gpc)[0], /starting January 1\), 2 ad vendors still fire/);
 
-// Template: short first touch, one finding, a small ask, no links.
+// Template: Charlie's Nov 3 wording. Links only to Consentinel and their own site.
 const email = render({
   domain: "chomps.com",
   firstName: "",
@@ -103,11 +103,15 @@ assert.equal(email.subject, "Opt-out check on chomps.com");
 assert.match(email.text, /^Hi there,\n/);
 assert.match(email.text, /I'm Charlie, I build Consentinel/);
 assert.match(email.text, /chomps\.com/);
-assert.match(email.text, /Want me to send over the evidence\?/);
-assert.doesNotMatch(email.text + email.html, /https?:\/\/|href=/, "no links in the first email");
+assert.match(email.text, /happy to send over the full report/);
+assert.deepEqual(
+  [...email.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]),
+  ["https://www.getconsentinel.com/", "https://chomps.com"],
+);
+assert.doesNotMatch(email.text, /https?:\/\//);
 assert.doesNotMatch(email.text, /Sorry to bother|Sephora|also sent/);
 assert.match(email.text, /PO Box 1, Boonton NJ$/);
-assert.ok(email.text.split(/\s+/).length < 120, "stays short");
+assert.ok(email.text.split(/\s+/).length < 170, "stays short");
 const noAddr = render({ domain: "x.com", firstName: "A", ev: rejected, postalAddress: "" });
 assert.match(noAddr.text, /I won't email again\.$/);
 assert.doesNotMatch(noAddr.text + noAddr.html, /POSTAL ADDRESS/);
