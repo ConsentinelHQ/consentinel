@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   createDbWithConnection,
+  requireTestDatabaseUrl,
   createScan,
   eq,
   getScan,
@@ -17,7 +18,7 @@ import { loadConfig } from "../src/config";
 /** Disclosure alerts against real Postgres: what counts as a new gap. */
 process.env.INTEGRATION_KEY ??= Buffer.alloc(32, 9).toString("base64");
 const config = loadConfig(process.env);
-const { db, sql } = createDbWithConnection(config.DATABASE_URL);
+const { db, sql } = createDbWithConnection(requireTestDatabaseUrl(config.DATABASE_URL));
 await runMigrations(db);
 
 const [org] = await db

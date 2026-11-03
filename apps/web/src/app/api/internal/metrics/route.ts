@@ -45,7 +45,11 @@ export async function GET(request: Request): Promise<NextResponse> {
     .filter(Boolean);
   const isInternal = (email: string): boolean => {
     const e = email.toLowerCase();
-    return /@(consentinelhq\.com|getconsentinel\.com)$/.test(e) || extra.includes(e);
+    // example.com / .local are test fixtures, never customers.
+    return (
+      /@(consentinelhq\.com|getconsentinel\.com|example\.com)$|\.local$/.test(e) ||
+      extra.includes(e)
+    );
   };
 
   const [userRows, memberRows, orgRows, siteRows, scanRows, failedRows, leadRows, inquiryRows] =

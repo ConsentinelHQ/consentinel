@@ -23,4 +23,19 @@ export function createDbWithConnection(connectionString: string = requireDatabas
   return { db: drizzle(sql, { schema }), sql };
 }
 
+/**
+ * Tests write junk rows. Refuse anything but a local database unless
+ * ALLOW_REMOTE_TEST_DB=1 is set on purpose.
+ */
+export function requireTestDatabaseUrl(url: string = requireDatabaseUrl()): string {
+  const host = new URL(url).hostname;
+  const local = ["localhost", "127.0.0.1", "::1", "[::1]", "postgres"].includes(host);
+  if (!local && process.env["ALLOW_REMOTE_TEST_DB"] !== "1") {
+    throw new Error(
+      `Refusing to run tests against ${host}. Use a local Postgres, or set ALLOW_REMOTE_TEST_DB=1 for a throwaway branch.`,
+    );
+  }
+  return url;
+}
+
 export { schema };
