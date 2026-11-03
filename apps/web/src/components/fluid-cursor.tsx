@@ -7,7 +7,8 @@ import { startFluid } from "@/lib/fluid-sim";
  * Cursor-driven fluid behind the hero. Fixed to the viewport (the sim uses
  * clientX/clientY), faded out by a scroll-driven mask: solid until `fadeFrom`,
  * gone by the bottom of `fadeTo`. Paused once that point scrolls past.
- * Skipped for reduced motion and touch-only devices.
+ * Touch devices get a slow ambient swirl at lower resolution instead.
+ * Skipped for reduced motion.
  */
 export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom: string; fadeTo: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -18,7 +19,7 @@ export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom: string; fadeTo: st
     const to = document.getElementById(fadeTo);
     if (!wrap || !from || !to) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const touch = !window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
     // Fresh canvas per run: a stopped sim loses its GL context for good.
     const canvas = document.createElement("canvas");
@@ -26,7 +27,7 @@ export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom: string; fadeTo: st
     wrap.style.display = "block"; // sim sizes itself from the canvas on start
     let fluid: ReturnType<typeof startFluid>;
     try {
-      fluid = startFluid(canvas);
+      fluid = startFluid(canvas, { ambient: touch, lowPower: touch });
     } catch {
       canvas.remove();
       wrap.style.display = "";

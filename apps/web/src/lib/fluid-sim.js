@@ -25,7 +25,9 @@
  */
 /* global window, document, requestAnimationFrame, cancelAnimationFrame, Image, AbortController, console */
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-expressions -- vendored sim, kept close to upstream */
-export function startFluid(canvas) {
+export function startFluid(canvas, options = {}) {
+  // Touch devices: no cursor to follow, so a slow ambient stroke drives it, at lower cost.
+  const { ambient = false, lowPower = false } = options;
   // Teardown: every listener shares one signal, the loop checks `stopped`.
   const ac = new AbortController();
   const on = (target, type, fn) => target.addEventListener(type, fn, { signal: ac.signal });
@@ -72,6 +74,12 @@ export function startFluid(canvas) {
   pointers.push(new pointerPrototype());
 
   const { gl, ext } = getWebGLContext(canvas);
+
+  if (lowPower) {
+    config.SIM_RESOLUTION = 96;
+    config.DYE_RESOLUTION = 512;
+    config.PRESSURE_ITERATIONS = 12;
+  }
 
   if (!ext.supportLinearFiltering) {
     config.DYE_RESOLUTION = 256;
@@ -875,6 +883,7 @@ export function startFluid(canvas) {
     // console.log(dt)
     if (resizeCanvas()) initFramebuffers();
     updateColors(dt);
+    if (ambient) wander();
     applyInputs();
     step(dt);
     render(null);
@@ -908,6 +917,38 @@ export function startFluid(canvas) {
         p.color = generateColor();
       });
     }
+  }
+
+  // Slow figure-eight, paused for a couple of seconds after a real touch.
+  // Wall-clock time and a capped splat rate, so a phone dropping frames looks the same.
+  // Fainter than a cursor stroke: it never stops, so the dye would pile up.
+  const wanderStart = Date.now() - Math.random() * 10000;
+  let lastTouch = -Infinity;
+  let lastWander = 0;
+  let wx = -1;
+  let wy = -1;
+  function wander() {
+    const now = Date.now();
+    if (now - lastTouch < 2500 || now - lastWander < 33) return;
+    lastWander = now;
+    const t = (now - wanderStart) / 1000;
+    const x = 0.5 + 0.38 * Math.sin(t * 0.55);
+    const y = 0.6 + 0.22 * Math.sin(t * 0.9 + 1.3);
+    if (wx >= 0) {
+      const dx = correctDeltaX(x - wx);
+      const dy = correctDeltaY(y - wy);
+      const c = pointers[0].color;
+      if (!Array.isArray(c) && Math.abs(dx) < 0.2 && Math.abs(dy) < 0.2) {
+        const k = 0.3;
+        splat(x, y, dx * config.SPLAT_FORCE, dy * config.SPLAT_FORCE, {
+          r: c.r * k,
+          g: c.g * k,
+          b: c.b * k,
+        });
+      }
+    }
+    wx = x;
+    wy = y;
   }
 
   function applyInputs() {
@@ -1114,6 +1155,7 @@ export function startFluid(canvas) {
     (e) => {
       const touches = e.targetTouches;
       let pointer = pointers[0];
+      lastTouch = Date.now();
       for (let i = 0; i < touches.length; i++) {
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
@@ -1235,7 +1277,8 @@ export function startFluid(canvas) {
   }
 
   function scaleByPixelRatio(input) {
-    const pixelRatio = window.devicePixelRatio || 1;
+    // The dye is blurred anyway; a 3x phone canvas is wasted fill rate.
+    const pixelRatio = lowPower ? 1 : window.devicePixelRatio || 1;
     return Math.floor(input * pixelRatio);
   }
 
@@ -1247,6 +1290,11 @@ export function startFluid(canvas) {
       hash |= 0; // Convert to 32bit integer
     }
     return hash;
+  }
+
+  if (ambient && !started) {
+    started = true;
+    update();
   }
 
   return {

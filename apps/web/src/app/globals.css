@@ -511,6 +511,7 @@ footer {
   top: 0;
   z-index: 10;
   background: color-mix(in srgb, var(--paper) 88%, transparent);
+  -webkit-backdrop-filter: saturate(1.6) blur(12px);
   backdrop-filter: saturate(1.6) blur(12px);
   border-bottom: 1px solid var(--hairline);
 }
@@ -5826,6 +5827,8 @@ a.print-button {
   display: block;
   width: 100vw;
   height: 100vh;
+  /* Large viewport: no resize (and dye reset) when the mobile URL bar hides. */
+  height: 100lvh;
 }
 
 /* ==========================================================================

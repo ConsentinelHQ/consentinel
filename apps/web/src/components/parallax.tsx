@@ -12,7 +12,9 @@ export function Parallax({ speed = 0.12, children }: { speed?: number; children:
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Off on narrow screens: the stacked hero has no room for drift.
+    if (window.matchMedia("(prefers-reduced-motion: reduce), (max-width: 63.99rem)").matches)
+      return;
 
     let frame = 0;
     const update = (): void => {
