@@ -12,7 +12,7 @@ import {
 } from "./google.js";
 import { header } from "./mail.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record } from "./state.js";
-import { stillFire, type Email } from "./template.js";
+import { stillFire, subjectFor, type Email } from "./template.js";
 
 /**
  * One-time GPC re-touch for prospects who never replied. Each gets at most one
@@ -175,7 +175,7 @@ export async function retouch(
     const draft = retouchEmail({
       domain,
       firstName: (row.values["Contact"] ?? "").trim().split(/\s+/)[0] ?? "",
-      subject: header(first.payload, "Subject") || `Privacy issues on ${domain}`,
+      subject: header(first.payload, "Subject") || subjectFor(domain),
       gpcIgnored,
       postalAddress: opts.postalAddress,
     });

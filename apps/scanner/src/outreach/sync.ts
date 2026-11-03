@@ -21,6 +21,7 @@ import {
   referralEmails,
   saysLeft,
 } from "./referral.js";
+import { SUBJECT_QUERY } from "./template.js";
 import { EXTRA_HEADERS, SLOTS, col, members, stopDrafts, type Slot } from "./team.js";
 
 /**
@@ -283,10 +284,7 @@ export async function sync(sheetId: string, tab: string, sheet: Sheet): Promise<
   // Matched by our subject line, since the sender's domain isn't on the sheet.
   const byDomain = new Map(withEmail.map((r) => [normDomain(r.values["Domain"] ?? ""), r]));
   // Own seen key, so left-company auto-replies step 2 already filed as out-of-office get read once.
-  for (const id of await search(
-    'subject:"Privacy issues on" -in:sent -from:me newer_than:60d',
-    50,
-  )) {
+  for (const id of await search(`${SUBJECT_QUERY} -in:sent -from:me newer_than:60d`, 50)) {
     if (seen.has(`b:${id}`)) continue;
     seen.add(`b:${id}`);
     const msg = await getMessage(id);

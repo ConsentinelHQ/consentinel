@@ -10,7 +10,7 @@ import {
 } from "./google.js";
 import { header } from "./mail.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record } from "./state.js";
-import type { Email } from "./template.js";
+import { subjectFor, type Email } from "./template.js";
 import { members } from "./team.js";
 
 /**
@@ -156,7 +156,7 @@ export async function followups(
     const draft = followUpEmail({
       domain,
       firstName: (row.values["Contact"] ?? "").trim().split(/\s+/)[0] ?? "",
-      subject: header(first.payload, "Subject") || `Privacy issues on ${domain}`,
+      subject: header(first.payload, "Subject") || subjectFor(domain),
       postalAddress: opts.postalAddress,
     });
     const messageId = header(first.payload, "Message-ID") || header(first.payload, "Message-Id");
@@ -183,7 +183,7 @@ export async function followups(
         followUpEmail({
           domain,
           firstName: m.firstName,
-          subject: header(msg.payload, "Subject") || `Privacy issues on ${domain}`,
+          subject: header(msg.payload, "Subject") || subjectFor(domain),
           postalAddress: opts.postalAddress,
         }),
         mid ? { threadId: msg.threadId, messageId: mid } : undefined,

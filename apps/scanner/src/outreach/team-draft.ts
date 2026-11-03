@@ -3,16 +3,18 @@ import { MIN_VENDORS, gather, type Evidence } from "./evidence.js";
 import { createDraft, normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { reportLink, type ApiOpts } from "./prep.js";
 import { GONE, REFERRED } from "./referral.js";
-import { RESEARCHED } from "./research.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record, type Entry } from "./state.js";
 import { WINDOW_DAYS } from "./team-research.js";
 import { col, members, type Member } from "./team.js";
 import { render } from "./template.js";
 
 /**
- * Drafts the first email to colleagues Claw researched after contact 1 went
- * out. Drafts only: an address found from a web page always gets a human look.
+ * Drafts the first email to colleagues once contact 1 has had COLLEAGUE_AFTER
+ * business days to reply. Drafts only: a colleague address always gets a human look.
  */
+
+/** Days contact 1 gets alone before a colleague is emailed. */
+export const COLLEAGUE_AFTER = 3;
 
 const LIVE = new Set(["Scanned - ready", "Emailed"]);
 const HANDS_OFF = /do not|don't|hold|avoid|skip|unsubscribe|not interested|reply from|stop/i;
@@ -39,6 +41,9 @@ export function teamDue(
     if (!live && v["Status"] !== "Followed up") continue;
     const first = parseDay(v["First email"]);
     const late = Boolean(first && nyDate(addBusinessDays(dayToDate(first), WINDOW_DAYS)) <= today);
+    const ready = Boolean(
+      first && nyDate(addBusinessDays(dayToDate(first), COLLEAGUE_AFTER)) <= today,
+    );
     const human = (v["Notes"] ?? "")
       .split("|")
       .filter((p) => !p.includes("outreach bot - "))
@@ -46,7 +51,8 @@ export function teamDue(
     if (HANDS_OFF.test(human)) continue;
     const domain = normDomain(v["Domain"] ?? "");
     for (const m of members(v)) {
-      const ok = m.check === REFERRED || (m.check === RESEARCHED && live && !late);
+      // Referrals replace someone who left, so they go now. Everyone else waits their turn.
+      const ok = m.check === REFERRED || (!GONE.test(m.check) && live && ready && !late);
       if (m.slot === 1 || !ok) continue;
       if (contacted.has(`${domain}|${m.email}`)) continue;
       out.push({ row, m });

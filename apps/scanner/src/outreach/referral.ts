@@ -18,9 +18,9 @@ export function saysLeft(text: string): boolean {
   return LEFT_TEXT.test(text);
 }
 
-/** The prospect domain from our subject line, "Privacy issues on brand.com". */
+/** The prospect domain from our subject line, "Opt-out check on brand.com" (or the older "Privacy issues on"). */
 export function domainFromSubject(subject: string): string | null {
-  const m = /privacy issues on ([a-z0-9][a-z0-9.-]*\.[a-z]{2,})/i.exec(subject);
+  const m = /(?:privacy issues|opt-out check) on ([a-z0-9][a-z0-9.-]*\.[a-z]{2,})/i.exec(subject);
   return m ? m[1]!.toLowerCase().replace(/^www\./, "") : null;
 }
 
