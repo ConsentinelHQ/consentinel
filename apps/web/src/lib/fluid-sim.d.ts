@@ -3,4 +3,6 @@ export type FluidHandle = {
   stop: () => void;
 };
 
-export function startFluid(canvas: HTMLCanvasElement): FluidHandle;
+export type FluidOptions = { ambient?: boolean; lowPower?: boolean };
+
+export function startFluid(canvas: HTMLCanvasElement, options?: FluidOptions): FluidHandle;
