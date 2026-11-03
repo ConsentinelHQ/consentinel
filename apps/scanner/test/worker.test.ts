@@ -1,4 +1,11 @@
-import { createDbWithConnection, getScan, listPolicyVersions, orgs, sites } from "@consentinel/db";
+import {
+  createDbWithConnection,
+  requireTestDatabaseUrl,
+  getScan,
+  listPolicyVersions,
+  orgs,
+  sites,
+} from "@consentinel/db";
 import { runMigrations } from "@consentinel/db/migrate";
 import { startFixtureServer } from "../fixtures/known-bad-shop";
 import { loadConfig } from "../src/config";
@@ -35,7 +42,7 @@ async function main(): Promise<void> {
     SCAN_MIN_REQUESTS: "1", // fixture page is minimal by design
   });
 
-  const { db, sql } = createDbWithConnection(config.DATABASE_URL);
+  const { db, sql } = createDbWithConnection(requireTestDatabaseUrl(config.DATABASE_URL));
   await runMigrations(db);
 
   const connection = redisConnection(config.REDIS_URL);

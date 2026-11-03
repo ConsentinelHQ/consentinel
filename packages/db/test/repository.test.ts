@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { FINDING_SCHEMA_VERSION, type Finding, type ScanResult } from "@consentinel/shared";
-import { createDbWithConnection } from "../src/client";
+import { createDbWithConnection, requireTestDatabaseUrl } from "../src/client";
 import { runMigrations } from "../src/migrate-runner";
 import {
   addSite,
@@ -91,7 +91,7 @@ function result(url: string, fs: Finding[]): ScanResult {
 }
 
 async function main(): Promise<void> {
-  const { db, sql } = createDbWithConnection();
+  const { db, sql } = createDbWithConnection(requireTestDatabaseUrl());
   await runMigrations(db);
 
   const url = `https://shop-${randomUUID().slice(0, 8)}.example`;

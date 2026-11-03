@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   createDbWithConnection,
+  requireTestDatabaseUrl,
   createScan,
   eq,
   findings,
@@ -21,7 +22,7 @@ import { postJiraScanFailure, postJiraVerdict } from "../src/jira-sync";
  */
 process.env.INTEGRATION_KEY = Buffer.alloc(32, 9).toString("base64");
 const config = loadConfig(process.env);
-const { db, sql } = createDbWithConnection(config.DATABASE_URL);
+const { db, sql } = createDbWithConnection(requireTestDatabaseUrl(config.DATABASE_URL));
 await runMigrations(db);
 
 const calls: { url: string; body: string }[] = [];
