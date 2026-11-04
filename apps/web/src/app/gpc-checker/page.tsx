@@ -55,8 +55,9 @@ export default function GpcChecker() {
           <p className="bgpc-eyebrow">GPC checker</p>
           <h1>Does your site honor Global Privacy Control?</h1>
           <p className="lede">
-            First, see if your own browser sends the signal. Then test a site: we load it with GPC
-            on and list every ad tag that kept running, with the request that proves it.
+            Test any site: our scanner loads it with GPC on and lists every ad tag that kept
+            running, with the request that proves it. Nothing to install. Below, you can also see
+            whether your own browser sends the signal.
           </p>
           <BrowserGpcCheck />
         </div>

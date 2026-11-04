@@ -21,8 +21,8 @@ const BROWSERS: Browser[] = [
   { name: "Firefox", today: "native", note: "Setting in Privacy & Security" },
   { name: "Brave", today: "native", note: "On by default" },
   { name: "DuckDuckGo", today: "native", note: "On by default" },
-  { name: "Chrome", today: "extension", note: "Extension only today" },
-  { name: "Edge", today: "extension", note: "Extension only today" },
+  { name: "Chrome", today: "extension", note: "No built-in setting yet" },
+  { name: "Edge", today: "extension", note: "No built-in setting yet" },
   { name: "Safari", today: "none", note: "No built-in setting today" },
 ];
 

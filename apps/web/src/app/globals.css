@@ -6581,6 +6581,11 @@ h2 {
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
+.bgpc-enable-note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: -0.25rem 0 0.6rem;
+}
 .bgpc-enable dl {
   margin: 0;
   display: grid;

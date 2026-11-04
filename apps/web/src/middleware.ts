@@ -17,7 +17,12 @@ const clerk = clerkMiddleware(async (auth, request) => {
  * tokens. Clerk never sees it: a handshake redirect inside the iframe would break it.
  */
 const isShopify = (path: string): boolean =>
-  path === "/shopify" || path.startsWith("/shopify/") || path.startsWith("/api/shopify/");
+  path === "/shopify" ||
+  path.startsWith("/api/shopify/") ||
+  // The report and help pages open in their own tab, not the iframe, and use the normal layout.
+  (path.startsWith("/shopify/") &&
+    !path.startsWith("/shopify/report/") &&
+    path !== "/shopify/help");
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
   if (isShopify(request.nextUrl.pathname)) return NextResponse.next();

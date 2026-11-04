@@ -9,7 +9,8 @@ import { usePathname } from "next/navigation";
 export function SiteNav() {
   // The app shell has its own bar. Rendering both stacks two navs on /app.
   const pathname = usePathname();
-  if (pathname.startsWith("/app")) return null;
+  // Shopify pages open from the admin and never link to web pricing or checkout.
+  if (pathname.startsWith("/app") || pathname.startsWith("/shopify")) return null;
 
   return (
     <header className="nav">

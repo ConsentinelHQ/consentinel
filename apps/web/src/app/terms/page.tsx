@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
 };
 
-const UPDATED = "October 29, 2026";
+const UPDATED = "November 3, 2026";
 
 export default function Terms() {
   return (
@@ -59,7 +59,9 @@ export default function Terms() {
             <h2>Plans and billing</h2>
             <p>
               Paid plans are billed in advance, monthly or yearly, per site, at the prices shown on
-              the <Link href="/pricing">pricing page</Link>. Payments run through Stripe. Plans
+              the <Link href="/pricing">pricing page</Link>. Website signups pay through Stripe. If
+              you installed Consentinel from the Shopify App Store, Shopify bills you on your
+              Shopify invoice and you manage the plan from the app in your Shopify admin. Plans
               renew automatically until you cancel. You can cancel any time from the billing page,
               and you keep access until the end of the period you&apos;ve paid for. We don&apos;t
               refund partial periods. If we change prices, we&apos;ll tell you before your next

@@ -15,7 +15,7 @@ const ENABLE: { name: string; how: string }[] = [
   },
   {
     name: "Chrome, Safari, Edge",
-    how: "If there's no built-in setting yet, add an extension that sends it, like Privacy Badger.",
+    how: "No built-in setting yet. California requires one by January 1, 2027. Until then, use Brave, DuckDuckGo or Firefox to send it.",
   },
 ];
 
@@ -79,7 +79,10 @@ export function BrowserGpcCheck() {
 
       {state.status === "done" && !on && (
         <div className="bgpc-enable">
-          <p className="bgpc-enable-title">How to turn it on</p>
+          <p className="bgpc-enable-title">Optional: send it from your own browser</p>
+          <p className="bgpc-enable-note">
+            You don&apos;t need this to test a site. Our scanner sends the signal for you.
+          </p>
           <dl>
             {ENABLE.map(({ name, how }) => (
               <div key={name}>
@@ -95,7 +98,7 @@ export function BrowserGpcCheck() {
         <p className="bgpc-next">
           {on
             ? "Your browser is opting you out. The real question is whether sites obey it."
-            : "Once it's on, every site you visit gets the opt-out. Whether they obey it is another matter."}{" "}
+            : "Testing a site doesn't depend on your browser. We send the signal from our scanner."}{" "}
           <a href="#site-check">Test a site</a>
         </p>
       )}
