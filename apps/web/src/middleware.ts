@@ -19,10 +19,8 @@ const clerk = clerkMiddleware(async (auth, request) => {
 const isShopify = (path: string): boolean =>
   path === "/shopify" ||
   path.startsWith("/api/shopify/") ||
-  // The report and help pages open in their own tab, not the iframe, and use the normal layout.
-  (path.startsWith("/shopify/") &&
-    !path.startsWith("/shopify/report/") &&
-    path !== "/shopify/help");
+  // The report opens in its own tab, not the iframe, and use the normal layout.
+  (path.startsWith("/shopify/") && !path.startsWith("/shopify/report/"));
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
   if (isShopify(request.nextUrl.pathname)) return NextResponse.next();

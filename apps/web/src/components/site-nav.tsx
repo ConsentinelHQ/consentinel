@@ -10,7 +10,8 @@ export function SiteNav() {
   // The app shell has its own bar. Rendering both stacks two navs on /app.
   const pathname = usePathname();
   // Shopify pages open from the admin and never link to web pricing or checkout.
-  if (pathname.startsWith("/app") || pathname.startsWith("/shopify")) return null;
+  if (pathname.startsWith("/app") || pathname.startsWith("/shopify") || pathname === "/store-help")
+    return null;
 
   return (
     <header className="nav">

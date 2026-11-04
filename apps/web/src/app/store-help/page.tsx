@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Consentinel for Shopify: help",
   description:
     "How the Consentinel Shopify app checks your store's opt-outs, what it reads, and how billing works.",
-  alternates: { canonical: "/shopify/help" },
+  alternates: { canonical: "/store-help" },
 };
 
 const FAQ: { q: string; a: string }[] = [
