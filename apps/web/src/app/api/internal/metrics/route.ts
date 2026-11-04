@@ -167,6 +167,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     days,
     reportViews: counted.report_view,
     ctaClicks: counted.cta_click,
+    shopifyInstallClicks: counted.shopify_install_click,
     emails: leadRows[0]?.n ?? 0,
     waitEmails: counted.notify_email,
     signups: realUsers.filter((u) => u.createdAt > new Date(Date.now() - days * 86_400_000)).length,
