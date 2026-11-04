@@ -49,9 +49,9 @@ GPC, cookie consent, CCPA, opt-out, privacy compliance
 ## Links
 
 - **Privacy policy:** https://www.getconsentinel.com/privacy
-- **Website:** https://www.getconsentinel.com/shopify/help
+- **Website:** https://www.getconsentinel.com/store-help
 - **Support email:** charlie@consentinelhq.com
-- **FAQ:** https://www.getconsentinel.com/shopify/help
+- **FAQ:** https://www.getconsentinel.com/store-help
 
 ## For the review team
 
