@@ -325,6 +325,7 @@ const JS = `
       return;
     }
     var tags = d.theme.tags;
+    list.hidden = tags.length === 0;
     $("setup-sub").textContent = tags.length
       ? tags.length + " tag" + (tags.length === 1 ? " is" : "s are") + " hardcoded in " + d.theme.name + ". Tags without a consent check keep firing after a shopper opts out."
       : "No ad tags are hardcoded in " + d.theme.name + " (" + d.theme.filesChecked + " files checked). Tags on your store come from apps or Customer Events.";
