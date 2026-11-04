@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Only the events the browser is allowed to report. Checkout is counted server-side.
-const body = z.object({ event: z.enum(["report_view", "cta_click"]) });
+const body = z.object({ event: z.enum(["report_view", "cta_click", "shopify_install_click"]) });
 
 export async function POST(request: Request): Promise<NextResponse> {
   const parsed = body.safeParse(await request.json().catch(() => null));

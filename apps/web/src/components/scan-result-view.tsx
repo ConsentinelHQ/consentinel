@@ -412,7 +412,7 @@ function Report({
         )}
       </div>
 
-      {upsell && <MonitorCta report={report} />}
+      {upsell && <NextStepCta report={report} />}
 
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
       {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
@@ -429,7 +429,7 @@ function monitorHref(url: string): string {
 }
 
 /** Fire and forget. Never blocks a click or a render. */
-function track(event: "report_view" | "cta_click"): void {
+function track(event: "report_view" | "cta_click" | "shopify_install_click"): void {
   try {
     const payload = JSON.stringify({ event });
     if (!navigator.sendBeacon?.("/api/funnel", new Blob([payload], { type: "application/json" }))) {
@@ -443,6 +443,60 @@ function track(event: "report_view" | "cta_click"): void {
   } catch {
     // Tracking is never worth an error.
   }
+}
+
+/**
+ * Shopify stores get the app instead of web monitoring: it finds each tag in
+ * their theme and bills through Shopify. Everyone else, or until the check
+ * answers, gets the web Monitor offer.
+ */
+function NextStepCta({ report }: { report: FreeReport }) {
+  const [installUrl, setInstallUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/scan/${report.scanId}/platform`)
+      .then((r) => r.json() as Promise<{ shopify?: boolean; installUrl?: string }>)
+      .then((d) => {
+        if (alive && d.shopify && d.installUrl) setInstallUrl(d.installUrl);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [report.scanId]);
+  return installUrl ? (
+    <ShopifyCta installUrl={installUrl} report={report} />
+  ) : (
+    <MonitorCta report={report} />
+  );
+}
+
+function ShopifyCta({ report, installUrl }: { report: FreeReport; installUrl: string }) {
+  const host = hostOf(report.url);
+  return (
+    <div className="gate monitor-cta shopify-cta">
+      <h3>Fix it from your Shopify admin.</h3>
+      <p className="quiet">
+        {host} runs on Shopify. Our Shopify app shows the theme file and line each tag lives in, and
+        rescans your store every day. The scan is free, and monitoring is billed through Shopify.
+      </p>
+      <a
+        className="tier-cta primary"
+        href={installUrl}
+        onClick={() => track("shopify_install_click")}
+        rel="noopener"
+        target="_blank"
+      >
+        Install on Shopify
+      </a>
+      <p className="quiet" style={{ marginTop: "0.75rem", fontSize: "0.85rem" }}>
+        Not using the Shopify admin?{" "}
+        <a href={monitorHref(report.url)} onClick={() => track("cta_click")}>
+          Monitor {host} on the web
+        </a>
+      </p>
+    </div>
+  );
 }
 
 /** The step after a bad report: watch it so the fix stays fixed. */

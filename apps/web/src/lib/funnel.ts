@@ -8,6 +8,7 @@ import { redis } from "./server";
 export const FUNNEL_EVENTS = [
   "report_view",
   "cta_click",
+  "shopify_install_click",
   "notify_email",
   "checkout_start",
 ] as const;
