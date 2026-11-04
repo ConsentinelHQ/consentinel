@@ -13,7 +13,8 @@ export function SiteFooter() {
   if (
     pathname.startsWith("/app") ||
     pathname.startsWith("/report") ||
-    pathname.startsWith("/scan/")
+    pathname.startsWith("/scan/") ||
+    pathname.startsWith("/shopify/")
   )
     return null;
   // The one brand gradient on the site lives here. Legal and auth pages stay plain.

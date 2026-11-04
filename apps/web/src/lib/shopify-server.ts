@@ -165,7 +165,9 @@ export async function appState(shop: string, org: ShopifyOrg): Promise<AppState>
             .slice(0, 6)
             .map((f) => ({ vendor: f.vendor, title: f.title, severity: f.severity }))
         : [],
-      reportUrl: token ? `${ORIGIN}/report/${scan.id}?t=${encodeURIComponent(token)}` : null,
+      reportUrl: token
+        ? `${ORIGIN}/shopify/report/${scan.id}?t=${encodeURIComponent(token)}`
+        : null,
     },
   };
 }

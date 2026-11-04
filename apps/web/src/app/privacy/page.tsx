@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const UPDATED = "October 29, 2026";
+const UPDATED = "November 3, 2026";
 
 export default function Privacy() {
   return (
@@ -41,8 +41,17 @@ export default function Privacy() {
                 integrations you set up.
               </li>
               <li>
-                <strong>Billing.</strong> Payments are processed by Stripe. We never see or store
-                your full card number. We keep your plan, billing status and billing email.
+                <strong>Shopify stores.</strong> If you install our Shopify app, we receive your
+                store name, store email and primary domain. When you open the app, we read your live
+                theme&apos;s code files and your Shopify privacy settings, read-only, to show where
+                each tracking tag is installed. We don&apos;t store your theme code, and we
+                don&apos;t access customer or order data.
+              </li>
+              <li>
+                <strong>Billing.</strong> If you install Consentinel from the Shopify App Store,
+                Shopify bills you and we never receive your payment details. If you sign up on our
+                website, payments are processed by Stripe. Either way we never see or store your
+                full card number. We keep your plan, billing status and billing email.
               </li>
               <li>
                 <strong>Contact form.</strong> Your email, and any name, company and message you
@@ -88,7 +97,8 @@ export default function Privacy() {
               <li>Vercel (website hosting) and Render (scan servers)</li>
               <li>Neon (database) and our queue and rate-limit store</li>
               <li>Clerk (sign-in and accounts)</li>
-              <li>Stripe (payments)</li>
+              <li>Shopify (billing for stores that install our Shopify app)</li>
+              <li>Stripe (payments for website signups)</li>
               <li>Resend (product email) and Google Workspace (our email)</li>
               <li>Cloudflare (DNS and bot checks)</li>
               <li>Sentry (error monitoring)</li>

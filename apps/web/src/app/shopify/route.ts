@@ -85,6 +85,14 @@ function page(apiKey: string): string {
     </div>
   </section>
 
+  <section class="card" id="setup" hidden>
+    <p class="eyebrow">Store setup</p>
+    <h2>Where your tags live</h2>
+    <p class="muted" id="setup-sub">Reading your theme and privacy settings</p>
+    <ul class="checks" id="privacy-checks"></ul>
+    <ul class="findings tags" id="theme-tags"></ul>
+  </section>
+
   <section class="card monitor" id="monitor-off" hidden>
     <div>
       <p class="eyebrow">Daily monitoring</p>
@@ -112,7 +120,7 @@ function page(apiKey: string): string {
     <span class="live"><i></i>Live</span>
   </section>
 
-  <p class="foot">Plaintiffs' firms are suing retailers under California's wiretap law when trackers fire after an opt-out. <a href="https://www.getconsentinel.com/gpc" target="_blank" rel="noopener">How the risk works</a></p>
+  <p class="foot">California and other states require stores to honor Global Privacy Control. Tags that keep firing after an opt-out are what regulators and plaintiffs look for.</p>
 </main>
 <script>${JS}</script>
 </body>
@@ -178,7 +186,17 @@ h2{margin:0 0 8px;font-size:19px}
 .live{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ok)}
 .live i{width:10px;height:10px;border-radius:50%;background:var(--ok);animation:ping 1.8s var(--ease) infinite}
 .foot{color:var(--soft);font-size:13px;text-align:center;margin-top:20px}
-.foot a{color:var(--ink)}
+.checks{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px}
+.checks li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--alt);font-size:14px;animation:fade .4s var(--ease) both}
+.checks li span{color:var(--soft)}
+.checks li b.ok{color:var(--ok)}
+.checks li b.warn{color:var(--warn)}
+.checks a{color:var(--ink);font-weight:600;font-size:13px}
+.tags li{flex-wrap:wrap}
+.tags small{flex-basis:100%;padding-left:20px;color:var(--soft);font-size:13px}
+.tags i.ok{background:var(--ok)}
+.tags a{margin-left:auto;font-size:13px;font-weight:600;color:var(--ink)}
+.tags code{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--soft)}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
@@ -232,6 +250,7 @@ const JS = `
     clearInterval(stepTimer); stepTimer = null;
     if (scan.status === "failed") {
       show("failed");
+      loadSetup(scan.id);
       var locked = scan.passwordProtected;
       $("fail-title").textContent = locked ? "Your store is password protected"
         : scan.blockedBy ? "Your bot protection blocked the scan" : "We couldn't scan your storefront";
@@ -265,8 +284,66 @@ const JS = `
       var s = document.createElement("span"); s.textContent = f.title;
       li.appendChild(dot); li.appendChild(b); li.appendChild(s); list.appendChild(li);
     });
+    lastCmp = scan.cmpName || null;
+    loadSetup(scan.id);
     if (scan.reportUrl) { $("report").href = scan.reportUrl; $("report").hidden = false; } else { $("report").hidden = true; }
   }
+
+  var setupFor = null;
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  async function loadSetup(scanId){
+    if (setupFor === scanId) return;
+    setupFor = scanId;
+    $("setup").hidden = false;
+    try { renderSetup(await api("/api/shopify/setup")); }
+    catch (e) { $("setup-sub").textContent = "We couldn't read your store settings. " + e.message; setupFor = null; }
+  }
+
+  function renderSetup(d){
+    var checks = $("privacy-checks"); checks.textContent = "";
+    if (d.privacy) {
+      var cmp = lastCmp;
+      var banner = el("li");
+      banner.appendChild(el("span", null, "Shopify cookie banner"));
+      banner.appendChild(d.privacy.bannerEnabled ? el("b", "ok", "On")
+        : el("b", cmp ? "ok" : "warn", cmp ? "Off, using " + cmp : "Off"));
+      checks.appendChild(banner);
+      var page = el("li");
+      page.appendChild(el("span", null, "\u201cDo not sell or share\u201d page"));
+      page.appendChild(el("b", d.privacy.optOutPageAutoManaged ? "ok" : "warn",
+        d.privacy.optOutPageAutoManaged ? "Managed by Shopify" : "Not managed by Shopify"));
+      checks.appendChild(page);
+      var link = el("li"); var a = el("a", null, "Open privacy settings");
+      a.href = d.privacyUrl; a.target = "_top"; link.appendChild(el("span", null, "Change these in Settings > Customer privacy")); link.appendChild(a);
+      checks.appendChild(link);
+    }
+
+    var list = $("theme-tags"); list.textContent = "";
+    if (!d.theme) {
+      $("setup-sub").textContent = "We couldn't read your live theme. Try again in a minute.";
+      return;
+    }
+    var tags = d.theme.tags;
+    $("setup-sub").textContent = tags.length
+      ? tags.length + " tag" + (tags.length === 1 ? " is" : "s are") + " hardcoded in " + d.theme.name + ". Tags without a consent check keep firing after a shopper opts out."
+      : "No ad tags are hardcoded in " + d.theme.name + " (" + d.theme.filesChecked + " files checked). Tags on your store come from apps or Customer Events.";
+    tags.forEach(function(t, n){
+      var li = el("li"); li.style.animationDelay = (n * 60) + "ms";
+      li.appendChild(el("i", t.consentAware && !t.leaking ? "ok" : t.leaking ? "critical" : ""));
+      li.appendChild(el("b", null, t.vendor));
+      li.appendChild(el("code", null, t.filename + ", line " + t.line));
+      var a = el("a", null, "Edit code"); a.href = t.editorUrl; a.target = "_top"; li.appendChild(a);
+      li.appendChild(el("small", null,
+        t.leaking && !t.consentAware ? "Fired after opt-out in the latest scan. This tag has no consent check, so wrap it in Shopify's customer privacy API or move it to Customer Events."
+        : t.leaking ? "Fired after opt-out in the latest scan, even with a consent check nearby. Check that the check covers this tag."
+        : t.consentAware ? "Has a consent check."
+        : "No consent check found. It didn't fire after opt-out in the latest scan, but it's worth wiring to consent."));
+      list.appendChild(li);
+    });
+  }
+
+  var lastCmp = null;
 
   function schedule(){ clearTimeout(pollTimer); pollTimer = setTimeout(load, 4000); }
 

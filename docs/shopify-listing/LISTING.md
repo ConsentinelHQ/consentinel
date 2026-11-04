@@ -16,11 +16,12 @@ See every ad tracker that keeps running after a shopper opts out. Free scan on i
 
 ## App details
 
-Your consent app says it blocks trackers. We check. Consentinel visits your store three ways: Reject all, Accept all, and with Global Privacy Control on. It names every ad vendor that keeps tracking after a shopper says no, with the request that proves it. Retailers are being sued under California's wiretap law for exactly this. Install for a free scan, then turn on daily monitoring to get an email the day something new starts leaking.
+Your consent app says it blocks trackers. We check. Consentinel visits your store three ways: Reject all, Accept all, and with Global Privacy Control on. It names every ad vendor that keeps tracking after a shopper says no, with the request that proves it. Retailers are being sued under California's wiretap law for exactly this. It also reads your theme to show the exact file and line each tag is hardcoded in, so you can fix it in minutes. Install for a free scan, then turn on daily monitoring to get an email the day something new starts leaking.
 
 ## Features
 
 - Free scan of your live storefront the moment you install
+- Shows the theme file and line each ad tag lives in, and whether it has a consent check
 - Works with any consent app: Consentmo, Pandectes, OneTrust, Cookiebot
 - Daily rescans and email alerts when a new tracker ignores an opt-out
 
@@ -48,24 +49,25 @@ GPC, cookie consent, CCPA, opt-out, privacy compliance
 ## Links
 
 - **Privacy policy:** https://www.getconsentinel.com/privacy
-- **Website:** https://www.getconsentinel.com
+- **Website:** https://www.getconsentinel.com/shopify/help
 - **Support email:** charlie@consentinelhq.com
-- **FAQ:** https://www.getconsentinel.com/gpc
+- **FAQ:** https://www.getconsentinel.com/shopify/help
 
 ## For the review team
 
 Testing instructions:
 
-> Install on any store. The app scans the store's primary domain right away and shows results in about a minute. Development stores are password protected, so the scan reports "Your store is password protected"; turn off the storefront password under Online Store > Preferences and click Try again for a full scan. "Start free trial" creates a test charge on development stores. No setup or extra permissions are needed: the app requests no access scopes.
+> Install on any store. The app scans the store's primary domain right away and shows results in about a minute. Development stores are password protected, so the scan reports "Your store is password protected"; turn off the storefront password under Online Store > Preferences and click Try again for a full scan. "Start free trial" creates a test charge on development stores. The "Store setup" card uses the two read-only scopes: read_themes lists the live theme file and line where each ad tag is hardcoded (with an Edit code link into the theme editor), and read_privacy_settings shows whether Shopify's cookie banner and "Do not sell or share" page are on. Both work on password-protected development stores. To see a tag found, add `<script src="https://connect.facebook.net/en_US/fbevents.js"></script>` to layout/theme.liquid and reload the app. All charges go through the Shopify Billing API; nothing in the app links to our website's pricing or checkout, and the full report opens without site navigation.
 
 ## Screencast (you record, about 2 minutes)
 
 Record the screen with QuickTime (File > New Screen Recording), upload unlisted to YouTube or Loom, paste the link.
 
 1. Dev Dashboard > install Consentinel on the test store (show the install screen).
-2. App opens, scan runs, results show.
-3. Click Open full report, scroll briefly, close the tab.
-4. Click Start free trial, approve the test charge, land back on "Monitoring on".
-5. Uninstall the app from Settings > Apps (shows clean uninstall).
+2. App opens, approve the read_themes and read_privacy_settings permissions, scan runs, results show.
+3. Scroll to Store setup: privacy settings and the theme file and line for each hardcoded tag. Click Edit code to show it opens the theme editor.
+4. Click Open full report, scroll briefly, close the tab.
+5. Click Start free trial, approve the test charge, land back on "Monitoring on".
+6. Uninstall the app from Settings > Apps (shows clean uninstall).
 
 Voiceover isn't required. If you want one: "Consentinel tests whether a store's trackers stop after a shopper opts out, then monitors it daily."

@@ -9,8 +9,9 @@ application_url = "https://www.getconsentinel.com/shopify"
 embedded = true
 
 [access_scopes]
-# None needed: we scan the public storefront and bill through the Billing API.
-scopes = ""
+# Read-only. read_themes finds where each ad tag is hardcoded in the live theme;
+# read_privacy_settings checks Shopify's cookie banner and "Do not sell" page.
+scopes = "read_themes,read_privacy_settings"
 use_legacy_install_flow = false
 
 [auth]
