@@ -1,13 +1,15 @@
 import { gather, MIN_VENDORS, tier } from "./evidence.js";
 import {
   createDraft,
-  draftExists,
+  deleteDraft,
+  getDraft,
   normDomain,
   search,
   updateRow,
   type Sheet,
   type SheetRow,
 } from "./google.js";
+import { extractText } from "./mail.js";
 import { GONE } from "./referral.js";
 import { nyDate, record, type Entry } from "./state.js";
 import { members, type Member } from "./team.js";
@@ -15,10 +17,10 @@ import { isShopify } from "./queue.js";
 import { render } from "./template.js";
 
 /**
- * First-email drafts (contact 1 or a colleague) that Charlie deleted before
- * sending. The ledger still says "drafted", so nothing redrafts them. This
- * rescans each company once and writes fresh drafts in the current template.
- * Follow-ups are left alone. Never sends.
+ * First-email drafts (contact 1 or a colleague) that need the current template:
+ * ones Charlie deleted before sending, and unsent ones still carrying the old
+ * legal-threat wording, which are replaced. Drafts already in the new wording
+ * are left alone, as are follow-ups. Rescans each company once. Never sends.
  */
 
 export interface Orphan {
@@ -30,6 +32,8 @@ export interface Orphan {
 
 /** Only drafts from the last two weeks: older ones were cleaned up on purpose. */
 export const REDRAFT_DAYS = 14;
+/** Old wording that reads as a threat. A draft with any of it is replaced. */
+export const OLD_WORDING = /CIPA|lawsuit|legal exposure|demand letter|regulator fines/i;
 const FIRST_EMAIL = /^(draft mode|redraft)/;
 const LIVE = new Set(["Scanned - ready", "Emailed", "Followed up"]);
 
@@ -76,6 +80,7 @@ export async function redraft(
   candidates: number;
   redrafted: string[];
   stillThere: number;
+  replaced: number;
   sent: string[];
   skipped: Record<string, string>;
 }> {
@@ -84,6 +89,7 @@ export async function redraft(
     candidates: found.length,
     redrafted: [] as string[],
     stillThere: 0,
+    replaced: 0,
     sent: [] as string[],
     skipped: {} as Record<string, string>,
   };
@@ -99,7 +105,9 @@ export async function redraft(
   const evidence = new Map<string, Awaited<ReturnType<typeof gather>>>();
   for (const x of found) {
     if (out.redrafted.length >= o.limit) break;
-    if (await draftExists(x.draftId)) {
+    const draft = await getDraft(x.draftId);
+    // Still there in the new wording: leave it for Charlie.
+    if (draft && !OLD_WORDING.test(extractText(draft))) {
       out.stillThere++;
       continue;
     }
@@ -130,6 +138,11 @@ export async function redraft(
       ev,
       postalAddress: o.postalAddress,
     });
+    // Swap the old draft only once the new one is ready, so nobody is left without one.
+    if (draft) {
+      await deleteDraft(x.draftId);
+      out.replaced++;
+    }
     const id = await createDraft(o.from, x.m.email, email);
     record({
       domain: x.domain,
