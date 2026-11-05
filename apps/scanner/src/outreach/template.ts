@@ -119,12 +119,12 @@ export const SUBJECT_QUERY = '(subject:"Privacy issues on" OR subject:"Opt-out c
 const SITE = "https://www.getconsentinel.com/";
 
 /** "9 ad vendors were still firing, including Meta, Google Ads and TikTok". */
-function wereFiring(list: string[]): string {
+function wereFiring(list: string[], site: string): string {
   const n = list.length;
   const named = joinNames(byProminence(list).slice(0, 3));
   return n <= 3
-    ? `${String(n)} ad vendors were still firing: ${named}`
-    : `${String(n)} ad vendors were still firing, including ${named}`;
+    ? `${String(n)} ad vendors were still firing on ${site}: ${named}`
+    : `${String(n)} ad vendors were still firing on ${site}, including ${named}`;
 }
 
 /** GPC leads when we have it; the reject click otherwise. */
@@ -136,9 +136,9 @@ function gpcLed(ev: Evidence): boolean {
 export function headline(ev: Evidence, site: string): string {
   if (gpcLed(ev)) {
     const list = ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
-    return `I ran a scan on ${site} with the browser's opt-out signal (Global Privacy Control) turned on, and ${wereFiring(list)}.`;
+    return `With the browser's opt-out signal (Global Privacy Control) turned on, ${wereFiring(list, site)}.`;
   }
-  return `I ran a scan on ${site}, and after declining cookies, ${wereFiring(ev.firing)}.`;
+  return `After declining cookies, ${wereFiring(ev.firing, site)}.`;
 }
 
 /**
