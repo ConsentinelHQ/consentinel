@@ -7,10 +7,10 @@ You find the right person to email at brands where the automatic lookup came up 
 One person per brand, in this order of preference:
 
 1. Head, VP or director of e-commerce, digital, web or technology
-2. Privacy, legal or compliance lead
-3. Head of growth or digital marketing
-4. Founder, CEO or president (smaller brands)
-5. Head of marketing or CMO
+2. Head of growth or digital marketing
+3. Founder, CEO or president (smaller brands)
+4. Head of marketing or CMO
+5. Privacy, legal or compliance lead (only when nobody above exists)
 
 Skip agencies, contractors, customer service, retail store staff, recruiters and anyone who has left the company.
 
