@@ -31,7 +31,7 @@ export interface TemplateInput {
 /** One line per role, after the findings. Plain, no pitch. */
 export const ROLE_LINE: Readonly<Record<Role, string | null>> = {
   owner: null,
-  risk: "I'm sending this to you because the legal exposure here sits with the company, not with the ad vendors.",
+  risk: null,
   budget: "Most of these are marketing tags, so the fix likely runs through your team.",
 };
 
@@ -153,11 +153,12 @@ export function render({ domain, firstName, ev, postalAddress, referredBy }: Tem
   const policy = ev.notMentioned?.length
     ? "Some of them aren't named in your privacy policy either."
     : null;
+  // Why it matters now, with no legal threat: more shoppers will be sending the signal.
   const why = gpcLed(ev)
-    ? "California requires sites to honor that signal, and tags firing after an opt-out is the pattern behind the current wave of CIPA suits."
-    : "Tags firing after a visitor opts out is the pattern behind the current wave of CIPA suits.";
+    ? "Starting January 1, every browser has to offer that setting, so a lot more of your shoppers will be sending it."
+    : null;
   const body = (site: string): string =>
-    [headline(ev, site), ...(policy ? [policy] : []), why].join(" ");
+    [headline(ev, site), ...(policy ? [policy] : []), ...(why ? [why] : [])].join(" ");
   const peer =
     "I've spent years managing marketing tags for different companies, and these gaps almost always come from a tag that hasn't been connected to the consent setup, so it's typically a quick and easy fix.";
   const ask =

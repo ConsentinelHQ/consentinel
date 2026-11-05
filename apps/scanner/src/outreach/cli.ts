@@ -60,6 +60,14 @@ import { recordOpens } from "./views.js";
 import { computeStats } from "./stats.js";
 import { funnel, renderFunnel } from "./funnel.js";
 import { draftPress, pressSync, setPressAddress } from "./press.js";
+import {
+  addAgency,
+  agencyClientDomains,
+  agencyStatus,
+  agencySync,
+  runAgencies,
+  setAgencyContact,
+} from "./agency.js";
 import { addToQueue, readQueue } from "./queue.js";
 import {
   draftLeads,
@@ -89,6 +97,9 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
+ *   pnpm --filter @consentinel/scanner outreach agency add --domain a.com --name "A" --clients x.com,y.com,z.com --source url
+ *   pnpm --filter @consentinel/scanner outreach agency run [--limit 2] | agency status
+ *   pnpm --filter @consentinel/scanner outreach agency contact --domain a.com --name "First Last" --title t --source url
  *   pnpm --filter @consentinel/scanner outreach brief [--hours 24]
  *   pnpm --filter @consentinel/scanner outreach stats
  *   pnpm --filter @consentinel/scanner outreach mark --domain a.com --status Meeting --note "call Fri"
@@ -177,7 +188,13 @@ async function run(args: string[]): Promise<Summary> {
   const handled = new Set(
     ledger.filter((e) => e.action === "sent" || e.action === "drafted").map((e) => e.domain),
   );
-  const contacted = new Set([...sheet.domains, ...legacyDomains(), ...handled]);
+  // Clients of agencies we pitch never get a brand cold email too.
+  const contacted = new Set([
+    ...sheet.domains,
+    ...legacyDomains(),
+    ...handled,
+    ...agencyClientDomains(),
+  ]);
   // A backlog row that came up empty (no contact, failed rescan) waits a month before another try.
   const tried = recentlyTried(ledger, now, RETRY_AFTER_DAYS);
   // New domains must not be anywhere yet; backlog rows are in the sheet by definition.
@@ -548,7 +565,15 @@ async function main(): Promise<void> {
       } catch (error) {
         press = { pressError: error instanceof Error ? error.message : String(error) };
       }
-      console.log(JSON.stringify({ ...summary, ...inbound, ...opens, ...press }, null, 2));
+      let agency = {};
+      try {
+        agency = { agency: await agencySync(cfg("OUTREACH_FROM")) };
+      } catch (error) {
+        agency = { agencyError: error instanceof Error ? error.message : String(error) };
+      }
+      console.log(
+        JSON.stringify({ ...summary, ...inbound, ...opens, ...press, ...agency }, null, 2),
+      );
       break;
     }
     case "queue": {
@@ -640,6 +665,34 @@ async function main(): Promise<void> {
         );
       } else {
         console.log(JSON.stringify(await draftPress(cfg("OUTREACH_FROM")), null, 2));
+      }
+      break;
+    }
+    case "agency": {
+      const [sub = "status", ...rest] = args;
+      if (sub === "add") {
+        console.log(
+          addAgency({
+            domain: flag(rest, "--domain") ?? "",
+            name: flag(rest, "--name") ?? "",
+            clients: (flag(rest, "--clients") ?? "").split(","),
+            source: flag(rest, "--source") ?? "",
+          }),
+        );
+      } else if (sub === "run") {
+        const limit = Number(flag(rest, "--limit") ?? "2");
+        console.log(JSON.stringify(await runAgencies(cfg("OUTREACH_FROM"), limit, log)));
+      } else if (sub === "contact") {
+        console.log(
+          await setAgencyContact(cfg("OUTREACH_FROM"), {
+            domain: flag(rest, "--domain") ?? "",
+            name: flag(rest, "--name") ?? "",
+            title: flag(rest, "--title") ?? "",
+            source: flag(rest, "--source") ?? "",
+          }),
+        );
+      } else {
+        console.log(JSON.stringify(agencyStatus(), null, 2));
       }
       break;
     }

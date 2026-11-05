@@ -87,7 +87,7 @@ const esc = (s: string): string =>
 export function leadEmail(lead: Lead, postalAddress: string): Email {
   const domain = normDomain(lead.url ?? "");
   const named = joinNames(byProminence(lead.vendors).slice(0, 3));
-  const found = `Your scan found ${String(lead.critical)} critical ${lead.critical === 1 ? "issue" : "issues"}${named ? `, including ${named}` : ""}. Those are tags that run after a visitor opts out, which is what CIPA claims and regulator fines are built on.`;
+  const found = `Your scan found ${String(lead.critical)} critical ${lead.critical === 1 ? "issue" : "issues"}${named ? `, including ${named}` : ""}. Those are tags that keep running after a visitor opts out.`;
   const lines = [
     "Hi there,",
     "",

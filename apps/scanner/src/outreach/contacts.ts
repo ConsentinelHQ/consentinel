@@ -25,10 +25,11 @@ export interface Contact {
  */
 export const TITLE_TIERS = [
   /e-?commerce|digital product|product|engineering|technology|\bcto\b|web/i,
-  /privacy|legal|counsel|compliance/i,
   /digital|growth/i,
   /founder|\bceo\b|president|owner/i,
   /marketing|\bcmo\b/i,
+  // Last: an unsolicited note to legal reads as a threat, even a friendly one.
+  /privacy|legal|counsel|compliance/i,
 ];
 
 /** Index into TITLE_TIERS, or -1 when we wouldn't email this title. */

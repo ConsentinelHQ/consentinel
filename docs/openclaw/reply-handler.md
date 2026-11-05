@@ -24,9 +24,12 @@ It prints JSON:
 - `press.replies`: a reporter we pitched wrote back. Message Charlie right away, every one: `Press reply: <name> (<outlet>) - <one line on what they said>`. If `auto` is true, it's an out-of-office: say so in a few words. Never draft or send anything back.
 - `press.followUps`: follow-up drafts made in the pitch thread. Tell Charlie in one line: `Press follow-ups in Gmail Drafts: <names>`.
 - `pressError`: tell Charlie once.
+- `agency.replies`: an agency we emailed wrote back. Message Charlie right away, every one: `Agency reply: <agency> - <one line on what they said>`. If `auto` is true, it's an out-of-office: say so in a few words. Never draft or send anything back.
+- `agency.followUps`: follow-up drafts made in the agency thread. Tell Charlie in one line: `Agency follow-ups in Gmail Drafts: <names>`.
+- `agencyError`: tell Charlie once.
 - `inboundError` or `reportOpensError`: tell Charlie once, then carry on with the rest.
 
-If `replies`, `inquiries`, `prospectScans`, `reportOpens`, `referrals`, `press.replies` and `press.followUps` are empty and there are no bounces, stop. Don't message Charlie.
+If `replies`, `inquiries`, `prospectScans`, `reportOpens`, `referrals`, `press.replies`, `press.followUps`, `agency.replies` and `agency.followUps` are empty and there are no bounces, stop. Don't message Charlie.
 
 ## Classify each reply
 
