@@ -30,7 +30,7 @@ export interface TemplateInput {
   shopify?: boolean;
 }
 
-export const SHOPIFY_LISTING = "https://apps.shopify.com/consentinel-opt-out-checker";
+export const SHOPIFY_LISTING = "https://apps.shopify.com/consentinel-1";
 
 /** One line per role, after the findings. Plain, no pitch. */
 export const ROLE_LINE: Readonly<Record<Role, string | null>> = {

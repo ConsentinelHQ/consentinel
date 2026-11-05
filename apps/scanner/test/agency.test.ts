@@ -103,11 +103,11 @@ console.log("agency tests passed");
   });
   assert.match(
     shop.text,
-    /Shopify App Store \(https:\/\/apps\.shopify\.com\/consentinel-opt-out-checker\)/,
+    /Shopify App Store \(https:\/\/apps\.shopify\.com\/consentinel-1\)/,
   );
   assert.match(
     shop.html,
-    /<a href="https:\/\/apps\.shopify\.com\/consentinel-opt-out-checker">Shopify App Store<\/a>/,
+    /<a href="https:\/\/apps\.shopify\.com\/consentinel-1">Shopify App Store<\/a>/,
   );
   const plain = render({ domain: "brand.com", firstName: "Ann", ev: e, postalAddress: "" });
   assert.doesNotMatch(plain.text + plain.html, /App Store/);
