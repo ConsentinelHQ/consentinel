@@ -101,10 +101,7 @@ console.log("agency tests passed");
     postalAddress: "",
     shopify: true,
   });
-  assert.match(
-    shop.text,
-    /Shopify App Store \(https:\/\/apps\.shopify\.com\/consentinel-1\)/,
-  );
+  assert.match(shop.text, /Shopify App Store \(https:\/\/apps\.shopify\.com\/consentinel-1\)/);
   assert.match(
     shop.html,
     /<a href="https:\/\/apps\.shopify\.com\/consentinel-1">Shopify App Store<\/a>/,
