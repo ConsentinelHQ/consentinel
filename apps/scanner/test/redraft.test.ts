@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { orphans } from "../src/outreach/redraft.js";
+import { OLD_WORDING, orphans } from "../src/outreach/redraft.js";
 import type { SheetRow } from "../src/outreach/google.js";
 import type { Entry } from "../src/outreach/state.js";
 
@@ -62,3 +62,11 @@ assert.equal(
 );
 assert.equal(orphans([row()], [d("ann@a.com", "x", "follow-up")], now).length, 0);
 console.log("redraft tests passed");
+
+// Old wording is caught; the new template isn't.
+assert.match("the pattern behind the current wave of CIPA suits.", OLD_WORDING);
+assert.doesNotMatch(
+  "Starting January 1, every browser has to offer that setting, so a lot more of your shoppers will be sending it.",
+  OLD_WORDING,
+);
+console.log("old wording check passed");
