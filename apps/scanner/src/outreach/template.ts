@@ -172,13 +172,15 @@ export function render({
     [headline(ev, site), ...(policy ? [policy] : []), ...(why ? [why] : [])].join(" ");
   const peer =
     "I've spent years managing marketing tags for different companies, and these gaps almost always come from a tag that hasn't been connected to the consent setup, so it's typically a quick and easy fix.";
-  const ask =
-    "If you'd like, I'm happy to send over the full report. It shows each request and when it fired. Hope this helps!";
-  // A smaller ask than replying: run it themselves from their admin.
-  const app = shopify
-    ? (link: string): string =>
-        `It's also on the ${link} if you'd rather run the check yourself from your admin.`
-    : null;
+  // Shopify stores get a no-reply option inside the ask: run it themselves from their admin.
+  const ask = (link: string | null): string =>
+    [
+      "If you'd like, I'm happy to send over the full report. It shows each request and when it fired.",
+      ...(link
+        ? [`Or if you'd rather run the check yourself, Consentinel is also on the ${link}.`]
+        : []),
+      "Hope this helps!",
+    ].join(" ");
   const sig = ["Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather not hear from me, just say so and I won't email again.";
 
@@ -192,9 +194,8 @@ export function render({
     "",
     peer,
     "",
-    ask,
+    ask(shopify ? `Shopify App Store (${SHOPIFY_LISTING})` : null),
     "",
-    ...(app ? [app(`Shopify App Store (${SHOPIFY_LISTING})`), ""] : []),
     ...sig,
     "",
     optOut,
@@ -209,10 +210,11 @@ export function render({
     p(esc(intro("\u0000")).replace("\u0000", a(SITE, "Consentinel"))),
     p(esc(body("\u0000")).replace("\u0000", a(`https://${domain}`, domain))),
     p(esc(peer)),
-    p(esc(ask)),
-    ...(app
-      ? [p(esc(app("\u0000")).replace("\u0000", a(SHOPIFY_LISTING, "Shopify App Store")))]
-      : []),
+    p(
+      shopify
+        ? esc(ask("\u0000")).replace("\u0000", a(SHOPIFY_LISTING, "Shopify App Store"))
+        : esc(ask(null)),
+    ),
     p(sig.map(esc).join("<br>")),
     `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,
   ].join("\n");
