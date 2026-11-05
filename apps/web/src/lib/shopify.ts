@@ -138,18 +138,19 @@ export function bearer(request: Request): string | null {
 
 /** Trades a session token for a short-lived (expiring) offline Admin API token. */
 export async function exchangeToken(session: SessionToken, config: ShopifyConfig): Promise<string> {
+  // Form-encoded, exactly as Shopify documents it. Public apps must get expiring
+  // offline tokens; we exchange per request and never store them, so the refresh
+  // token is dropped.
   const response = await fetch(`https://${session.shop}/admin/oauth/access_token`, {
     method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify({
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: new URLSearchParams({
       client_id: config.apiKey,
       client_secret: config.apiSecret,
       grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
       subject_token: session.raw,
       subject_token_type: "urn:ietf:params:oauth:token-type:id_token",
       requested_token_type: "urn:shopify:params:oauth:token-type:offline-access-token",
-      // Public apps must use expiring offline tokens. We exchange per request and
-      // never store the token, so the refresh token is simply dropped.
       expiring: "1",
     }),
   });
@@ -157,8 +158,10 @@ export async function exchangeToken(session: SessionToken, config: ShopifyConfig
     const text = (await response.text().catch(() => "")).slice(0, 300);
     throw new Error(`token exchange failed: ${response.status} ${text}`);
   }
-  const data = (await response.json()) as { access_token?: string };
+  const data = (await response.json()) as { access_token?: string; expires_in?: number };
   if (!data.access_token) throw new Error("token exchange returned no token");
+  // A token without expiry is the deprecated kind Shopify delists apps for.
+  if (!data.expires_in) console.error("shopify: token exchange returned a non-expiring token");
   return data.access_token;
 }
 
