@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { OLD_WORDING, orphans } from "../src/outreach/redraft.js";
+import { followUpOrphans, OLD_WORDING, orphans } from "../src/outreach/redraft.js";
 import type { SheetRow } from "../src/outreach/google.js";
 import type { Entry } from "../src/outreach/state.js";
 
@@ -70,3 +70,26 @@ assert.doesNotMatch(
   OLD_WORDING,
 );
 console.log("old wording check passed");
+
+// Follow-ups: plain ones count, GPC re-touches don't, latest per person wins.
+{
+  const fu: Entry[] = [
+    d("ann@a.com", "f1", "follow-up"),
+    d("bo@a.com", "f2", "follow-up, contact 2"),
+    d("bo@a.com", "f3", "follow-up, contact 2 (redraft)"),
+    d("ann@a.com", "rt", "follow-up: gpc re-touch", "2026-11-03T00:00:00Z"),
+  ];
+  assert.deepEqual(
+    followUpOrphans([row()], fu, now).map((o) => [o.m.email, o.draftId]),
+    [
+      ["ann@a.com", "f1"],
+      ["bo@a.com", "f3"],
+    ],
+  );
+  assert.equal(followUpOrphans([row({ Status: "Dead" })], fu, now).length, 0);
+  assert.equal(
+    followUpOrphans([row()], [d("ann@a.com", "x", "follow-up: gpc re-touch")], now).length,
+    0,
+  );
+  console.log("follow-up orphans passed");
+}
