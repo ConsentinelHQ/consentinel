@@ -105,15 +105,15 @@ export async function redraft(
   const evidence = new Map<string, Awaited<ReturnType<typeof gather>>>();
   for (const x of found) {
     if (out.redrafted.length >= o.limit) break;
+    // Sent first: Gmail can still answer for a draft id after it went out.
+    if ((await search(`in:sent to:${x.m.email}`, 1)).length) {
+      out.sent.push(x.m.email);
+      continue;
+    }
     const draft = await getDraft(x.draftId);
     // Still there in the new wording: leave it for Charlie.
     if (draft && !OLD_WORDING.test(extractText(draft))) {
       out.stillThere++;
-      continue;
-    }
-    // Gone because it went out: sync records the send.
-    if ((await search(`in:sent to:${x.m.email}`, 1)).length) {
-      out.sent.push(x.m.email);
       continue;
     }
     let ev = evidence.get(x.domain);
