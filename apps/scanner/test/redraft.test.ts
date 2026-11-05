@@ -3,28 +3,62 @@ import { orphans } from "../src/outreach/redraft.js";
 import type { SheetRow } from "../src/outreach/google.js";
 import type { Entry } from "../src/outreach/state.js";
 
-const row = (n: number, v: Record<string, string>): SheetRow => ({
-  rowNumber: n,
+const now = new Date("2026-11-05T15:00:00Z");
+const row = (v: Record<string, string> = {}): SheetRow => ({
+  rowNumber: 2,
   values: {
     Domain: "a.com",
-    Status: "Scanned - ready",
-    "Next action": "Review Gmail draft and send",
+    Status: "Emailed",
+    Contact: "Ann Lee",
     Email: "Ann@a.com",
+    "Email check": "valid (anymail)",
+    "Contact 2": "Bo Kim",
+    "Email 2": "bo@a.com",
+    "Email check 2": "valid (researched)",
     ...v,
   },
 });
+const d = (email: string, id: string, reason: string, at = "2026-11-04T08:00:00Z"): Entry => ({
+  at,
+  domain: "a.com",
+  action: "drafted",
+  email,
+  messageId: id,
+  reason,
+});
 const ledger: Entry[] = [
-  { at: "1", domain: "a.com", action: "drafted", email: "ann@a.com", messageId: "old" },
-  { at: "2", domain: "a.com", action: "drafted", email: "ann@a.com", messageId: "new" },
-  { at: "3", domain: "b.com", action: "sent", email: "bo@b.com", messageId: "s" },
+  d("ann@a.com", "old", "draft mode"),
+  d("ann@a.com", "new", "draft mode"),
+  d("bo@a.com", "bo1", "draft mode, contact 2 (researched)"),
+  d("bo@a.com", "fu", "follow-up, contact 2"),
 ];
-const got = orphans([row(2, {})], ledger);
-assert.equal(got.length, 1);
-assert.equal(got[0]?.draftId, "new");
-assert.equal(got[0]?.email, "ann@a.com");
-// Sent, other statuses, other actions and no ledger draft are all left alone.
-assert.equal(orphans([row(2, { "First email": "2026-11-03" })], ledger).length, 0);
-assert.equal(orphans([row(2, { Status: "Emailed" })], ledger).length, 0);
-assert.equal(orphans([row(2, { "Next action": "Find contact" })], ledger).length, 0);
-assert.equal(orphans([row(2, { Domain: "b.com", Email: "bo@b.com" })], ledger).length, 0);
+const got = orphans([row()], ledger, now);
+assert.deepEqual(
+  got.map((o) => [o.m.email, o.draftId, o.m.slot]),
+  [
+    ["ann@a.com", "new", 1],
+    ["bo@a.com", "bo1", 2],
+  ],
+);
+// Sent, dead rows, bounced people, old drafts and follow-ups are left alone.
+const sent: Entry = {
+  at: "2026-11-04T09:00:00Z",
+  domain: "a.com",
+  action: "sent",
+  email: "bo@a.com",
+};
+assert.deepEqual(
+  orphans([row()], [...ledger, sent], now).map((o) => o.m.email),
+  ["ann@a.com"],
+);
+assert.equal(orphans([row({ Status: "Dead" })], ledger, now).length, 0);
+assert.deepEqual(
+  orphans([row({ "Email check 2": "bounced" })], ledger, now).map((o) => o.m.email),
+  ["ann@a.com"],
+);
+assert.equal(
+  orphans([row()], [d("ann@a.com", "x", "draft mode", "2026-10-01T00:00:00Z")], now).length,
+  0,
+);
+assert.equal(orphans([row()], [d("ann@a.com", "x", "follow-up")], now).length, 0);
 console.log("redraft tests passed");
