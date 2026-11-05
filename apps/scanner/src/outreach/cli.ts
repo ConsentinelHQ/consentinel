@@ -68,7 +68,7 @@ import {
   runAgencies,
   setAgencyContact,
 } from "./agency.js";
-import { addToQueue, readQueue } from "./queue.js";
+import { addToQueue, isShopify, readQueue } from "./queue.js";
 import {
   draftLeads,
   fetchInbound,
@@ -394,6 +394,7 @@ async function run(args: string[]): Promise<Summary> {
       ),
     } as Row;
 
+    const shopifyStore = await isShopify(domain);
     const results: { email: string; sent: boolean; why: string }[] = [];
     // Contact 1 only. Colleagues are saved on the row and drafted a few days later by
     // draftTeam if nobody has replied: three people at one company in the same minute reads as a blast.
@@ -401,6 +402,7 @@ async function run(args: string[]): Promise<Summary> {
       const others: string[] = [];
       const email = render({
         domain,
+        shopify: shopifyStore,
         firstName: m.c.firstName,
         ev,
         postalAddress: postal,

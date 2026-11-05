@@ -26,7 +26,11 @@ export interface TemplateInput {
   alsoSent?: string[];
   /** First name of the contact who left and whose auto-reply named this person. "" when unknown. */
   referredBy?: string;
+  /** Shopify store: offer the App Store install as a no-reply option. */
+  shopify?: boolean;
 }
+
+export const SHOPIFY_LISTING = "https://apps.shopify.com/consentinel-opt-out-checker";
 
 /** One line per role, after the findings. Plain, no pitch. */
 export const ROLE_LINE: Readonly<Record<Role, string | null>> = {
@@ -142,7 +146,14 @@ export function headline(ev: Evidence, site: string): string {
  * easy fix, an offer to send the report. Two links only: Consentinel and their site.
  * Colleagues get their own email later (team-draft), never named here.
  */
-export function render({ domain, firstName, ev, postalAddress, referredBy }: TemplateInput): Email {
+export function render({
+  domain,
+  firstName,
+  ev,
+  postalAddress,
+  referredBy,
+  shopify,
+}: TemplateInput): Email {
   const greeting = `Hi ${firstName.trim() || "there"},`;
   const referral =
     referredBy === undefined
@@ -163,6 +174,11 @@ export function render({ domain, firstName, ev, postalAddress, referredBy }: Tem
     "I've spent years managing marketing tags for different companies, and these gaps almost always come from a tag that hasn't been connected to the consent setup, so it's typically a quick and easy fix.";
   const ask =
     "If you'd like, I'm happy to send over the full report. It shows each request and when it fired. Hope this helps!";
+  // A smaller ask than replying: run it themselves from their admin.
+  const app = shopify
+    ? (link: string): string =>
+        `It's also on the ${link} if you'd rather run the check yourself from your admin.`
+    : null;
   const sig = ["Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather not hear from me, just say so and I won't email again.";
 
@@ -178,6 +194,7 @@ export function render({ domain, firstName, ev, postalAddress, referredBy }: Tem
     "",
     ask,
     "",
+    ...(app ? [app(`Shopify App Store (${SHOPIFY_LISTING})`), ""] : []),
     ...sig,
     "",
     optOut,
@@ -193,6 +210,9 @@ export function render({ domain, firstName, ev, postalAddress, referredBy }: Tem
     p(esc(body("\u0000")).replace("\u0000", a(`https://${domain}`, domain))),
     p(esc(peer)),
     p(esc(ask)),
+    ...(app
+      ? [p(esc(app("\u0000")).replace("\u0000", a(SHOPIFY_LISTING, "Shopify App Store")))]
+      : []),
     p(sig.map(esc).join("<br>")),
     `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,
   ].join("\n");
