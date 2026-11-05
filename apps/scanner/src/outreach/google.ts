@@ -162,6 +162,16 @@ export async function deleteDraft(id: string): Promise<boolean> {
   return true;
 }
 
+/** True while the draft is still in Gmail. Gone means sent or deleted. */
+export async function draftExists(id: string): Promise<boolean> {
+  const res = await fetch(`${GMAIL}/drafts/${encodeURIComponent(id)}?format=minimal`, {
+    headers: { Authorization: `Bearer ${await accessToken()}` },
+  });
+  if (res.status === 404) return false;
+  if (!res.ok) throw new Error(`Google ${String(res.status)}: ${(await res.text()).slice(0, 300)}`);
+  return true;
+}
+
 /** Drafts sitting in Gmail, up to 500. */
 export async function countDrafts(): Promise<number> {
   const r = await google<{ drafts?: unknown[] }>(`${GMAIL}/drafts?maxResults=500`);

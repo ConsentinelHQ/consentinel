@@ -80,6 +80,7 @@ import {
 import { prep, reportLink } from "./prep.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
+import { redraft } from "./redraft.js";
 
 /**
  * Daily outreach: scan -> evidence -> contact -> email -> sheet.
@@ -97,6 +98,7 @@ import { render } from "./template.js";
  *   pnpm --filter @consentinel/scanner outreach leads [--limit 10]
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
+ *   pnpm --filter @consentinel/scanner outreach redraft [--limit 30]
  *   pnpm --filter @consentinel/scanner outreach agency add --domain a.com --name "A" --clients x.com,y.com,z.com --source url
  *   pnpm --filter @consentinel/scanner outreach agency run [--limit 2] | agency status
  *   pnpm --filter @consentinel/scanner outreach agency contact --domain a.com --name "First Last" --title t --source url
@@ -666,6 +668,25 @@ async function main(): Promise<void> {
       } else {
         console.log(JSON.stringify(await draftPress(cfg("OUTREACH_FROM")), null, 2));
       }
+      break;
+    }
+    case "redraft": {
+      const sheetId = cfg("OUTREACH_SHEET_ID");
+      const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
+      const result = await redraft(
+        {
+          sheetId,
+          tab,
+          sheet: await readSheet(sheetId, tab),
+          ledger: readLedger(),
+          from: cfg("OUTREACH_FROM"),
+          postalAddress: process.env["OUTREACH_POSTAL_ADDRESS"] ?? "",
+          minGpc: Number(cfg("OUTREACH_MIN_GPC_VENDORS", "8")),
+          limit: Number(flag(args, "--limit") ?? "30"),
+        },
+        log,
+      );
+      console.log(JSON.stringify(result, null, 2));
       break;
     }
     case "agency": {
