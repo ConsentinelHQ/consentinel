@@ -6,6 +6,7 @@ import { GONE, REFERRED } from "./referral.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record, type Entry } from "./state.js";
 import { WINDOW_DAYS } from "./team-research.js";
 import { col, members, type Member } from "./team.js";
+import { isShopify } from "./queue.js";
 import { render } from "./template.js";
 
 /**
@@ -90,8 +91,10 @@ export async function draftTeam(
       : undefined;
     const role = roleFor(m.title);
     const leaver = members(row.values).find((o) => /left company/i.test(o.check));
+    const shopifyStore = await isShopify(domain);
     const email = render({
       domain,
+      shopify: shopifyStore,
       firstName: m.firstName,
       ev,
       postalAddress: opts.postalAddress,

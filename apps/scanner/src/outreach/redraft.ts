@@ -11,6 +11,7 @@ import {
 import { GONE } from "./referral.js";
 import { nyDate, record, type Entry } from "./state.js";
 import { members, type Member } from "./team.js";
+import { isShopify } from "./queue.js";
 import { render } from "./template.js";
 
 /**
@@ -121,8 +122,10 @@ export async function redraft(
       out.skipped[x.m.email] = `rescan found weak evidence (${String(ev.firing.length)} vendors)`;
       continue;
     }
+    const shopifyStore = await isShopify(x.domain);
     const email = render({
       domain: x.domain,
+      shopify: shopifyStore,
       firstName: x.m.firstName,
       ev,
       postalAddress: o.postalAddress,

@@ -109,6 +109,22 @@ async function checkOne(input: string, taken: Set<string>): Promise<Check> {
   return { input, domain, ok: true, reason: signals.join(", ") };
 }
 
+/** True when the storefront is on Shopify. Any fetch error reads as false: the email just skips the App Store line. */
+export async function isShopify(domain: string): Promise<boolean> {
+  try {
+    const res = await fetch(`https://${domain}/`, {
+      redirect: "follow",
+      headers: { "User-Agent": UA, Accept: "text/html" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (res.headers.get("x-shopid") || res.headers.get("powered-by")?.includes("Shopify"))
+      return true;
+    return storeSignals((await res.text()).slice(0, 600_000)).includes("shopify");
+  } catch {
+    return false;
+  }
+}
+
 /** Check each candidate, queue the good ones, report every decision. */
 export async function addToQueue(
   candidates: string[],

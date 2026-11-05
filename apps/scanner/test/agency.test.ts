@@ -90,3 +90,26 @@ for (const e of [ev(["Meta", "TikTok", "Google Ads"]), ev(["Meta", "TikTok"], []
 }
 
 console.log("agency tests passed");
+
+// Shopify stores get the App Store line, linked in HTML; others don't.
+{
+  const e = ev(["Meta", "TikTok", "Google Ads"]);
+  const shop = render({
+    domain: "brand.com",
+    firstName: "Ann",
+    ev: e,
+    postalAddress: "",
+    shopify: true,
+  });
+  assert.match(
+    shop.text,
+    /Shopify App Store \(https:\/\/apps\.shopify\.com\/consentinel-opt-out-checker\)/,
+  );
+  assert.match(
+    shop.html,
+    /<a href="https:\/\/apps\.shopify\.com\/consentinel-opt-out-checker">Shopify App Store<\/a>/,
+  );
+  const plain = render({ domain: "brand.com", firstName: "Ann", ev: e, postalAddress: "" });
+  assert.doesNotMatch(plain.text + plain.html, /App Store/);
+  console.log("app store line passed");
+}
