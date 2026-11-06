@@ -111,9 +111,10 @@ const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /** Neutral subject. "Privacy issues" read like a demand letter. Older sends keep the old one. */
-export const subjectFor = (domain: string): string => `Opt-out check on ${domain}`;
+export const subjectFor = (domain: string): string => `Quick heads-up about ${domain}`;
 /** Gmail search for every first email we've sent, old subject and new. */
-export const SUBJECT_QUERY = '(subject:"Privacy issues on" OR subject:"Opt-out check on")';
+export const SUBJECT_QUERY =
+  '(subject:"Privacy issues on" OR subject:"Opt-out check on" OR subject:"Quick heads-up about")';
 
 /** The one finding the first email leads with: GPC when we have it, else the reject click. */
 const SITE = "https://www.getconsentinel.com/";
@@ -161,28 +162,24 @@ export function render({
       : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
   const intro = (name: string): string =>
     `I'm Charlie, I build ${name} - a tool that checks whether sites honor privacy opt-outs.`;
-  const policy = ev.notMentioned?.length
-    ? "Some of them aren't named in your privacy policy either."
-    : null;
   // Why it matters now, with no legal threat: more shoppers will be sending the signal.
   const why = gpcLed(ev)
     ? "Starting January 1, every browser has to offer that setting, so a lot more of your shoppers will be sending it."
     : null;
-  const body = (site: string): string =>
-    [headline(ev, site), ...(policy ? [policy] : []), ...(why ? [why] : [])].join(" ");
+  const body = (site: string): string => [headline(ev, site), ...(why ? [why] : [])].join(" ");
   const peer =
     "I've spent years managing marketing tags for different companies, and these gaps almost always come from a tag that hasn't been connected to the consent setup, so it's typically a quick and easy fix.";
   // Shopify stores get a no-reply option inside the ask: run it themselves from their admin.
   const ask = (link: string | null): string =>
     [
-      "If you'd like, I'm happy to send over the full report. It shows each request and when it fired.",
+      "If it'd be useful, I'm happy to send over the full report - it shows each tag and when it fired.",
       ...(link
-        ? [`Or if you'd rather run the check yourself, Consentinel is also on the ${link}.`]
+        ? [`Or if you'd rather check it yourself, Consentinel is also on the ${link}.`]
         : []),
-      "Hope this helps!",
+      "Either way, hope this helps!",
     ].join(" ");
   const sig = ["Charlie", "Founder, Consentinel"];
-  const optOut = "If you'd rather not hear from me, just say so and I won't email again.";
+  const optOut = "If you'd rather I didn't follow up, just let me know.";
 
   const text = [
     greeting,

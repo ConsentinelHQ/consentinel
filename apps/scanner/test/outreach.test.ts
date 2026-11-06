@@ -99,7 +99,7 @@ const email = render({
   ev: rejected,
   postalAddress: "PO Box 1, Boonton NJ",
 });
-assert.equal(email.subject, "Opt-out check on chomps.com");
+assert.equal(email.subject, "Quick heads-up about chomps.com");
 assert.match(email.text, /^Hi there,\n/);
 assert.match(email.text, /I'm Charlie, I build Consentinel/);
 assert.match(email.text, /chomps\.com/);
@@ -113,7 +113,7 @@ assert.doesNotMatch(email.text, /Sorry to bother|Sephora|also sent/);
 assert.match(email.text, /PO Box 1, Boonton NJ$/);
 assert.ok(email.text.split(/\s+/).length < 170, "stays short");
 const noAddr = render({ domain: "x.com", firstName: "A", ev: rejected, postalAddress: "" });
-assert.match(noAddr.text, /I won't email again\.$/);
+assert.match(noAddr.text, /just let me know\.$/);
 assert.doesNotMatch(noAddr.text + noAddr.html, /POSTAL ADDRESS/);
 assert.doesNotMatch(email.text, /—/, "no em dashes");
 
@@ -1075,7 +1075,8 @@ const withPol = render({
   ev: { ...gpc, notMentioned: ["TikTok"] },
   postalAddress: "",
 });
-assert.match(withPol.text, /aren't named in your privacy policy either/);
+// The policy gap stays out of the first email: it reads as an accusation.
+assert.doesNotMatch(withPol.text, /privacy policy/);
 
 const disc = (status: "checked" | "unreadable", notNamed: string[], cmp: string | null = null) =>
   ({
