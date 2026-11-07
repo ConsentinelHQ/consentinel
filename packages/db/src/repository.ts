@@ -790,6 +790,37 @@ export async function setSlackWebhook(
   await db.update(orgs).set({ slackWebhookUrl: url }).where(eq(orgs.id, orgId));
 }
 
+export async function getTeamsWebhook(db: Database, orgId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ url: orgs.teamsWebhookUrl })
+    .from(orgs)
+    .where(eq(orgs.id, orgId))
+    .limit(1);
+  return row?.url ?? null;
+}
+
+export async function setTeamsWebhook(
+  db: Database,
+  orgId: string,
+  url: string | null,
+): Promise<void> {
+  await db.update(orgs).set({ teamsWebhookUrl: url }).where(eq(orgs.id, orgId));
+}
+
+/** Org and Teams target for a site. Separate from Slack so one failing can't sink the other. */
+export async function getTeamsTargetForSite(
+  db: Database,
+  siteId: string,
+): Promise<{ orgId: string; url: string | null } | null> {
+  const [row] = await db
+    .select({ orgId: orgs.id, url: orgs.teamsWebhookUrl })
+    .from(sites)
+    .innerJoin(orgs, eq(orgs.id, sites.orgId))
+    .where(eq(sites.id, siteId))
+    .limit(1);
+  return row ?? null;
+}
+
 /** Org and Slack target for a site, for the worker's alert path. */
 export async function getSlackTargetForSite(
   db: Database,

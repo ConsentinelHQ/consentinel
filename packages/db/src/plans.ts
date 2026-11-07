@@ -18,6 +18,7 @@ export interface PlanSpec {
   historyDays: number;
   externalRecipients: number;
   slack: boolean;
+  teams: boolean;
   jira: boolean;
   pdfExport: boolean;
   workspaces: boolean;
@@ -25,7 +26,8 @@ export interface PlanSpec {
   api: boolean;
 }
 
-export type Feature = "slack" | "jira" | "pdfExport" | "workspaces" | "whiteLabel" | "api";
+export type Feature =
+  "slack" | "teams" | "jira" | "pdfExport" | "workspaces" | "whiteLabel" | "api";
 
 export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
   monitoring: {
@@ -38,6 +40,7 @@ export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
     historyDays: 30,
     externalRecipients: 10,
     slack: false,
+    teams: false,
     jira: false,
     pdfExport: false,
     workspaces: false,
@@ -54,6 +57,7 @@ export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
     historyDays: 365,
     externalRecipients: 25,
     slack: true,
+    teams: true,
     jira: true,
     pdfExport: true,
     workspaces: false,
@@ -70,6 +74,7 @@ export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
     historyDays: 365,
     externalRecipients: 100,
     slack: true,
+    teams: true,
     jira: true,
     pdfExport: true,
     workspaces: true,

@@ -38,14 +38,18 @@ export async function requireSession(): Promise<Session> {
   const effectiveOrgKey = clerkOrgId ?? `personal:${clerkUserId}`;
   const orgName = clerkOrgId ? (user?.username ?? "Organization") : email || "Personal";
 
+  // Only the id: a full-row select breaks every page if a deploy beats its migration.
   let [localOrg] = await database
-    .select()
+    .select({ id: orgs.id })
     .from(orgs)
     .where(eq(orgs.clerkOrgId, effectiveOrgKey))
     .limit(1);
 
   localOrg ??= (
-    await database.insert(orgs).values({ clerkOrgId: effectiveOrgKey, name: orgName }).returning()
+    await database
+      .insert(orgs)
+      .values({ clerkOrgId: effectiveOrgKey, name: orgName })
+      .returning({ id: orgs.id })
   )[0];
   if (!localOrg) throw new Error("failed to create org");
 

@@ -7,12 +7,16 @@ import {
   can,
   getBillingState,
   getSlackTargetForSite,
+  getTeamsTargetForSite,
   countPolicyVersionsSince,
   type Database,
   type DiffItem,
   type NewVersion,
 } from "@consentinel/db";
 import {
+  slackPayload,
+  teamsPayload,
+  type ChatMessage,
   sendDisclosureAlert,
   sendPolicyChangeAlert,
   sendRegressionAlert,
@@ -53,13 +57,11 @@ export async function alertOnRegression(
   }
 
   const { to, external } = await recipientsFor(db, scan.siteId, config);
-  // Slack is gated on the plan, not on who gets email, so it goes first.
-  await postSlackAlert(
+  // Chat is gated on the plan, not on who gets email, so it goes first.
+  await postChat(
     db,
     scan.siteId,
-    scan.url,
-    added.length,
-    `${config.APP_URL}/app/scans/${scanId}`,
+    regressionMessage(scan.url, added.length, `${config.APP_URL}/app/scans/${scanId}`),
   );
   if (to.length === 0 && external.length === 0) return;
 
@@ -119,7 +121,7 @@ export async function alertOnDisclosure(
 
   const reportUrl = `${config.APP_URL}/app/scans/${scanId}`;
   const { to, external } = await recipientsFor(db, scan.siteId, config);
-  await postSlack(db, scan.siteId, disclosureSlackText(scan.url, changes, reportUrl));
+  await postChat(db, scan.siteId, disclosureMessage(scan.url, changes, reportUrl));
   if (to.length === 0 && external.length === 0) return;
 
   const policyUrl = scan.result?.disclosure?.policies.find((p) => p.kind === "privacy")?.url;
@@ -169,11 +171,10 @@ export async function alertOnPolicyChange(
     if (!previous) continue;
     const diff = diffPolicy(previous.text, version.text);
     if (!isMeaningfulChange(diff)) continue;
-    await postSlack(
-      db,
-      scan.siteId,
-      `The ${version.kind} policy on ${new URL(scan.url).hostname.replace(/^www\./, "")} changed: ${String(diff.added.length)} paragraphs added, ${String(diff.removed.length)} removed. <${historyUrl}|See both versions>`,
-    );
+    await postChat(db, scan.siteId, {
+      text: `The ${version.kind} policy on ${new URL(scan.url).hostname.replace(/^www\./, "")} changed: ${String(diff.added.length)} paragraphs added, ${String(diff.removed.length)} removed.`,
+      link: { url: historyUrl, label: "See both versions" },
+    });
     if (to.length === 0 && external.length === 0) continue;
     const result = await sendPolicyChangeAlert({
       to,
@@ -200,14 +201,26 @@ export async function newDisclosureGaps(
   );
 }
 
-export function disclosureSlackText(
+export function disclosureMessage(
   siteUrl: string,
   changes: DisclosureChange[],
   reportUrl: string,
-): string {
+): ChatMessage {
   const host = new URL(siteUrl).hostname.replace(/^www\./, "");
   const names = changes.map((c) => c.vendor).join(", ");
-  return `${names} ${changes.length === 1 ? "is" : "are"} running on ${host} and the privacy policy doesn't mention ${changes.length === 1 ? "it" : "them"}. <${reportUrl}|See the report>`;
+  return {
+    text: `${names} ${changes.length === 1 ? "is" : "are"} running on ${host} and the privacy policy doesn't mention ${changes.length === 1 ? "it" : "them"}.`,
+    link: { url: reportUrl, label: "See the report" },
+  };
+}
+
+export function regressionMessage(siteUrl: string, count: number, reportUrl: string): ChatMessage {
+  const host = new URL(siteUrl).hostname.replace(/^www\./, "");
+  const noun = count === 1 ? "finding" : "findings";
+  return {
+    text: `${String(count)} new critical ${noun} on ${host}: trackers firing before consent.`,
+    link: { url: reportUrl, label: "See the evidence" },
+  };
 }
 
 /**
@@ -250,46 +263,34 @@ export async function newCriticalFindings(
   return diff.added.filter((f) => f.severity === "critical");
 }
 
-/** Never throws: a Slack outage must not fail the scan or block the email. */
-async function postSlack(db: Database, siteId: string, text: string): Promise<void> {
-  try {
-    const target = await getSlackTargetForSite(db, siteId);
-    if (!target?.url) return;
-    if (!can(await getBillingState(db, target.orgId), "slack")) return;
-    const res = await fetch(target.url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    if (!res.ok) console.error("slack alert not sent", { siteId, status: res.status });
-  } catch (error) {
-    console.error("slack alert failed", error);
-  }
+/** Posts to every chat app the org connected. Never throws. */
+async function postChat(db: Database, siteId: string, msg: ChatMessage): Promise<void> {
+  await Promise.all([
+    postWebhook("slack", () => getSlackTargetForSite(db, siteId), db, siteId, slackPayload(msg)),
+    postWebhook("teams", () => getTeamsTargetForSite(db, siteId), db, siteId, teamsPayload(msg)),
+  ]);
 }
 
-/** Never throws: a Slack outage must not fail the scan or block the email. */
-async function postSlackAlert(
-  db: Parameters<typeof getSlackTargetForSite>[0],
+/** Never throws: a chat outage must not fail the scan or block the email. */
+async function postWebhook(
+  app: "slack" | "teams",
+  target: () => Promise<{ orgId: string; url: string | null } | null>,
+  db: Database,
   siteId: string,
-  siteUrl: string,
-  count: number,
-  reportUrl: string,
+  body: unknown,
 ): Promise<void> {
   try {
-    const target = await getSlackTargetForSite(db, siteId);
-    if (!target?.url) return;
-    if (!can(await getBillingState(db, target.orgId), "slack")) return;
-    const host = new URL(siteUrl).hostname.replace(/^www\./, "");
-    const noun = count === 1 ? "finding" : "findings";
-    const res = await fetch(target.url, {
+    const t = await target();
+    if (!t?.url) return;
+    if (!can(await getBillingState(db, t.orgId), app)) return;
+    const res = await fetch(t.url, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        text: `${String(count)} new critical ${noun} on ${host}: trackers firing before consent. <${reportUrl}|See the evidence>`,
-      }),
+      redirect: "error",
+      body: JSON.stringify(body),
     });
-    if (!res.ok) console.error("slack alert not sent", { siteId, status: res.status });
+    if (!res.ok) console.error(`${app} alert not sent`, { siteId, status: res.status });
   } catch (error) {
-    console.error("slack alert failed", error);
+    console.error(`${app} alert failed`, error);
   }
 }

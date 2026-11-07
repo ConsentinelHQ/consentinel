@@ -3,7 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function SlackConnect({ connected }: { connected: boolean }) {
+/** Paste-a-webhook connect flow, shared by Slack and Teams. */
+export function WebhookConnect({
+  connected,
+  endpoint,
+  label,
+  placeholder,
+  help,
+}: {
+  connected: boolean;
+  endpoint: string;
+  label: string;
+  placeholder: string;
+  help: React.ReactNode;
+}) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
@@ -13,7 +26,7 @@ export function SlackConnect({ connected }: { connected: boolean }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/alerts/slack", {
+      const res = await fetch(endpoint, {
         method,
         headers: { "content-type": "application/json" },
         body: method === "POST" ? JSON.stringify({ url }) : null,
@@ -52,19 +65,16 @@ export function SlackConnect({ connected }: { connected: boolean }) {
 
   return (
     <>
-      <p className="panel-note">
-        In Slack, add the Incoming Webhooks app to a channel and paste its URL here. We send a test
-        message to confirm it works.
-      </p>
+      <p className="panel-note">{help}</p>
       <div className="recipient-add">
         <input
-          aria-label="Slack webhook URL"
+          aria-label={label}
           disabled={busy}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && url.trim() !== "") void call("POST");
           }}
-          placeholder="https://hooks.slack.com/services/..."
+          placeholder={placeholder}
           type="url"
           value={url}
         />

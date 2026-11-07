@@ -102,7 +102,7 @@ export default async function Billing({
             <>
               {plan?.id === "monitoring" ? (
                 <p className="quiet billing-note">
-                  Need Slack, Jira tickets with verified fixes, or up to{" "}
+                  Need Slack or Teams, Jira tickets with verified fixes, or up to{" "}
                   {PLANS.growth.includedSites} sites for ${PLANS.growth.price}/month? Switch to{" "}
                   {PLANS.growth.name} from Manage billing.
                 </p>
@@ -150,7 +150,7 @@ export default async function Billing({
                     </li>
                     {p.slack ? (
                       <>
-                        <li>Slack alerts</li>
+                        <li>Slack and Teams alerts</li>
                         {p.jira ? <li>Jira sync with verified fixes</li> : null}
                         <li>Sealed evidence packs (PDF and JSON)</li>
                       </>
