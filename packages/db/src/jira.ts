@@ -40,6 +40,7 @@ export function decryptSecret(enc: string): string {
 export interface JiraCredentials {
   orgId: string;
   baseUrl: string;
+  apiBase: string | null;
   email: string;
   apiToken: string;
   projectKey: string;
@@ -49,10 +50,14 @@ export interface JiraCredentials {
 }
 
 /** Safe to render: no token. */
-export type JiraConnectionSummary = Omit<JiraCredentials, "apiToken"> & { hookToken: string };
+export type JiraConnectionSummary = Omit<JiraCredentials, "apiToken"> & {
+  hookToken: string;
+  authFailedAt: Date | null;
+};
 
 export interface SaveJiraInput {
   baseUrl: string;
+  apiBase: string | null;
   email: string;
   apiToken: string;
   projectKey: string;
@@ -68,6 +73,8 @@ export async function saveJiraConnection(
 ): Promise<void> {
   const values = {
     baseUrl: input.baseUrl,
+    apiBaseUrl: input.apiBase,
+    authFailedAt: null,
     email: input.email,
     apiTokenEnc: encryptSecret(input.apiToken),
     projectKey: input.projectKey,
@@ -97,12 +104,14 @@ function summarise(row: JiraConnectionRow): JiraConnectionSummary {
   return {
     orgId: row.orgId,
     baseUrl: row.baseUrl,
+    apiBase: row.apiBaseUrl,
     email: row.email,
     projectKey: row.projectKey,
     issueTypeId: row.issueTypeId,
     issueTypeName: row.issueTypeName,
     autoCreate: row.autoCreate,
     hookToken: row.hookToken,
+    authFailedAt: row.authFailedAt,
   };
 }
 
@@ -167,6 +176,7 @@ export async function getJiraCredentialsForSite(
   try {
     const summary: Partial<JiraConnectionSummary> = summarise(row.conn);
     delete summary.hookToken;
+    delete summary.authFailedAt;
     return {
       ...(summary as Omit<JiraCredentials, "apiToken">),
       apiToken: decryptSecret(row.conn.apiTokenEnc),
@@ -221,4 +231,25 @@ export async function findingsStillPresent(
     .select({ fingerprint: findings.fingerprint, vendor: findings.vendor, title: findings.title })
     .from(findings)
     .where(and(eq(findings.scanId, scanId), inArray(findings.fingerprint, fingerprints)));
+}
+
+/**
+ * Records that Jira refused the token. True only the first time, so the org is
+ * told once per broken token, not on every scan.
+ */
+export async function markJiraAuthFailed(db: Database, orgId: string): Promise<boolean> {
+  const rows = await db
+    .update(jiraConnections)
+    .set({ authFailedAt: new Date() })
+    .where(and(eq(jiraConnections.orgId, orgId), isNull(jiraConnections.authFailedAt)))
+    .returning({ id: jiraConnections.id });
+  return rows.length > 0;
+}
+
+/** Jira accepted the token again, e.g. after an admin restored access. */
+export async function clearJiraAuthFailed(db: Database, orgId: string): Promise<void> {
+  await db
+    .update(jiraConnections)
+    .set({ authFailedAt: null })
+    .where(and(eq(jiraConnections.orgId, orgId), sql`${jiraConnections.authFailedAt} is not null`));
 }

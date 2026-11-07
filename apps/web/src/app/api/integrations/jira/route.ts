@@ -54,6 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   await saveJiraConnection(db(), session.orgId, {
     baseUrl,
+    apiBase: check.apiBase,
     email,
     apiToken,
     projectKey,

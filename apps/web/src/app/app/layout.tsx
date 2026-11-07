@@ -1,8 +1,9 @@
-import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import { OrganizationSwitcher } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AppNav } from "@/components/app-nav";
+import { SideUser } from "@/components/side-user";
 
 // Side rail on desktop, top bar on mobile.
 export default function AppLayout({ children }: { children: ReactNode }) {
@@ -50,9 +51,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
               },
             }}
           />
-          <UserButton />
         </div>
         <AppNav />
+        <SideUser />
       </aside>
       <main className="dash-main">{children}</main>
     </div>
