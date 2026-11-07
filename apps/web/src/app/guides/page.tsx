@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/lib/guides";
+import { INTEGRATIONS } from "@/lib/integration-help";
 import { REPORT } from "@/lib/research";
 
 export const metadata: Metadata = {
@@ -41,6 +42,14 @@ const GROUPS: { title: string; items: { href: string; name: string; blurb: strin
         blurb: "What the letter claims, what to check first, and how to get the evidence.",
       },
     ],
+  },
+  {
+    title: "Integrations",
+    items: INTEGRATIONS.map((i) => ({
+      href: `/help/${i.slug}`,
+      name: `${i.name} setup`,
+      blurb: i.description,
+    })),
   },
   {
     title: "Research",

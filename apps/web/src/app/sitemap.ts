@@ -1,4 +1,5 @@
 import { GUIDES } from "@/lib/guides";
+import { INTEGRATIONS } from "@/lib/integration-help";
 import { VENDORS } from "@/lib/research";
 import type { MetadataRoute } from "next";
 
@@ -26,6 +27,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${BASE}/guides/${g.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    })),
+    ...INTEGRATIONS.map((i) => ({
+      url: `${BASE}/help/${i.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
     { url: `${BASE}/contact`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/privacy`, changeFrequency: "yearly", priority: 0.3 },
