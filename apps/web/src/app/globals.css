@@ -5884,7 +5884,7 @@ a.print-button {
   height: 100lvh;
 }
 
-/* Full-page fluid preview (?fluid=full): let the ink show through tinted bands. */
+/* Full-page fluid (homepage): let the ink show through tinted bands. */
 [data-fluid="full"] .tinted,
 [data-fluid="full"] .tinted .tile {
   background: color-mix(in srgb, var(--paper-alt) 55%, transparent);

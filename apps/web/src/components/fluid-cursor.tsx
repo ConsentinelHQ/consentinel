@@ -4,20 +4,21 @@ import { useEffect, useRef } from "react";
 import { startFluid } from "@/lib/fluid-sim";
 
 /**
- * Cursor-driven fluid behind the hero. Fixed to the viewport (the sim uses
- * clientX/clientY), faded out by a scroll-driven mask: solid until `fadeFrom`,
- * gone by the bottom of `fadeTo`. Paused once that point scrolls past.
+ * Cursor-driven fluid fixed to the viewport (the sim uses clientX/clientY).
+ * With no fade ids it runs behind the whole page. With `fadeFrom`/`fadeTo` it
+ * fades out on scroll: solid until `fadeFrom`, gone by the bottom of `fadeTo`,
+ * then paused.
  * Touch devices get a slow ambient swirl at lower resolution instead.
  * Skipped for reduced motion.
  */
-export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom: string; fadeTo: string }) {
+export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom?: string; fadeTo?: string } = {}) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current;
-    const from = document.getElementById(fadeFrom);
-    const to = document.getElementById(fadeTo);
-    if (!wrap || !from || !to) return;
+    if (!wrap) return;
+    const from = fadeFrom ? document.getElementById(fadeFrom) : null;
+    const to = fadeTo ? document.getElementById(fadeTo) : null;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const touch = !window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
@@ -34,9 +35,8 @@ export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom: string; fadeTo: st
       return; // no WebGL: page stays plain white
     }
 
-    // ?fluid=full previews the fluid across the whole page: no fade, never paused.
-    const full = new URLSearchParams(window.location.search).get("fluid") === "full";
-    if (full) {
+    // Whole page: no fade, never paused, tinted bands let the ink through.
+    if (!from || !to) {
       document.documentElement.dataset["fluid"] = "full";
       return () => {
         delete document.documentElement.dataset["fluid"];

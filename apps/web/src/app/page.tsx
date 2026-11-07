@@ -200,7 +200,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="fluid-end">
+      <section>
         <div data-reveal className="wrap">
           <h2>A cookie banner isn’t compliance.</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
@@ -208,7 +208,7 @@ export default function Home() {
             are.
           </p>
 
-          <div className="tiles" id="fluid-fade">
+          <div className="tiles">
             {RISKS.map((risk) => (
               <div className="tile" key={risk.body}>
                 <p className="stat">
@@ -380,7 +380,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <FluidCursor fadeFrom="fluid-fade" fadeTo="fluid-end" />
+      <FluidCursor />
     </main>
   );
 }
