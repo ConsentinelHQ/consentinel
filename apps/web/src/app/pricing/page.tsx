@@ -83,7 +83,7 @@ export default function Pricing() {
               <li>
                 Product, cart and checkout pages scanned <span className="soon">Coming soon</span>
               </li>
-              <li>Slack alerts</li>
+              <li>Slack and Teams alerts</li>
               <li>Jira tickets, with fixes verified when a ticket closes</li>
               <li>
                 Demand letter packs: every sealed scan around the dates a letter claims, and the

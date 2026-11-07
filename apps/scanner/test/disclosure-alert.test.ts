@@ -10,9 +10,9 @@ import {
   sites,
 } from "@consentinel/db";
 import { runMigrations } from "@consentinel/db/migrate";
-import { disclosureSubject } from "@consentinel/notify";
+import { disclosureSubject, slackPayload } from "@consentinel/notify";
 import type { DisclosureCheck, ScanResult } from "@consentinel/shared";
-import { disclosureSlackText, newDisclosureGaps } from "../src/alerting";
+import { disclosureMessage, newDisclosureGaps } from "../src/alerting";
 import { loadConfig } from "../src/config";
 
 /** Disclosure alerts against real Postgres: what counts as a new gap. */
@@ -99,11 +99,13 @@ assert.equal(
   "2 vendors running on shop.com aren’t in your privacy policy",
 );
 assert.equal(
-  disclosureSlackText(
-    "https://www.shop.com/",
-    [{ vendor: "TikTok", why: "started" }],
-    "https://x/r",
-  ),
+  slackPayload(
+    disclosureMessage(
+      "https://www.shop.com/",
+      [{ vendor: "TikTok", why: "started" }],
+      "https://x/r",
+    ),
+  ).text,
   "TikTok is running on shop.com and the privacy policy doesn't mention it. <https://x/r|See the report>",
 );
 

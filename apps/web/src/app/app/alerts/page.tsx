@@ -5,6 +5,7 @@ import {
   externalRecipientLimit,
   getJiraConnectionSummary,
   getSlackWebhook,
+  getTeamsWebhook,
   getBillingState,
   listExternalRecipients,
   listOrgAlertSettings,
@@ -12,7 +13,7 @@ import {
 import { AlertToggle } from "@/components/alert-toggle";
 import { RecipientManager } from "@/components/recipient-manager";
 import { JiraConnect } from "@/components/jira-connect";
-import { SlackConnect } from "@/components/slack-connect";
+import { WebhookConnect } from "@/components/webhook-connect";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/server";
 
@@ -29,6 +30,8 @@ export default async function Alerts() {
   const limit = externalRecipientLimit(billing);
   const slackAllowed = can(billing, "slack");
   const slackUrl = slackAllowed ? await getSlackWebhook(db(), session.orgId) : null;
+  const teamsAllowed = can(billing, "teams");
+  const teamsUrl = teamsAllowed ? await getTeamsWebhook(db(), session.orgId) : null;
   const jiraAllowed = can(billing, "jira");
   const jira = jiraAllowed ? await getJiraConnectionSummary(db(), session.orgId) : null;
   const me = members.find((m) => m.userId === session.userId);
@@ -98,10 +101,41 @@ export default async function Alerts() {
           {slackAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {slackAllowed ? (
-          <SlackConnect connected={slackUrl !== null} />
+          <WebhookConnect
+            connected={slackUrl !== null}
+            endpoint="/api/alerts/slack"
+            help="In Slack, add the Incoming Webhooks app to a channel and paste its URL here. We send a test message to confirm it works."
+            label="Slack webhook URL"
+            placeholder="https://hooks.slack.com/services/..."
+          />
         ) : (
           <p className="panel-empty">
             Post new critical findings to a Slack channel. Available on Growth and Agency.
+          </p>
+        )}
+      </section>
+      <section className="panel panel-gap">
+        <div className="panel-head">
+          <h2>Microsoft Teams</h2>
+          {teamsAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
+        </div>
+        {teamsAllowed ? (
+          <WebhookConnect
+            connected={teamsUrl !== null}
+            endpoint="/api/alerts/teams"
+            help={
+              <>
+                In Teams, open the channel&apos;s menu, choose Workflows, and pick &quot;Send
+                webhook alerts to a channel&quot;. Copy the webhook link and paste it here. We send
+                a test card to confirm it works.
+              </>
+            }
+            label="Teams webhook URL"
+            placeholder="https://...powerplatform.com/..."
+          />
+        ) : (
+          <p className="panel-empty">
+            Post new critical findings to a Teams channel. Available on Growth and Agency.
           </p>
         )}
       </section>

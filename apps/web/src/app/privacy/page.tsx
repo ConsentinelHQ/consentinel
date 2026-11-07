@@ -102,7 +102,7 @@ export default function Privacy() {
               <li>Resend (product email) and Google Workspace (our email)</li>
               <li>Cloudflare (DNS and bot checks)</li>
               <li>Sentry (error monitoring)</li>
-              <li>Atlassian Jira and Slack, only if you connect them</li>
+              <li>Atlassian Jira, Slack and Microsoft Teams, only if you connect them</li>
             </ul>
             <p>
               We may also disclose information if the law requires it, or as part of a sale or

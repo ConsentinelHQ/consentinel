@@ -75,6 +75,8 @@ export const orgs = pgTable(
     /** Sites paid for. Scheduling gated on site count <= this. */
     planQuantity: integer("plan_quantity").notNull().default(0),
     slackWebhookUrl: text("slack_webhook_url"),
+    /** Teams Workflows webhook. Host-checked on save, so the worker only posts to Microsoft. */
+    teamsWebhookUrl: text("teams_webhook_url"),
     /**
      * White-label (Agency). When brandName is set and the plan allows it, shared
      * reports render under the agency's brand instead of Consentinel's.
