@@ -13,8 +13,10 @@ import {
 import { AlertToggle } from "@/components/alert-toggle";
 import { RecipientManager } from "@/components/recipient-manager";
 import { JiraConnect } from "@/components/jira-connect";
+import { ConnectHelp } from "@/components/connect-help";
 import { WebhookConnect } from "@/components/webhook-connect";
 import { requireSession } from "@/lib/auth";
+import { integrationHelp } from "@/lib/integration-help";
 import { db } from "@/lib/server";
 
 export const metadata: Metadata = { title: "Alerts" };
@@ -101,13 +103,16 @@ export default async function Alerts() {
           {slackAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {slackAllowed ? (
-          <WebhookConnect
-            connected={slackUrl !== null}
-            endpoint="/api/alerts/slack"
-            help="In Slack, add the Incoming Webhooks app to a channel and paste its URL here. We send a test message to confirm it works."
-            label="Slack webhook URL"
-            placeholder="https://hooks.slack.com/services/..."
-          />
+          <>
+            <WebhookConnect
+              connected={slackUrl !== null}
+              endpoint="/api/alerts/slack"
+              label="Slack webhook URL"
+              name="Slack"
+              placeholder="https://hooks.slack.com/services/..."
+            />
+            {slackUrl === null ? <ConnectHelp help={integrationHelp("slack-alerts")} open /> : null}
+          </>
         ) : (
           <p className="panel-empty">
             Post new critical findings to a Slack channel. Available on Growth and Agency.
@@ -120,19 +125,18 @@ export default async function Alerts() {
           {teamsAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {teamsAllowed ? (
-          <WebhookConnect
-            connected={teamsUrl !== null}
-            endpoint="/api/alerts/teams"
-            help={
-              <>
-                In Teams, open the channel&apos;s menu, choose Workflows, and pick &quot;Send
-                webhook alerts to a channel&quot;. Copy the webhook link and paste it here. We send
-                a test card to confirm it works.
-              </>
-            }
-            label="Teams webhook URL"
-            placeholder="https://...powerplatform.com/..."
-          />
+          <>
+            <WebhookConnect
+              connected={teamsUrl !== null}
+              endpoint="/api/alerts/teams"
+              label="Teams webhook URL"
+              name="Teams"
+              placeholder="https://...powerplatform.com/..."
+            />
+            {teamsUrl === null ? (
+              <ConnectHelp help={integrationHelp("microsoft-teams-alerts")} open />
+            ) : null}
+          </>
         ) : (
           <p className="panel-empty">
             Post new critical findings to a Teams channel. Available on Growth and Agency.
@@ -145,19 +149,22 @@ export default async function Alerts() {
           {jiraAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {jiraAllowed ? (
-          <JiraConnect
-            connection={
-              jira
-                ? {
-                    baseUrl: jira.baseUrl,
-                    projectKey: jira.projectKey,
-                    issueTypeName: jira.issueTypeName,
-                    autoCreate: jira.autoCreate,
-                    hookToken: jira.hookToken,
-                  }
-                : null
-            }
-          />
+          <>
+            <JiraConnect
+              connection={
+                jira
+                  ? {
+                      baseUrl: jira.baseUrl,
+                      projectKey: jira.projectKey,
+                      issueTypeName: jira.issueTypeName,
+                      autoCreate: jira.autoCreate,
+                      hookToken: jira.hookToken,
+                    }
+                  : null
+              }
+            />
+            {jira ? null : <ConnectHelp help={integrationHelp("jira-integration")} open />}
+          </>
         ) : (
           <p className="panel-empty">
             Open a Jira ticket for every new critical finding, and rescan automatically when a

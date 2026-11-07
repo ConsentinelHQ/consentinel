@@ -55,13 +55,11 @@ function ConnectForm() {
     <>
       <p className="panel-note">
         New critical findings open a Jira ticket with the evidence and the fix. When any ticket
-        moves to Done, we rescan and comment whether it actually fixed the site. Use an{" "}
+        moves to Done, we rescan and comment whether it actually fixed the site. Use a plain{" "}
         <a href={API_TOKEN_URL} rel="noreferrer" target="_blank">
           Atlassian API token
         </a>{" "}
-        from an account that can create issues in the project. A service account like
-        consentinel@yourcompany.com keeps tickets and comments from looking like a teammate wrote
-        them.
+        (not one with scopes) from an account that can create issues in the project.
       </p>
       <div className="jira-form">
         <input

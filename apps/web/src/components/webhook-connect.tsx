@@ -7,22 +7,38 @@ import { useState } from "react";
 export function WebhookConnect({
   connected,
   endpoint,
+  name,
   label,
   placeholder,
-  help,
 }: {
   connected: boolean;
   endpoint: string;
+  /** Shown in copy, e.g. "Slack" or "Teams". */
+  name: string;
   label: string;
   placeholder: string;
-  help: React.ReactNode;
 }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
+
+  async function test(): Promise<void> {
+    setBusy(true);
+    setError(null);
+    setSent(false);
+    const res = await fetch(`${endpoint}/test`, { method: "POST" }).catch(() => null);
+    if (res?.ok) setSent(true);
+    else {
+      const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;
+      setError(data?.error ?? `${name} didn't accept the test. Reconnect with a new link.`);
+    }
+    setBusy(false);
+  }
 
   async function call(method: "POST" | "DELETE"): Promise<void> {
+    if (busy) return; // Enter plus a click would connect twice and post two test cards
     setBusy(true);
     setError(null);
     try {
@@ -47,25 +63,38 @@ export function WebhookConnect({
 
   if (connected) {
     return (
-      <div className="dash-row">
-        <span className="dash-row-name">
-          Connected. New critical findings post to your channel.
-        </span>
-        <button
-          className="link-button"
-          disabled={busy}
-          onClick={() => void call("DELETE")}
-          type="button"
-        >
-          Disconnect
-        </button>
-      </div>
+      <>
+        <div className="dash-row">
+          <span className="dash-row-name">
+            Connected. New critical findings post to your {name} channel.
+          </span>
+          <span className="webhook-actions">
+            <button
+              className="link-button"
+              disabled={busy}
+              onClick={() => void test()}
+              type="button"
+            >
+              {busy ? "Sending..." : "Send test"}
+            </button>
+            <button
+              className="link-button"
+              disabled={busy}
+              onClick={() => void call("DELETE")}
+              type="button"
+            >
+              Disconnect
+            </button>
+          </span>
+        </div>
+        {sent ? <p className="panel-note">Test sent. Check your {name} channel.</p> : null}
+        {error !== null && <p className="form-error panel-empty">{error}</p>}
+      </>
     );
   }
 
   return (
     <>
-      <p className="panel-note">{help}</p>
       <div className="recipient-add">
         <input
           aria-label={label}
