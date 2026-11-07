@@ -34,6 +34,18 @@ export function FluidCursor({ fadeFrom, fadeTo }: { fadeFrom: string; fadeTo: st
       return; // no WebGL: page stays plain white
     }
 
+    // ?fluid=full previews the fluid across the whole page: no fade, never paused.
+    const full = new URLSearchParams(window.location.search).get("fluid") === "full";
+    if (full) {
+      document.documentElement.dataset["fluid"] = "full";
+      return () => {
+        delete document.documentElement.dataset["fluid"];
+        fluid.stop();
+        canvas.remove();
+        wrap.style.display = "";
+      };
+    }
+
     let frame = 0;
     const apply = (): void => {
       frame = 0;
