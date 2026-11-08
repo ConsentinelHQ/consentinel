@@ -2489,14 +2489,24 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
   max-width: 160px;
 }
 
-/* Signed-in user and sign out, pinned to the bottom of the sidebar */
-.side-user {
+/* Organization, signed-in user and sign out, pinned to the bottom of the sidebar */
+.side-bottom {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.6rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--hairline, #e4e4e7);
+}
+.side-bottom .dash-account {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.side-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .side-user-card {
   display: flex;
@@ -2557,13 +2567,17 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
   cursor: default;
 }
 @media (max-width: 860px) {
-  .side-user {
+  .side-bottom {
     order: 4;
     flex-direction: row;
     align-items: center;
-    margin-top: 0;
+    margin: 0 0 0 auto;
     padding-top: 0;
     border-top: none;
+  }
+  .side-user {
+    flex-direction: row;
+    align-items: center;
   }
   .side-user-text {
     display: none;
