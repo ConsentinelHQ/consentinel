@@ -36,9 +36,10 @@ export function followUpEmail(input: {
   postalAddress: string;
 }): Email {
   const greeting = `Hi ${input.firstName.trim() || "there"},`;
-  const body = `Following up on my email about ${input.domain} in case it got buried. I can send over the full report - it lists every tag that fires after a visitor opts out and what to change for each one.`;
-  const close = "Happy to connect if interested.";
-  const sig = ["Thank you,", "Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
+  // Nov 8, 2026: matches the first email's voice. One new thing (the GTM fix), one easy ask.
+  const body = `Quick follow-up on ${input.domain} in case my last email got buried. I can send over the full report if it helps - it shows each tag that fires after a visitor opts out, and for tags in Google Tag Manager, the exact setting to change.`;
+  const self = "Or you can run a free scan yourself anytime at getconsentinel.com.";
+  const sig = ["Cheers,", "Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather not hear from me, just reply and I won't email again.";
   const address = input.postalAddress.trim();
   const text = [
@@ -46,7 +47,7 @@ export function followUpEmail(input: {
     "",
     body,
     "",
-    close,
+    self,
     "",
     ...sig,
     "",
@@ -56,8 +57,8 @@ export function followUpEmail(input: {
   const html = [
     `<p>${esc(greeting)}</p>`,
     `<p>${esc(body)}</p>`,
-    `<p>${esc(close)}</p>`,
-    `<p>${sig.map(esc).join("<br>").replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`)}</p>`,
+    `<p>${esc(self).replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`)}</p>`,
+    `<p>${sig.map(esc).join("<br>")}</p>`,
     `<p style="color:#888;font-size:12px">${esc(optOut)}${address ? `<br>${esc(address)}` : ""}</p>`,
   ].join("\n");
   const subject = /^re:/i.test(input.subject) ? input.subject : `Re: ${input.subject}`;

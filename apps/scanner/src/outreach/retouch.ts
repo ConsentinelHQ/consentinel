@@ -54,8 +54,8 @@ export function retouchEmail(input: {
   const deadline =
     "Starting January 1, every browser has to offer that setting, so a lot more of your visitors will be sending it.";
   const offer =
-    "I can send over the full report if it's useful - it lists each tag and what to change.";
-  const sig = ["Thank you,", "Charlie Buckley", "Founder, Consentinel", "getconsentinel.com"];
+    "I'd be happy to send over the full report if it helps - it lists each tag and what to change, down to the Google Tag Manager setting. Or you can run a free scan yourself at getconsentinel.com.";
+  const sig = ["Cheers,", "Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather not hear from me, just reply and I won't email again.";
   const address = input.postalAddress.trim();
   const text = [
@@ -76,8 +76,8 @@ export function retouchEmail(input: {
     `<p>${esc(greeting)}</p>`,
     `<p>${esc(finding)}</p>`,
     `<p>${esc(deadline)}</p>`,
-    `<p>${esc(offer)}</p>`,
-    `<p>${sig.map(esc).join("<br>").replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`)}</p>`,
+    `<p>${esc(offer).replace("getconsentinel.com", `<a href="${SITE}">getconsentinel.com</a>`)}</p>`,
+    `<p>${sig.map(esc).join("<br>")}</p>`,
     `<p style="color:#888;font-size:12px">${esc(optOut)}${address ? `<br>${esc(address)}` : ""}</p>`,
   ].join("\n");
   const subject = /^re:/i.test(input.subject) ? input.subject : `Re: ${input.subject}`;
