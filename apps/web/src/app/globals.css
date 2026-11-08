@@ -2985,6 +2985,14 @@ section.panel.panel-gap {
   background: #fef2f2 !important;
   color: #b91c1c !important;
 }
+/* Red is for destructive actions only. Safe actions like Send test go green. */
+.dash-row .link-button.is-positive:hover:not(:disabled) {
+  background: #f0fdf4 !important;
+  color: #15803d !important;
+}
+.dash-row .link-button.is-positive:focus-visible {
+  outline-color: #15803d;
+}
 .dash-row .link-button:focus-visible {
   outline: 2px solid #b91c1c;
   outline-offset: 1px;

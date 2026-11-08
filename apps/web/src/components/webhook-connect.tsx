@@ -70,7 +70,7 @@ export function WebhookConnect({
           </span>
           <span className="webhook-actions">
             <button
-              className="link-button"
+              className="link-button is-positive"
               disabled={busy}
               onClick={() => void test()}
               type="button"
