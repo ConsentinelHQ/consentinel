@@ -129,7 +129,45 @@ export interface Finding {
    * Amazon's iframe. Fixing the parent removes the child.
    */
   causedBy?: string;
+  /** Google Tag Manager tags that load this vendor, with the exact fix. Absent when GTM isn't the source. */
+  gtm?: GtmTagRef[];
   firstSeenAt: string; // ISO 8601
+}
+
+/**
+ * A tag in the site's public GTM container. Read from the published container
+ * file, so it needs no access to their GTM account.
+ */
+export interface GtmTagRef {
+  containerId: string;
+  tagId: number;
+  /** "Custom HTML", "LinkedIn Insight", "Google Ads Conversion Tracking", ... */
+  kind: string;
+  /**
+   * The tag's Consent Settings. "not-set": never configured. "none": explicitly
+   * set to need no extra consent. Otherwise the consent types it requires.
+   */
+  consent: "not-set" | "none" | string[];
+  /** Google's own templates check Consent Mode without extra settings. */
+  builtInConsent: boolean;
+  /** Firing triggers, readable: "All Pages", "OneTrustGroupsUpdated". */
+  firesOn: string[];
+  /** A firing trigger waits on a consent event or variable. */
+  consentTrigger: boolean;
+  /** One plain sentence: what to change in GTM. */
+  fix: string;
+}
+
+/** What we read from each GTM container on the page. */
+export interface GtmAudit {
+  containers: Array<{
+    id: string;
+    version: string;
+    /** Active tags, paused ones excluded. */
+    tags: number;
+    /** Marketing tags with no consent check and no consent trigger, whether or not they fired. */
+    unguarded: Array<{ tagId: number; kind: string; vendors: string[] }>;
+  }>;
 }
 
 /** Detected consent management platform summary. */
@@ -178,6 +216,8 @@ export interface ScanResult {
   gpcCheck?: GpcCheck;
   /** Vendors seen running versus vendors the privacy or cookie policy names. Absent when not run. */
   disclosure?: DisclosureCheck;
+  /** The site's Google Tag Manager containers, read from their public files. Absent when none loaded. */
+  gtm?: GtmAudit;
 }
 
 export interface GpcCheck {

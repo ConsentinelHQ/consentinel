@@ -27,6 +27,13 @@ export interface FreeFinding {
   evidence?: string[];
   /** What to change. Full report only. */
   remediation?: string;
+  /** The exact Google Tag Manager tags to change, one sentence each. Full report only. */
+  gtmFixes?: string[];
+}
+
+/** What the site's GTM containers look like. Shown on free and full reports. */
+export interface GtmSummary {
+  containers: Array<{ id: string; tags: number; unguarded: number }>;
 }
 
 export interface FreeReport {
@@ -42,6 +49,8 @@ export interface FreeReport {
   gpcCheck?: GpcCheck;
   /** Vendors seen running versus vendors the site's policy names. Absent on older scans. */
   disclosure?: DisclosureCheck;
+  /** Google Tag Manager containers read from the page. Absent when none loaded. */
+  gtm?: GtmSummary;
   scanId: string;
   url: string;
   scannedAt: string;
@@ -189,6 +198,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     otherTitles: string[];
     evidence: string[];
     remediation: string[];
+    gtm: string[];
     causedBy: string | null;
     /** Any finding with no traced parent. Then the vendor isn’t a child: claiming it’s would overpromise the fix. */
     untraced: boolean;
@@ -211,6 +221,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
         otherTitles: [],
         evidence: [],
         remediation: [],
+        gtm: [],
         causedBy: null,
         untraced: false,
       };
@@ -225,6 +236,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
     const line = evidenceLine(f);
     if (line && !g.evidence.includes(line)) g.evidence.push(line);
     if (f.remediation && !g.remediation.includes(f.remediation)) g.remediation.push(f.remediation);
+    for (const ref of f.gtm ?? []) if (!g.gtm.includes(ref.fix)) g.gtm.push(ref.fix);
 
     const cookie = /cookie "([^"]+)"/.exec(f.title)?.[1];
     if (f.type === "gpc-signal-ignored") {
@@ -297,6 +309,7 @@ function groupByVendor(findings: readonly Finding[]): FreeFinding[] {
       evidence: g.evidence,
       // One vendor's findings usually share a fix. Keep them distinct if not.
       remediation: remediationWithChain(g.vendor, g.remediation.join(" "), g.causedBy, triggersOf),
+      ...(g.gtm.length > 0 ? { gtmFixes: g.gtm } : {}),
       ...(g.causedBy && groups.has(g.causedBy) ? { causedBy: g.causedBy } : {}),
       ...(triggersOf.has(g.vendor) ? { triggers: triggersOf.get(g.vendor) ?? [] } : {}),
       locked: false,
@@ -343,6 +356,17 @@ function withGpcCheck(report: FreeReport, result: ScanResult): FreeReport {
     ...report,
     ...(result.gpcCheck ? { gpcCheck: result.gpcCheck } : {}),
     ...(result.disclosure ? { disclosure: result.disclosure } : {}),
+    ...(result.gtm && result.gtm.containers.length > 0
+      ? {
+          gtm: {
+            containers: result.gtm.containers.map((c) => ({
+              id: c.id,
+              tags: c.tags,
+              unguarded: c.unguarded.length,
+            })),
+          },
+        }
+      : {}),
   };
 }
 
@@ -473,7 +497,8 @@ export function fixList(result: ScanResult, reportUrl: string): string {
     "",
     ...rows.map((f, i) => {
       const also = f.triggers?.length ? ` Also clears: ${joinList(f.triggers)}.` : "";
-      return `${String(i + 1)}. ${f.vendor} (${f.severity}): ${f.remediation ?? ""}${also}`;
+      const gtm = f.gtmFixes?.length ? ` In Google Tag Manager: ${f.gtmFixes.join(" ")}` : "";
+      return `${String(i + 1)}. ${f.vendor} (${f.severity}): ${f.remediation ?? ""}${also}${gtm}`;
     }),
     "",
     `Full report with the request behind each finding: ${reportUrl}`,

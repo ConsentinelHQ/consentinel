@@ -2,6 +2,7 @@
 
 import { DisclosurePanel } from "./disclosure-panel";
 import { GpcPanel } from "./gpc-panel";
+import { GtmPanel } from "./gtm-panel";
 import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
@@ -218,6 +219,7 @@ function Report({
 
         {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
         {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
+        {report.gtm && <GtmPanel report={report} />}
 
         {!branded && (
           <div className="gate">
@@ -373,6 +375,16 @@ function Report({
                     </ul>
                   )}
                   {finding.remediation && <p className="proof-fix">{finding.remediation}</p>}
+                  {finding.gtmFixes && finding.gtmFixes.length > 0 && (
+                    <div className="proof-gtm">
+                      <span className="proof-gtm-label">In Google Tag Manager</span>
+                      <ul>
+                        {finding.gtmFixes.map((fix) => (
+                          <li key={fix}>{fix}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </details>
               )}
             </li>
@@ -416,6 +428,7 @@ function Report({
 
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
       {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
+      {report.gtm && <GtmPanel report={report} />}
 
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
