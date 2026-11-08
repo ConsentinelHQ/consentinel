@@ -3302,6 +3302,14 @@ a.nav-cta:hover {
   border: none;
   cursor: pointer;
 }
+.panel-title-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.panel-title-icon img {
+  flex: none;
+}
 .connect-help {
   margin: 0.75rem 1.1rem 0.9rem;
   padding: 0.75rem 0.95rem;
