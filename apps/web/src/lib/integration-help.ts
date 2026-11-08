@@ -104,7 +104,7 @@ export const INTEGRATIONS: IntegrationHelp[] = [
     short:
       "Consentinel opens a Jira Cloud ticket for each new critical finding, and can rescan when a ticket moves to Done to confirm the fix actually reached the site.",
     steps: [
-      'Sign in to id.atlassian.com/manage-profile/security/api-tokens and click Create API token (the plain one, not "with scopes"). Use an account that can create issues in the project. A dedicated user like consentinel@yourcompany.com keeps tickets from looking like a teammate wrote them.',
+      "Create an API token at id.atlassian.com/manage-profile/security/api-tokens. A plain token is simplest. A scoped token works too if it has read:jira-user, read:jira-work and write:jira-work. Use an account that can create issues and comment in the project. A dedicated user or an Atlassian service account keeps tickets from looking like a teammate wrote them.",
       "Note your Jira site (yourcompany.atlassian.net) and the project key, the letters before ticket numbers, like WEB in WEB-123.",
       "On Consentinel's Alerts page, enter the site, project key, account email and API token, then click Connect Jira.",
       "Optional: to rescan when a ticket is done, follow the steps shown after connecting. They set up a Jira Automation rule that calls Consentinel when an issue moves to Done.",
@@ -119,12 +119,12 @@ export const INTEGRATIONS: IntegrationHelp[] = [
         body: "The account needs permission to browse the project and create issues in it. Check the project's permission scheme, or use an account that's already a project member.",
       },
       {
-        title: "Scoped tokens and Atlassian service accounts don't work",
-        body: "Tokens created with scopes, and tokens for Atlassian admin service accounts, only work through Atlassian's API gateway. Consentinel needs a regular API token from a normal user account.",
+        title: "Using a scoped token or service account",
+        body: "Both work. Consentinel detects them and connects through Atlassian's API gateway. The token needs the read:jira-user, read:jira-work and write:jira-work scopes. For a service account, enter its email (it ends in serviceaccount.atlassian.com) and add it to the project.",
       },
       {
         title: "Tokens expire",
-        body: "Atlassian API tokens last a year at most. When one expires, tickets stop opening. Create a new token and reconnect.",
+        body: "Atlassian API tokens last a year at most. If Jira stops accepting the token, Consentinel emails your admins and shows a Reconnect box on the Alerts page. Create a new token, paste it there, and everything else stays the same.",
       },
       {
         title: "More than one site",

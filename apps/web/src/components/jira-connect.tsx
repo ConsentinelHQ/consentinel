@@ -11,6 +11,8 @@ export interface JiraState {
   issueTypeName: string;
   autoCreate: boolean;
   hookToken: string;
+  /** ISO time Jira first refused the saved token, or null. */
+  authFailedAt: string | null;
 }
 
 const API_TOKEN_URL = "https://id.atlassian.com/manage-profile/security/api-tokens";
@@ -19,7 +21,7 @@ export function JiraConnect({ connection }: { connection: JiraState | null }) {
   return connection ? <Connected connection={connection} /> : <ConnectForm />;
 }
 
-function ConnectForm() {
+function ConnectForm({ reconnect = false }: { reconnect?: boolean }) {
   const router = useRouter();
   const [form, setForm] = useState({ url: "", email: "", apiToken: "", projectKey: "" });
   const [busy, setBusy] = useState(false);
@@ -55,11 +57,12 @@ function ConnectForm() {
     <>
       <p className="panel-note">
         New critical findings open a Jira ticket with the evidence and the fix. When any ticket
-        moves to Done, we rescan and comment whether it actually fixed the site. Use a plain{" "}
+        moves to Done, we rescan and comment whether it actually fixed the site. Use an{" "}
         <a href={API_TOKEN_URL} rel="noreferrer" target="_blank">
           Atlassian API token
         </a>{" "}
-        (not one with scopes) from an account that can create issues in the project.
+        from an account that can create issues and comment in the project. Plain tokens, scoped
+        tokens and Atlassian service accounts all work.
       </p>
       <div className="jira-form">
         <input
@@ -100,7 +103,7 @@ function ConnectForm() {
           onClick={() => void connect()}
           type="button"
         >
-          {busy ? "Checking..." : "Connect Jira"}
+          {busy ? "Checking..." : reconnect ? "Reconnect Jira" : "Connect Jira"}
         </button>
       </div>
       {error !== null && <p className="form-error panel-empty">{error}</p>}
@@ -159,8 +162,25 @@ function Connected({ connection }: { connection: JiraState }) {
     setDialog(null);
   }
 
+  const failed = connection.authFailedAt
+    ? new Date(connection.authFailedAt).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      })
+    : null;
   return (
     <>
+      {failed ? (
+        <div className="jira-broken">
+          <p>
+            <strong>Jira stopped accepting the API token on {failed}.</strong> New findings
+            aren&apos;t opening tickets and Done tickets aren&apos;t being verified. Tokens expire
+            after a year at most, so create a new one and reconnect. Your project and rescan rule
+            stay the same.
+          </p>
+          <ConnectForm reconnect />
+        </div>
+      ) : null}
       <div className="dash-row">
         <span className="dash-row-name">
           Connected to {host}, project {connection.projectKey}. Tickets open as{" "}

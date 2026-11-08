@@ -350,6 +350,8 @@ export const jiraConnections = pgTable(
       .references(() => orgs.id, { onDelete: "cascade" }),
     /** https://<name>.atlassian.net - Cloud only, validated on save. */
     baseUrl: text("base_url").notNull(),
+    /** Atlassian gateway base, set when the token is scoped or a service account's. */
+    apiBaseUrl: text("api_base_url"),
     email: text("email").notNull(),
     apiTokenEnc: text("api_token_enc").notNull(),
     projectKey: text("project_key").notNull(),
@@ -357,6 +359,8 @@ export const jiraConnections = pgTable(
     issueTypeName: text("issue_type_name").notNull(),
     /** Open a ticket for every new critical regression. */
     autoCreate: boolean("auto_create").notNull().default(true),
+    /** First time Jira refused the token since it was saved. Usually an expired token. */
+    authFailedAt: timestamp("auth_failed_at", { withTimezone: true }),
     /** Secret in the inbound hook URL that Jira Automation calls when an issue is done. */
     hookToken: text("hook_token")
       .notNull()

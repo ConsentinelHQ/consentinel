@@ -5,3 +5,4 @@ export * from "./jira.js";
 export { sendDisclosureAlert, disclosureSubject, type DisclosureAlertInput } from "./disclosure.js";
 export { sendPolicyChangeAlert, policyChangeSubject, type PolicyChangeInput } from "./policy.js";
 export * from "./chat.js";
+export { sendJiraAuthAlert } from "./jira-auth.js";

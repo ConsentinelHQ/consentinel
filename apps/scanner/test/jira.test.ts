@@ -5,6 +5,7 @@ import {
   createScan,
   eq,
   findings,
+  getJiraConnectionSummary,
   orgs,
   saveJiraConnection,
   scans,
@@ -12,6 +13,7 @@ import {
   type ScanTrigger,
 } from "@consentinel/db";
 import { runMigrations } from "@consentinel/db/migrate";
+import { checkJira } from "@consentinel/notify";
 import { alertOnRegression } from "../src/alerting";
 import { loadConfig } from "../src/config";
 import { postJiraScanFailure, postJiraVerdict } from "../src/jira-sync";
@@ -55,6 +57,7 @@ const [site] = await db
 assert.ok(site);
 await saveJiraConnection(db, org.id, {
   baseUrl: "https://acme.atlassian.net",
+  apiBase: null,
   email: "a@b.co",
   apiToken: "tok",
   projectKey: "WEB",
@@ -149,6 +152,83 @@ const failed = await createScan(db, {
 });
 await postJiraScanFailure(db, failed.id, "timeout");
 assert.match(last().body, /Couldn't verify/);
+
+// An expired token: the first 401 is recorded once, a success clears it.
+const okFetch = globalThis.fetch;
+globalThis.fetch = () => Promise.resolve(new Response("{}", { status: 401 }));
+await postJiraVerdict(db, await scanWith("jira", ["a"], "SHOP-110"), config);
+const broken = await getJiraConnectionSummary(db, org.id);
+assert.ok(broken?.authFailedAt, "auth failure recorded");
+const firstSeen = broken.authFailedAt.getTime();
+await postJiraVerdict(db, await scanWith("jira", ["a"], "SHOP-111"), config);
+assert.equal(
+  (await getJiraConnectionSummary(db, org.id))?.authFailedAt?.getTime(),
+  firstSeen,
+  "only the first failure is recorded",
+);
+globalThis.fetch = okFetch;
+await postJiraVerdict(db, await scanWith("jira", ["a"], "SHOP-112"), config);
+assert.equal((await getJiraConnectionSummary(db, org.id))?.authFailedAt, null, "cleared");
+
+// Scoped tokens: the site refuses, the gateway accepts, and we save the gateway.
+const cloud = "11111111-2222-3333-4444-555555555555";
+globalThis.fetch = ((url: string) => {
+  if (url.endsWith("/_edge/tenant_info"))
+    return Promise.resolve(new Response(JSON.stringify({ cloudId: cloud })));
+  if (url.startsWith("https://acme.atlassian.net"))
+    return Promise.resolve(new Response("{}", { status: 401 }));
+  if (url.includes("/mypermissions"))
+    return Promise.resolve(
+      new Response(
+        JSON.stringify({
+          permissions: {
+            CREATE_ISSUES: { havePermission: true },
+            ADD_COMMENTS: { havePermission: true },
+          },
+        }),
+      ),
+    );
+  if (url.includes("/project/"))
+    return Promise.resolve(
+      new Response(
+        JSON.stringify({ name: "Web", issueTypes: [{ id: "9", name: "Bug", subtask: false }] }),
+      ),
+    );
+  return Promise.resolve(new Response("{}"));
+}) as typeof fetch;
+const scoped = await checkJira(
+  { baseUrl: "https://acme.atlassian.net", email: "a@b.co", apiToken: "tok" },
+  "WEB",
+);
+assert.ok(scoped.ok);
+assert.equal(scoped.apiBase, `https://api.atlassian.com/ex/jira/${cloud}`);
+
+// Missing permission is caught at connect, not on the first regression.
+globalThis.fetch = ((url: string) => {
+  if (url.includes("/mypermissions"))
+    return Promise.resolve(
+      new Response(
+        JSON.stringify({
+          permissions: {
+            CREATE_ISSUES: { havePermission: false },
+            ADD_COMMENTS: { havePermission: true },
+          },
+        }),
+      ),
+    );
+  if (url.includes("/project/"))
+    return Promise.resolve(
+      new Response(JSON.stringify({ name: "Web", issueTypes: [{ id: "9", name: "Bug" }] })),
+    );
+  return Promise.resolve(new Response("{}"));
+}) as typeof fetch;
+const denied = await checkJira(
+  { baseUrl: "https://acme.atlassian.net", email: "a@b.co", apiToken: "tok" },
+  "WEB",
+);
+assert.ok(!denied.ok);
+assert.match(denied.error, /can't create issues/);
+globalThis.fetch = okFetch;
 
 // Plan gate: Monitor doesn't include Jira, so nothing posts.
 await db.update(orgs).set({ plan: "monitoring" }).where(eq(orgs.id, org.id));

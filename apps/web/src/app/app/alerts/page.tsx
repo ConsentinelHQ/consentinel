@@ -159,6 +159,7 @@ export default async function Alerts() {
                       issueTypeName: jira.issueTypeName,
                       autoCreate: jira.autoCreate,
                       hookToken: jira.hookToken,
+                      authFailedAt: jira.authFailedAt?.toISOString() ?? null,
                     }
                   : null
               }

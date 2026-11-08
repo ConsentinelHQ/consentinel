@@ -2489,6 +2489,117 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
   max-width: 160px;
 }
 
+/* Organization, signed-in user and sign out, pinned to the bottom of the sidebar */
+.side-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--hairline, #e4e4e7);
+}
+.side-bottom .dash-account {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.side-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.side-user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  color: #18181b;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+.side-user-card:hover {
+  background: #f4f4f5;
+}
+.side-user-card.is-active {
+  background: #fff;
+  box-shadow: 0 0 0 1px #e4e4e7;
+}
+.side-user-avatar {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e4e4e7;
+  object-fit: cover;
+}
+.side-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.side-user-name,
+.side-user-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-user-name {
+  font-size: 0.88rem;
+  font-weight: 550;
+}
+.side-user-email {
+  font-size: 0.76rem;
+  color: #71717a;
+}
+.side-signout {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  cursor: pointer;
+}
+.side-signout:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+@media (max-width: 860px) {
+  .side-bottom {
+    order: 4;
+    flex-direction: row;
+    align-items: center;
+    margin: 0 0 0 auto;
+    padding-top: 0;
+    border-top: none;
+  }
+  .side-user {
+    flex-direction: row;
+    align-items: center;
+  }
+  .side-user-text {
+    display: none;
+  }
+  .side-signout {
+    width: auto;
+  }
+}
+
+/* Profile */
+.profile-shell {
+  margin-top: 1.5rem;
+  animation: connect-help-in 280ms ease both;
+}
+.profile-shell .cl-pageScrollBox {
+  padding: 1.5rem 1.75rem;
+}
+.profile-foot {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
 /* Overview */
 .kpis {
   display: grid;
@@ -3186,6 +3297,22 @@ a.nav-cta:hover {
 .webhook-actions {
   display: inline-flex;
   gap: 1rem;
+}
+.jira-broken {
+  margin: 0.75rem 1.1rem 0;
+  padding: 0.85rem 0.95rem 0.25rem;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  font-size: 0.9rem;
+  animation: connect-help-in 240ms ease both;
+}
+.jira-broken > p {
+  margin: 0 0 0.25rem;
+  color: #7f1d1d;
+}
+.jira-broken .panel-note {
+  display: none;
 }
 .jira-steps {
   padding: 0.9rem 1.1rem;

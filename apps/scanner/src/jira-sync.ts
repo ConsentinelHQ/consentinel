@@ -1,17 +1,27 @@
 import {
   can,
+  clearJiraAuthFailed,
   findingsStillPresent,
   getBillingState,
   getJiraCredentialsForSite,
   getScan,
   getTrackedJiraIssue,
+  listOrgAlertSettings,
+  markJiraAuthFailed,
   recordJiraIssue,
   type Database,
   type DiffItem,
   type JiraCredentials,
   type ScanRow,
 } from "@consentinel/db";
-import { adf, commentOnJiraIssue, createJiraIssue, type AdfNode } from "@consentinel/notify";
+import {
+  adf,
+  commentOnJiraIssue,
+  createJiraIssue,
+  isJiraAuthFailure,
+  sendJiraAuthAlert,
+  type AdfNode,
+} from "@consentinel/notify";
 import { newCriticalFindings } from "./alerting.js";
 import type { ScannerConfig } from "./config.js";
 
@@ -42,6 +52,33 @@ async function credentials(db: Database, siteId: string): Promise<JiraCredential
   return creds;
 }
 
+/**
+ * Runs one Jira call and tracks whether the token still works. The first 401
+ * emails the org's admins once, since an expired token otherwise fails silently.
+ */
+async function withJira<T>(
+  db: Database,
+  creds: JiraCredentials,
+  call: () => Promise<T>,
+): Promise<T> {
+  try {
+    const result = await call();
+    await clearJiraAuthFailed(db, creds.orgId).catch(() => undefined);
+    return result;
+  } catch (error) {
+    if (isJiraAuthFailure(error) && (await markJiraAuthFailed(db, creds.orgId))) {
+      const members = await listOrgAlertSettings(db, creds.orgId);
+      const admins = members.filter((m) => m.role !== "member" && m.email !== "");
+      const to = (admins.length > 0 ? admins : members.filter((m) => m.email !== "")).map(
+        (m) => m.email,
+      );
+      const sent = await sendJiraAuthAlert({ to, jiraUrl: creds.baseUrl });
+      if (!sent.sent) console.error("jira auth alert not sent", { orgId: creds.orgId, sent });
+    }
+    throw error;
+  }
+}
+
 function findingItems(items: { vendor: string; title: string; remediation?: string }[]): AdfNode {
   return adf.bullets(
     items.map((f) => [
@@ -65,26 +102,28 @@ export async function openJiraIssueForRegression(
     if (!creds?.autoCreate) return;
     const site = host(scan.url);
     const noun = added.length === 1 ? "issue" : "issues";
-    const key = await createJiraIssue(creds, {
-      projectKey: creds.projectKey,
-      issueTypeId: creds.issueTypeId,
-      summary: `${String(added.length)} new critical privacy ${noun} on ${site}`,
-      labels: LABELS,
-      description: adf.doc(
-        adf.p(
-          adf.text(
-            `Consentinel's ${scan.trigger} scan of ${site} found trackers firing after a visitor opted out. This is the pattern behind CIPA wiretap suits and state privacy enforcement.`,
+    const key = await withJira(db, creds, () =>
+      createJiraIssue(creds, {
+        projectKey: creds.projectKey,
+        issueTypeId: creds.issueTypeId,
+        summary: `${String(added.length)} new critical privacy ${noun} on ${site}`,
+        labels: LABELS,
+        description: adf.doc(
+          adf.p(
+            adf.text(
+              `Consentinel's ${scan.trigger} scan of ${site} found trackers firing after a visitor opted out. This is the pattern behind CIPA wiretap suits and state privacy enforcement.`,
+            ),
+          ),
+          findingItems(added),
+          adf.p(adf.text("See the evidence", { href: reportUrl(config, scan.id) })),
+          adf.p(
+            adf.text(
+              "When you move this ticket to Done, Consentinel rescans the site and comments here with whether each finding is actually gone.",
+            ),
           ),
         ),
-        findingItems(added),
-        adf.p(adf.text("See the evidence", { href: reportUrl(config, scan.id) })),
-        adf.p(
-          adf.text(
-            "When you move this ticket to Done, Consentinel rescans the site and comments here with whether each finding is actually gone.",
-          ),
-        ),
-      ),
-    });
+      }),
+    );
     await recordJiraIssue(db, {
       orgId: creds.orgId,
       siteId: scan.siteId,
@@ -171,8 +210,9 @@ export async function postJiraVerdict(
   }
 
   content.push(link);
+  const issueKey = scan.jiraIssueKey;
   try {
-    await commentOnJiraIssue(creds, scan.jiraIssueKey, adf.doc(...content));
+    await withJira(db, creds, () => commentOnJiraIssue(creds, issueKey, adf.doc(...content)));
   } catch (error) {
     console.error("jira verdict not posted", { scanId, issue: scan.jiraIssueKey, error });
   }
@@ -192,15 +232,20 @@ export async function postJiraScanFailure(
     const why = scan.blockedBy
       ? `${scan.blockedBy} bot protection blocked the scanner. Add the Consentinel allowlist rule for this site.`
       : reason.slice(0, 300);
-    await commentOnJiraIssue(
-      creds,
-      scan.jiraIssueKey,
-      adf.doc(
-        adf.p(
-          adf.text("Couldn't verify. ", { bold: true }),
-          adf.text(`Consentinel couldn't scan ${host(scan.url)} after this ticket closed. ${why}`),
+    const issueKey = scan.jiraIssueKey;
+    await withJira(db, creds, () =>
+      commentOnJiraIssue(
+        creds,
+        issueKey,
+        adf.doc(
+          adf.p(
+            adf.text("Couldn't verify. ", { bold: true }),
+            adf.text(
+              `Consentinel couldn't scan ${host(scan.url)} after this ticket closed. ${why}`,
+            ),
+          ),
+          adf.p(adf.text("Consentinel", { bold: true }), adf.text(" automated verification.")),
         ),
-        adf.p(adf.text("Consentinel", { bold: true }), adf.text(" automated verification.")),
       ),
     );
   } catch (error) {
