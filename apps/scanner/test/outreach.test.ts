@@ -24,7 +24,7 @@ import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.
 import { isStore, storeSignals } from "../src/outreach/queue.js";
 import { renderBrief, windowHours } from "../src/outreach/brief.js";
 import { computeStats } from "../src/outreach/stats.js";
-import { bullets, policyBullet, render } from "../src/outreach/template.js";
+import { bullets, gtmBullet, policyBullet, render } from "../src/outreach/template.js";
 import { DRAFTED, SENT, dueForRetouch, retouchEmail } from "../src/outreach/retouch.js";
 import { gpcIgnoredInAll, notMentionedInAll } from "../src/outreach/evidence.js";
 import { RESEARCHED, cleanName, needList, needsContact } from "../src/outreach/research.js";
@@ -92,26 +92,34 @@ assert.equal(
 );
 assert.match(bullets(gpc)[0], /starting January 1\), 2 ad vendors still fire/);
 
-// Template: Charlie's Nov 3 wording. Links only to Consentinel and their own site.
+// Template: Charlie's Nov 8 wording. Links only to Consentinel.
 const email = render({
   domain: "chomps.com",
   firstName: "",
   ev: rejected,
   postalAddress: "PO Box 1, Boonton NJ",
 });
-assert.equal(email.subject, "Quick heads-up about chomps.com");
+assert.equal(email.subject, "Consentinel for chomps.com");
 assert.match(email.text, /^Hi there,\n/);
-assert.match(email.text, /I'm Charlie, I build Consentinel/);
+assert.match(email.text, /I'm Charlie, founder of Consentinel\. We help companies/);
 assert.match(email.text, /chomps\.com/);
-assert.match(email.text, /happy to send over the full report/);
+assert.match(email.text, /happy to send over the details or answer any questions/);
+assert.match(
+  email.text,
+  /Here's what's happening on chomps\.com right now after declining cookies:\n\n- 5 ad vendors are still firing, including Meta, TikTok and Amazon Advertising\n- 3 other vendors wait for consent/,
+);
+assert.match(email.text, /alerts your team in Teams, Jira or Slack/);
+assert.match(email.text, /\n\nCheers,\nCharlie\nFounder, Consentinel\n/);
+assert.doesNotMatch(email.text, /January 1/, "reject-led email skips the GPC deadline");
 assert.deepEqual(
   [...email.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]),
-  ["https://www.getconsentinel.com/", "https://chomps.com"],
+  ["https://www.getconsentinel.com/", "https://www.getconsentinel.com/"],
 );
+assert.match(email.html, /<ul><li>5 ad vendors are still firing/);
 assert.doesNotMatch(email.text, /https?:\/\//);
 assert.doesNotMatch(email.text, /Sorry to bother|Sephora|also sent/);
 assert.match(email.text, /PO Box 1, Boonton NJ$/);
-assert.ok(email.text.split(/\s+/).length < 170, "stays short");
+assert.ok(email.text.split(/\s+/).length < 200, "stays short");
 const noAddr = render({ domain: "x.com", firstName: "A", ev: rejected, postalAddress: "" });
 assert.match(noAddr.text, /just let me know\.$/);
 assert.doesNotMatch(noAddr.text + noAddr.html, /POSTAL ADDRESS/);
@@ -798,6 +806,33 @@ const linked = render({
 assert.doesNotMatch(linked.text + linked.html, /report\//);
 assert.equal(domainFromSubject("Re: Opt-out check on www.Olipop.com"), "olipop.com");
 assert.equal(domainFromSubject("Privacy issues on olipop.com"), "olipop.com");
+assert.equal(domainFromSubject("Re: Consentinel for olipop.com"), "olipop.com");
+
+// GTM bullet: only when the scan traced firing vendors to a container.
+{
+  const latest = {
+    findings: [
+      { vendor: "Meta", gtm: [{ containerId: "GTM-AB12" }] },
+      { vendor: "Criteo", gtm: [{ containerId: "GTM-AB12" }] },
+      { vendor: "Klaviyo" },
+    ],
+  } as unknown as ScanResult;
+  const ev: Evidence = { ...gpc, firing: ["Meta", "Criteo", "TikTok"], latest };
+  assert.equal(
+    gtmBullet(ev, ev.firing),
+    "2 of them load through your Google Tag Manager container (GTM-AB12), so the fix is a consent setting on each tag",
+  );
+  assert.match(gtmBullet({ ...ev, firing: ["Meta"] }, ["Meta"]) ?? "", /^It loads .* on that tag$/);
+  assert.equal(gtmBullet(gpc, gpc.firing), null);
+  const withGtm = render({ domain: "x.com", firstName: "A", ev, postalAddress: "" });
+  assert.match(withGtm.text, /\n- 2 of them load through your Google Tag Manager container/);
+  const shop = render({ domain: "x.com", firstName: "A", ev, postalAddress: "", shopify: true });
+  assert.match(
+    shop.html,
+    /<a href="https:\/\/apps\.shopify\.com\/consentinel-1">Shopify App Store<\/a>/,
+  );
+  assert.match(shop.text, /also on the Shopify App Store if you'd rather run it from your admin/);
+}
 
 // ---------- Multi-contact ----------
 assert.equal(roleFor("VP, E-commerce"), "owner");
@@ -1075,8 +1110,13 @@ const withPol = render({
   ev: { ...gpc, notMentioned: ["TikTok"] },
   postalAddress: "",
 });
-// The policy gap stays out of the first email: it reads as an accusation.
-assert.doesNotMatch(withPol.text, /privacy policy/);
+// The policy gap is a bullet when the policy was read (Nov 8, 2026).
+assert.match(
+  withPol.text,
+  /- Your privacy policy doesn't mention TikTok, but it runs on your site/,
+);
+assert.match(withPol.text, /January 1, every browser/);
+assert.match(withPol.text, /- None of them stopped when the signal was on/);
 
 const disc = (status: "checked" | "unreadable", notNamed: string[], cmp: string | null = null) =>
   ({

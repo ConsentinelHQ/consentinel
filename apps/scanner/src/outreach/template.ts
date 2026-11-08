@@ -1,4 +1,5 @@
 import type { Role } from "./contacts.js";
+import { canonicalVendor } from "@consentinel/shared";
 import { byProminence, joinNames, type Evidence } from "./evidence.js";
 
 /**
@@ -110,41 +111,93 @@ const MIN_GPC_BULLET = 2;
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** Neutral subject. "Privacy issues" read like a demand letter. Older sends keep the old one. */
-export const subjectFor = (domain: string): string => `Quick heads-up about ${domain}`;
-/** Gmail search for every first email we've sent, old subject and new. */
+/** Names us and their site, nothing alarming. Older sends keep their old subjects. */
+export const subjectFor = (domain: string): string => `Consentinel for ${domain}`;
+/** Gmail search for every first email we've sent, old subjects and new. */
 export const SUBJECT_QUERY =
-  '(subject:"Privacy issues on" OR subject:"Opt-out check on" OR subject:"Quick heads-up about")';
+  '(subject:"Privacy issues on" OR subject:"Opt-out check on" OR subject:"Quick heads-up about" OR subject:"Consentinel for")';
 
-/** The one finding the first email leads with: GPC when we have it, else the reject click. */
 const SITE = "https://www.getconsentinel.com/";
-
-/** "9 ad vendors were still firing, including Meta, Google Ads and TikTok". */
-function wereFiring(list: string[], site: string): string {
-  const n = list.length;
-  const named = joinNames(byProminence(list).slice(0, 3));
-  return n <= 3
-    ? `${String(n)} ad vendors were still firing on ${site}: ${named}`
-    : `${String(n)} ad vendors were still firing on ${site}, including ${named}`;
-}
 
 /** GPC leads when we have it; the reject click otherwise. */
 function gpcLed(ev: Evidence): boolean {
   return ev.mode !== "rejected" || (ev.gpcIgnored ?? []).length >= MIN_GPC_BULLET;
 }
 
-/** The finding sentence. `site` is the domain as text, or as a link in HTML. */
-export function headline(ev: Evidence, site: string): string {
-  if (gpcLed(ev)) {
-    const list = ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
-    return `With the browser's opt-out signal (Global Privacy Control) turned on, ${wereFiring(list, site)}.`;
-  }
-  return `After declining cookies, ${wereFiring(ev.firing, site)}.`;
+/** "9 ad vendors are still firing, including Meta, Google Ads and TikTok". */
+function areFiring(list: string[]): string {
+  const n = list.length;
+  const named = joinNames(byProminence(list).slice(0, 3));
+  return n <= 3
+    ? `${String(n)} ad vendors are still firing: ${named}`
+    : `${String(n)} ad vendors are still firing, including ${named}`;
+}
+
+/** The lead-in above the bullets. */
+export function leadIn(ev: Evidence, domain: string): string {
+  return gpcLed(ev)
+    ? `Here's what's happening on ${domain} right now with the signal on:`
+    : `Here's what's happening on ${domain} right now after declining cookies:`;
 }
 
 /**
- * First email, Charlie's wording (Nov 3, 2026): one finding, why it's usually an
- * easy fix, an offer to send the report. Two links only: Consentinel and their site.
+ * The site's issues as bullets, so a skimmer gets them. Every line comes from
+ * Evidence; nothing here is model-written.
+ */
+export function siteBullets(ev: Evidence): string[] {
+  const led = gpcLed(ev);
+  const list = led && ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
+  const out = [areFiring(list)];
+  const plural = ev.gated === 1 ? "vendor" : "vendors";
+  if (ev.mode === "gpc") {
+    out.push(
+      ev.gated > 0
+        ? `${String(ev.gated)} other ${plural} ${ev.gated === 1 ? "stops" : "stop"} correctly, so the signal is being read - these just aren't connected to it`
+        : "None of them stopped when the signal was on",
+    );
+  } else if (!led) {
+    out.push(
+      ev.gated > 0
+        ? `${String(ev.gated)} other ${plural} ${ev.gated === 1 ? "waits" : "wait"} for consent, so the banner is working - these just aren't connected to it`
+        : "None of the tags we saw changed behavior after the reject click",
+    );
+  }
+  const policy = policyBullet(ev.notMentioned);
+  if (policy) out.push(policy);
+  const gtm = gtmBullet(ev, list);
+  if (gtm) out.push(gtm);
+  return out;
+}
+
+/** "3 of them load through your Google Tag Manager container (GTM-ABC), so ...". */
+export function gtmBullet(ev: Evidence, list: string[]): string | null {
+  const findings = ev.latest?.findings ?? [];
+  const names = new Set(list.map(canonicalVendor));
+  const viaGtm = new Set<string>();
+  const containers = new Set<string>();
+  for (const f of findings) {
+    const v = canonicalVendor(f.vendor);
+    if (!names.has(v) || !f.gtm?.length) continue;
+    viaGtm.add(v);
+    for (const r of f.gtm) containers.add(r.containerId);
+  }
+  const n = viaGtm.size;
+  if (n === 0) return null;
+  const ids = [...containers].join(", ");
+  const which =
+    n === list.length
+      ? n === 1
+        ? "It loads"
+        : n === 2
+          ? "Both load"
+          : "All of them load"
+      : `${String(n)} of them load`;
+  return `${which} through your Google Tag Manager container (${ids}), so the fix is a consent setting on ${n === 1 ? "that tag" : "each tag"}`;
+}
+
+/**
+ * First email, Charlie's wording (Nov 8, 2026): who we are, why it matters now,
+ * the site's issues as bullets, what Consentinel does, an offer to help.
  * Colleagues get their own email later (team-draft), never named here.
  */
 export function render({
@@ -161,24 +214,17 @@ export function render({
       ? null
       : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
   const intro = (name: string): string =>
-    `I'm Charlie, I build ${name} - a tool that checks whether sites honor privacy opt-outs.`;
-  // Why it matters now, with no legal threat: more shoppers will be sending the signal.
+    `I'm Charlie, founder of ${name}. We help companies make sure their marketing tags respect visitors' privacy choices.`;
   const why = gpcLed(ev)
-    ? "Starting January 1, every browser has to offer that setting, so a lot more of your shoppers will be sending it."
-    : null;
-  const body = (site: string): string => [headline(ev, site), ...(why ? [why] : [])].join(" ");
-  const peer =
-    "I've spent years managing marketing tags for different companies, and these gaps almost always come from a tag that hasn't been connected to the consent setup, so it's typically a quick and easy fix.";
-  // Shopify stores get a no-reply option inside the ask: run it themselves from their admin.
-  const ask = (link: string | null): string =>
-    [
-      "If it'd be useful, I'm happy to send over the full report - it shows each tag and when it fired.",
-      ...(link
-        ? [`Or if you'd rather check it yourself, Consentinel is also on the ${link}.`]
-        : []),
-      "Either way, hope this helps!",
-    ].join(" ");
-  const sig = ["Charlie", "Founder, Consentinel"];
+    ? "Starting January 1, every browser has to offer an opt-out setting called Global Privacy Control, so far more people will be sending that signal. The usual problem is a tag that was never connected to the consent setup, so it keeps firing anyway."
+    : "The usual problem is a tag that was never connected to the consent setup, so it keeps firing after a visitor opts out.";
+  const items = siteBullets(ev);
+  const pitch = (link: string): string =>
+    `It's usually a quick fix. You can run a free scan anytime at ${link}, and once it's fixed, Consentinel checks the site daily, points to the exact Google Tag Manager tag to change, and alerts your team in Teams, Jira or Slack if a new gap shows up.`;
+  const store = (link: string): string =>
+    `Consentinel is also on the ${link} if you'd rather run it from your admin.`;
+  const close = "I'd be happy to send over the details or answer any questions.";
+  const sig = ["Cheers,", "Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather I didn't follow up, just let me know.";
 
   const text = [
@@ -187,11 +233,16 @@ export function render({
     ...(referral ? [referral, ""] : []),
     intro("Consentinel"),
     "",
-    body(domain),
+    why,
     "",
-    peer,
+    leadIn(ev, domain),
     "",
-    ask(shopify ? `Shopify App Store (${SHOPIFY_LISTING})` : null),
+    ...items.map((b) => `- ${b}`),
+    "",
+    pitch("getconsentinel.com"),
+    ...(shopify ? ["", store("Shopify App Store")] : []),
+    "",
+    close,
     "",
     ...sig,
     "",
@@ -201,17 +252,18 @@ export function render({
 
   const a = (href: string, label: string): string => `<a href="${esc(href)}">${esc(label)}</a>`;
   const p = (x: string): string => `<p>${x}</p>`;
+  const linked = (sentence: (slot: string) => string, href: string, label: string): string =>
+    esc(sentence("\u0000")).replace("\u0000", a(href, label));
   const html = [
     p(esc(greeting)),
     ...(referral ? [p(esc(referral))] : []),
-    p(esc(intro("\u0000")).replace("\u0000", a(SITE, "Consentinel"))),
-    p(esc(body("\u0000")).replace("\u0000", a(`https://${domain}`, domain))),
-    p(esc(peer)),
-    p(
-      shopify
-        ? esc(ask("\u0000")).replace("\u0000", a(SHOPIFY_LISTING, "Shopify App Store"))
-        : esc(ask(null)),
-    ),
+    p(linked(intro, SITE, "Consentinel")),
+    p(esc(why)),
+    p(esc(leadIn(ev, domain))),
+    `<ul>${items.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`,
+    p(linked(pitch, SITE, "getconsentinel.com")),
+    ...(shopify ? [p(linked(store, SHOPIFY_LISTING, "Shopify App Store"))] : []),
+    p(esc(close)),
     p(sig.map(esc).join("<br>")),
     `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,
   ].join("\n");
