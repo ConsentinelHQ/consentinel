@@ -2596,11 +2596,53 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
 
 /* Profile */
 .profile-shell {
-  margin-top: 1.5rem;
+  margin-top: 0.5rem;
   animation: connect-help-in 280ms ease both;
 }
-.profile-shell .cl-pageScrollBox {
-  padding: 1.5rem 1.75rem;
+.profile-tabs {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--hairline, #e4e4e7);
+}
+.profile-tab {
+  position: relative;
+  padding: 0.6rem 0;
+  color: #71717a;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 150ms ease;
+}
+.profile-tab:hover {
+  color: #18181b;
+}
+.profile-tab.is-active {
+  color: #18181b;
+  font-weight: 550;
+}
+.profile-tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #18181b;
+  animation: profile-tab-in 220ms ease both;
+}
+@keyframes profile-tab-in {
+  from {
+    transform: scaleX(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.profile-shell .cl-cardBox,
+.profile-shell .cl-scrollBox {
+  background: transparent;
 }
 .profile-foot {
   margin-top: 1rem;
