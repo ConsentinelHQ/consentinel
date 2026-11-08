@@ -52,7 +52,10 @@ export default function Pricing() {
             <p className="tier-note">For a single store</p>
             <ul className="tier-list">
               <li>Scheduled scans daily, weekly, or monthly</li>
-              <li>A scan after every deploy, from your CI pipeline or a Zapier step</li>
+              <li>
+                A scan after every deploy, with a GitHub Action that fails the build on a new
+                violation
+              </li>
               <li>An email the moment a new tracker fires before consent</li>
               <li>
                 An alert when a vendor starts running that your privacy policy doesn’t mention
