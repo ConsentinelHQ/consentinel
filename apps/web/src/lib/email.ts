@@ -81,6 +81,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
       `[${f.severity.toUpperCase()}] ${f.title}${f.causedBy ? ` (loaded by ${f.causedBy})` : ""}`,
       ...(f.evidence ?? []).slice(0, 3).map((e) => `  ${e}`),
       ...(f.remediation ? [`  Fix: ${f.remediation}`] : []),
+      ...(f.gtmFixes ?? []).map((g) => `  In Google Tag Manager: ${g}`),
       "",
     ]),
     ...(report.correctlyGated.length > 0
@@ -115,6 +116,7 @@ function renderRow(f: FreeFinding): string {
     ${f.triggers && f.triggers.length > 0 ? `<p style="margin:0 0 6px;font-size:13px;color:#6e6e73">Also loads ${esc(joinList(f.triggers))}</p>` : ""}
     ${evidence.map((e) => `<p style="margin:0 0 4px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#3f3f46;word-break:break-all">${esc(e)}</p>`).join("")}
     ${f.remediation ? `<p style="margin:8px 0 0;font-size:14px;line-height:1.5"><strong>Fix:</strong> ${esc(f.remediation)}</p>` : ""}
+    ${(f.gtmFixes ?? []).map((g) => `<p style="margin:6px 0 0;font-size:14px;line-height:1.5"><strong>In Google Tag Manager:</strong> ${esc(g)}</p>`).join("")}
   </div>`;
 }
 

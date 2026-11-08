@@ -1084,6 +1084,22 @@ footer {
   margin: 0.7rem 0 0;
   max-width: 62ch;
 }
+.proof-gtm {
+  margin-top: 0.7rem;
+  max-width: 62ch;
+}
+.proof-gtm-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.proof-gtm ul {
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+  line-height: 1.5;
+}
 
 /* Sits between the lede and the report card, so it needs air on both sides. */
 .share-report {

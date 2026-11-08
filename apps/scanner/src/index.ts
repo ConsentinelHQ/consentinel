@@ -8,6 +8,7 @@ import {
 import { scanUrl, type ScanOptions } from "./scanner.js";
 import type { PolicyText } from "./policy.js";
 import { analyze } from "./analyze.js";
+import { withGtm } from "./gtm.js";
 
 export { scanUrl } from "./scanner.js";
 export { analyze, ENGINE_VERSION } from "./analyze.js";
@@ -106,5 +107,8 @@ export async function scanDetailed(
     if (blocked || thin) delete raw.gpcPass;
   }
 
-  return { result: analyze(raw), policies: raw.policies ?? [] };
+  // Fixture runs never touch the network; real scans read the site's GTM container.
+  const analyzed = analyze(raw);
+  const result = opts.blockThirdParty ? analyzed : await withGtm(analyzed, raw);
+  return { result, policies: raw.policies ?? [] };
 }
