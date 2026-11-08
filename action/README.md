@@ -1,5 +1,7 @@
 # Consentinel consent check
 
+Source for [ConsentinelHQ/consent-check](https://github.com/ConsentinelHQ/consent-check), the published GitHub Marketplace action. Change it here (tests run in this repo's CI), then copy `action.yml`, `check.sh` and `README.md` there and tag a release.
+
 Scans your site after each deploy and fails the job when a release adds a tracker that fires after visitors opt out. The job summary lists each new finding, the fix, and the exact Google Tag Manager tag to change when the tag loads through GTM.
 
 ## Setup
@@ -10,7 +12,7 @@ Scans your site after each deploy and fails the job when a release adds a tracke
 
 ```yaml
 - name: Consent check
-  uses: ConsentinelHQ/consentinel/action@main
+  uses: ConsentinelHQ/consent-check@v1
   with:
     hook-url: ${{ secrets.CONSENTINEL_DEPLOY_HOOK }}
 ```

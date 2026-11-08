@@ -309,7 +309,7 @@ export default function HowItWorks() {
             finding, the fix, and the Google Tag Manager tag to change.
           </p>
           <div className="allowlist-code" style={{ marginTop: "1.75rem", textAlign: "left" }}>
-            <pre>{`- name: Consent check\n  uses: ConsentinelHQ/consentinel/action@main\n  with:\n    hook-url: \${{ secrets.CONSENTINEL_DEPLOY_HOOK }}`}</pre>
+            <pre>{`- name: Consent check\n  uses: ConsentinelHQ/consent-check@v1\n  with:\n    hook-url: \${{ secrets.CONSENTINEL_DEPLOY_HOOK }}`}</pre>
           </div>
           <p className="quiet" style={{ marginTop: "1rem" }}>
             One step after your deploy in GitHub Actions. From any other CI system, Shopify Flow, or

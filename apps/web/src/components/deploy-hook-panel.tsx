@@ -43,7 +43,7 @@ export function DeployHookPanel({
   const url = `${origin}/api/hooks/deploy/${current}`;
   const shown = show ? url : `${origin}/api/hooks/deploy/${"•".repeat(12)}${current.slice(-4)}`;
   const curl = `curl -fsS -X POST ${url}`;
-  const gha = `- name: Consent check\n  uses: ConsentinelHQ/consentinel/action@main\n  with:\n    hook-url: \${{ secrets.${GHA_SECRET} }}`;
+  const gha = `- name: Consent check\n  uses: ConsentinelHQ/consent-check@v1\n  with:\n    hook-url: \${{ secrets.${GHA_SECRET} }}`;
 
   const regenerate = async (): Promise<void> => {
     setBusy(true);
