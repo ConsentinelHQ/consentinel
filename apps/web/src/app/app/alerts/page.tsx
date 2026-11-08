@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -99,7 +100,10 @@ export default async function Alerts() {
       </section>
       <section className="panel panel-gap">
         <div className="panel-head">
-          <h2>Slack</h2>
+          <h2 className="panel-title-icon">
+            <Image alt="" height={18} src="/integrations/slack.svg" width={18} />
+            Slack
+          </h2>
           {slackAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {slackAllowed ? (
@@ -121,7 +125,10 @@ export default async function Alerts() {
       </section>
       <section className="panel panel-gap">
         <div className="panel-head">
-          <h2>Microsoft Teams</h2>
+          <h2 className="panel-title-icon">
+            <Image alt="" height={18} src="/integrations/microsoft-teams.svg" width={18} />
+            Microsoft Teams
+          </h2>
           {teamsAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {teamsAllowed ? (
@@ -145,7 +152,10 @@ export default async function Alerts() {
       </section>
       <section className="panel panel-gap">
         <div className="panel-head">
-          <h2>Jira</h2>
+          <h2 className="panel-title-icon">
+            <Image alt="" height={18} src="/integrations/jira.svg" width={18} />
+            Jira
+          </h2>
           {jiraAllowed ? null : <Link href="/app/billing">Growth and Agency</Link>}
         </div>
         {jiraAllowed ? (
