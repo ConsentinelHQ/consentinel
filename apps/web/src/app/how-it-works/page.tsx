@@ -48,6 +48,27 @@ const EVIDENCE = [
   },
 ];
 
+const GTM_ROWS = [
+  {
+    severity: "critical",
+    tag: "69",
+    title: "Custom HTML loading Meta Pixel",
+    proof: "No consent check. Require ad_storage in Consent Settings.",
+  },
+  {
+    severity: "critical",
+    tag: "74",
+    title: "LinkedIn Insight",
+    proof: "Fires on a consent event without checking the choice.",
+  },
+  {
+    severity: "warning",
+    tag: "13",
+    title: "Google Ads Conversion Tracking",
+    proof: "Built-in checks, but Consent Mode was never set to denied.",
+  },
+] as const;
+
 export default function HowItWorks() {
   return (
     <main>
@@ -197,6 +218,43 @@ export default function HowItWorks() {
                     <span className="gutter" />
                     <span className="row-title">{vendor}</span>
                     <span className="row-vendor">via amazon</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <h2>Fixes down to the tag in Google Tag Manager.</h2>
+              <p className="lede" style={{ marginTop: "1.25rem" }}>
+                Most marketing tags live in Google Tag Manager. We read your published container,
+                the same file every visitor’s browser loads, so there’s nothing to connect.
+              </p>
+              <p style={{ marginTop: "1.25rem" }}>
+                Each finding that loads through GTM names the tag behind it, how its consent
+                settings and triggers are set up, and the exact setting to change. Whoever owns the
+                container can fix it in minutes.
+              </p>
+            </div>
+            <div className="specimen" aria-hidden="true">
+              <div className="specimen-head">
+                <span className="specimen-url">GTM-XXXXXX</span>
+                <span className="verdict">3 tags to change</span>
+              </div>
+              <ul className="ledger">
+                {GTM_ROWS.map((row) => (
+                  <li className="row evidence-row" data-severity={row.severity} key={row.title}>
+                    <span className="gutter" />
+                    <span className="row-title">
+                      {row.title}
+                      <span className="proof">{row.proof}</span>
+                    </span>
+                    <span className="row-vendor">tag {row.tag}</span>
                   </li>
                 ))}
               </ul>

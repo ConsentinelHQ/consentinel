@@ -128,6 +128,28 @@ const FINDINGS = [
       </div>
     ),
   },
+  {
+    eyebrow: "Finding 04",
+    title: "The exact tag to fix",
+    nav: "Tag Manager fixes",
+    body: "We read your published Google Tag Manager container and match each leak to the tag that loads it, with the consent setting to change. No GTM login needed.",
+    chip: "Down to the tag ID in GTM",
+    visual: (
+      <div className="ev">
+        <p className="ev-head">
+          <span>GTM-XXXXXX · 48 tags</span>
+          <span className="ev-warn">2 to fix</span>
+        </p>
+        <code>
+          <mark>Custom HTML · Meta Pixel · tag 69 · no consent check</mark>
+        </code>
+        <code>
+          <mark>TikTok Pixel · tag 72 · no consent check</mark>
+        </code>
+        <code>Fix: Consent Settings &gt; require ad_storage</code>
+      </div>
+    ),
+  },
 ] as const;
 
 const FAQ = [
@@ -142,6 +164,10 @@ const FAQ = [
   {
     q: "How does the scan work?",
     a: "A real browser loads your page twice, once refusing consent and once accepting it. Anything that fires both times ignored the refusal, and the report shows the exact request or cookie that proves it.",
+  },
+  {
+    q: "Do you work with Google Tag Manager?",
+    a: "Yes. We read your published container, the same file every visitor’s browser loads, so there’s nothing to connect. Each finding that loads through GTM names the tag behind it and the consent setting to change.",
   },
   {
     q: "Which consent banners do you support?",

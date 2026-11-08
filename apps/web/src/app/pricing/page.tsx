@@ -35,6 +35,7 @@ export default function Pricing() {
               <li>Every tracker firing before consent, graded by risk</li>
               <li>Your privacy policy checked against every vendor that ran</li>
               <li>Full findings by email</li>
+              <li>The exact Google Tag Manager tag behind each finding</li>
             </ul>
             <Link className="tier-cta" href="/#scan">
               Scan a site
@@ -57,6 +58,7 @@ export default function Pricing() {
                 An alert when a vendor starts running that your privacy policy doesn’t mention
               </li>
               <li>Every finding carries the request or cookie that proves it, and the fix</li>
+              <li>Fixes traced to the exact Google Tag Manager tag and consent setting</li>
               <li>Shareable report links for whoever has to make the change</li>
               <li>{monitoring.historyDays} days of scan history</li>
             </ul>
