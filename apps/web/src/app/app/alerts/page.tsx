@@ -111,7 +111,7 @@ export default async function Alerts() {
               name="Slack"
               placeholder="https://hooks.slack.com/services/..."
             />
-            {slackUrl === null ? <ConnectHelp help={integrationHelp("slack-alerts")} open /> : null}
+            {slackUrl === null ? <ConnectHelp help={integrationHelp("slack-alerts")} /> : null}
           </>
         ) : (
           <p className="panel-empty">
@@ -134,7 +134,7 @@ export default async function Alerts() {
               placeholder="https://...powerplatform.com/..."
             />
             {teamsUrl === null ? (
-              <ConnectHelp help={integrationHelp("microsoft-teams-alerts")} open />
+              <ConnectHelp help={integrationHelp("microsoft-teams-alerts")} />
             ) : null}
           </>
         ) : (
@@ -164,7 +164,7 @@ export default async function Alerts() {
                   : null
               }
             />
-            {jira ? null : <ConnectHelp help={integrationHelp("jira-integration")} open />}
+            {jira ? null : <ConnectHelp help={integrationHelp("jira-integration")} />}
           </>
         ) : (
           <p className="panel-empty">

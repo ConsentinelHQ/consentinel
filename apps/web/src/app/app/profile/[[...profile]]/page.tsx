@@ -1,6 +1,7 @@
 import { UserProfile } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ProfileTabs } from "@/components/profile-tabs";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -16,6 +17,7 @@ export default function Profile() {
           under your organization.
         </p>
       </div>
+      <ProfileTabs />
       <div className="profile-shell">
         <UserProfile
           path="/app/profile"
@@ -30,15 +32,20 @@ export default function Profile() {
               borderRadius: "10px",
             },
             elements: {
+              // Flatten Clerk's card into the page: no second sidebar, no box.
               rootBox: { width: "100%" },
               cardBox: {
                 width: "100%",
                 maxWidth: "none",
                 boxShadow: "none",
-                border: "1px solid #e4e4e7",
-                borderRadius: "14px",
+                border: "none",
+                borderRadius: "0",
+                display: "block",
               },
-              navbar: { background: "#fafafa", borderRight: "1px solid #e4e4e7" },
+              navbar: { display: "none" },
+              navbarMobileMenuRow: { display: "none" },
+              scrollBox: { borderRadius: "0", boxShadow: "none", border: "none" },
+              pageScrollBox: { padding: "0" },
               // Deleting here would orphan sites and keep a subscription billing. Support does it.
               profileSection__danger: { display: "none" },
             },
