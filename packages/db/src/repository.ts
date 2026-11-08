@@ -455,6 +455,7 @@ export async function listDueSites(db: Database, now = new Date()): Promise<DueS
       and(
         ne(sites.schedule, "off"),
         ne(orgs.plan, "none"),
+        isNull(orgs.archivedAt),
         isNull(sites.archivedAt),
         isNull(sites.pausedAt),
       ),

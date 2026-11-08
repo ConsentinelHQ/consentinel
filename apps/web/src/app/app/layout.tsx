@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AppNav } from "@/components/app-nav";
+import { ArchivedBanner } from "@/components/archived-banner";
 import { SideUser } from "@/components/side-user";
 
 // Side rail on desktop, top bar on mobile.
@@ -58,7 +59,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <SideUser />
         </div>
       </aside>
-      <main className="dash-main">{children}</main>
+      <main className="dash-main">
+        <ArchivedBanner />
+        {children}
+      </main>
     </div>
   );
 }

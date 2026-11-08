@@ -63,6 +63,7 @@ export async function GET(request: Request): Promise<NextResponse> {
           plan: orgs.plan,
           planStatus: orgs.planStatus,
           planQuantity: orgs.planQuantity,
+          archivedAt: orgs.archivedAt,
         })
         .from(orgs),
       database
@@ -138,6 +139,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       planStatus: o.planStatus,
       planQuantity: o.planQuantity,
       currentPeriodEnd: null,
+      archivedAt: o.archivedAt,
     });
     if (!entitled || !isPaidPlan(o.plan)) continue;
     const spec = PLANS[o.plan];

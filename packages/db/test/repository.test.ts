@@ -35,6 +35,8 @@ import {
   setSiteSchedule,
 } from "../src/repository";
 import { eq } from "drizzle-orm";
+import { setOrgArchived } from "../src/account";
+import { getBillingState, isEntitled } from "../src/billing";
 import { scans } from "../src/schema";
 import { orgs } from "../src/schema";
 
@@ -186,6 +188,12 @@ async function main(): Promise<void> {
   check("paused site is not due", !(await due()));
   await setSitePaused(db, siteId, org.id, false);
   check("resumed site is due again", await due());
+  // --- archive: the whole org stops, sites keep their own settings ---
+  await setOrgArchived(db, org.id, true);
+  check("archived org's site is not due", !(await due()));
+  check("archived org isn't entitled", !isEntitled(await getBillingState(db, org.id)));
+  await setOrgArchived(db, org.id, false);
+  check("restored org's site is due again", await due());
   await setSiteSchedule(db, siteId, org.id, "off");
   await db.update(orgs).set({ plan: "none" }).where(eq(orgs.id, org.id));
 

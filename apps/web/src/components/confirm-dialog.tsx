@@ -10,6 +10,7 @@ export function ConfirmDialog({
   confirmLabel,
   danger = false,
   busy = false,
+  confirmDisabled = false,
   onConfirm,
   onCancel,
 }: {
@@ -19,6 +20,8 @@ export function ConfirmDialog({
   confirmLabel: string;
   danger?: boolean;
   busy?: boolean;
+  /** Keeps the confirm button off until the body says otherwise, e.g. a typed check. */
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -53,7 +56,7 @@ export function ConfirmDialog({
           </button>
           <button
             className={danger ? "btn-danger" : undefined}
-            disabled={busy}
+            disabled={busy || confirmDisabled}
             onClick={onConfirm}
             type="button"
           >

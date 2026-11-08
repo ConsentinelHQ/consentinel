@@ -12,6 +12,8 @@ export interface BillingState {
   planStatus: PlanStatus | null;
   planQuantity: number;
   currentPeriodEnd: Date | null;
+  /** Archived orgs keep their plan row but get none of what it buys. */
+  archivedAt: Date | null;
 }
 
 /** Every status Stripe documents. Guards against their forward-compat string type. */
@@ -35,7 +37,7 @@ export function toPlanStatus(value: string): PlanStatus | null {
 const ENTITLED: ReadonlySet<string> = new Set(["active", "trialing"]);
 
 export function isEntitled(state: BillingState | null): boolean {
-  if (!state) return false;
+  if (!state || state.archivedAt) return false;
   return state.plan !== "none" && ENTITLED.has(state.planStatus ?? "");
 }
 
@@ -50,6 +52,7 @@ export async function getBillingState(db: Database, orgId: string): Promise<Bill
       planStatus: orgs.planStatus,
       planQuantity: orgs.planQuantity,
       currentPeriodEnd: orgs.currentPeriodEnd,
+      archivedAt: orgs.archivedAt,
     })
     .from(orgs)
     .where(eq(orgs.id, orgId))

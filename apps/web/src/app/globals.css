@@ -2679,9 +2679,92 @@ button.side-menu-item:hover:not(:disabled) {
 .profile-shell .cl-scrollBox {
   background: transparent;
 }
-.profile-foot {
+.account-actions {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--hairline, #e4e4e7);
+}
+.account-actions h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+.account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f4f4f5;
+}
+.account-row:last-of-type {
+  border-bottom: none;
+}
+.account-row strong {
+  font-size: 0.95rem;
+}
+.account-row .quiet {
+  margin: 0.2rem 0 0;
+  max-width: 58ch;
+  font-size: 0.87rem;
+}
+button.account-btn {
+  flex: none;
+  padding: 0.5rem 0.95rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  background: #fff;
+  color: #18181b;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+button.account-btn:hover:not(:disabled) {
+  background: #f4f4f5;
+}
+button.account-btn.is-positive {
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+button.account-btn.is-positive:hover:not(:disabled) {
+  background: #f0fdf4;
+}
+button.account-btn.is-danger {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+button.account-btn.is-danger:hover:not(:disabled) {
+  background: #fef2f2;
+}
+.account-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   margin-top: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
+}
+.account-confirm input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  font: inherit;
+}
+.archived-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1.25rem;
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+  color: #78350f;
+  font-size: 0.9rem;
+}
+.archived-banner a {
+  color: #78350f;
+  font-weight: 550;
 }
 
 /* Overview */

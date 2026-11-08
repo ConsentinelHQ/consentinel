@@ -171,6 +171,7 @@ export async function getReportBranding(
       planStatus: orgs.planStatus,
       planQuantity: orgs.planQuantity,
       currentPeriodEnd: orgs.currentPeriodEnd,
+      archivedAt: orgs.archivedAt,
       brandName: orgs.brandName,
       brandLogoUrl: orgs.brandLogoUrl,
       brandColor: orgs.brandColor,
