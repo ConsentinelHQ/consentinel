@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { IntegrationHelp } from "@/lib/integration-help";
 
-/** Collapsed setup steps under each integration. Opens by default until connected. */
-export function ConnectHelp({ help, open }: { help: IntegrationHelp; open: boolean }) {
+/** Setup steps under each integration, collapsed until someone needs them. */
+export function ConnectHelp({ help }: { help: IntegrationHelp }) {
   return (
-    <details className="connect-help" open={open}>
+    <details className="connect-help">
       <summary>How to connect {help.name}</summary>
       <ol>
         {help.steps.map((s) => (

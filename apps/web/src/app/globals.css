@@ -185,7 +185,10 @@ button {
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
-button:hover:not(:disabled):not([class*="cl-"]) {
+/* Zero specificity on purpose: only buttons that keep the default dark fill get
+   the dark hover. Any class that sets its own background (quiet, ghost, sidebar,
+   link-style) keeps its own hover instead of inheriting this one. */
+:where(button:hover:not(:disabled):not([class*="cl-"])) {
   background: var(--accent-hover);
 }
 button:disabled {
@@ -2562,6 +2565,10 @@ dialog.stat-dialog button.stat-dialog-close:hover:not(:disabled) {
   text-align: left;
   cursor: pointer;
 }
+.side-signout:hover:not(:disabled) {
+  background: #f4f4f5;
+  color: #18181b;
+}
 .side-signout:disabled {
   opacity: 0.6;
   cursor: default;
@@ -3255,26 +3262,53 @@ a.nav-cta:hover {
 .connect-help summary {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin: -0.75rem -0.95rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   list-style: none;
+  transition: background 150ms ease;
+}
+.connect-help summary:hover {
+  background: #fafafa;
+}
+.connect-help[open] summary {
+  margin-bottom: 0;
 }
 .connect-help summary::-webkit-details-marker {
   display: none;
 }
+/* Chevron that turns when the dropdown opens. */
 .connect-help summary::after {
-  content: "+";
-  font-weight: 400;
-  color: #71717a;
-  transition: transform 200ms ease;
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 3px;
+  border-right: 1.5px solid #71717a;
+  border-bottom: 1.5px solid #71717a;
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 220ms ease;
 }
 .connect-help[open] summary::after {
-  transform: rotate(45deg);
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+.jira-rescan .jira-rescan-lead {
+  margin: 0.6rem 0 0;
+}
+.jira-rescan .allowlist-code {
+  margin-top: 0.6rem;
+}
+.jira-rescan p + p {
+  margin-top: 0.6rem;
 }
 .connect-help ol {
   margin: 0.6rem 0 0.5rem;
   padding-left: 1.2rem;
   line-height: 1.55;
+}
+.connect-help[open] > :not(summary) {
   animation: connect-help-in 240ms ease both;
 }
 .connect-help li + li {

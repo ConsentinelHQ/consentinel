@@ -207,10 +207,10 @@ function Connected({ connection }: { connection: JiraState }) {
         </span>
       </label>
 
-      <div className="jira-steps">
-        <p>
-          <strong>Rescan when a ticket is done.</strong> In Jira, go to Project settings,
-          Automation, Create rule:
+      <details className="connect-help jira-rescan">
+        <summary>Rescan when a ticket is done</summary>
+        <p className="jira-rescan-lead">
+          In Jira, go to Project settings, Automation, Create rule:
         </p>
         <ol>
           <li>Trigger: Issue transitioned, to status Done.</li>
@@ -238,7 +238,7 @@ function Connected({ connection }: { connection: JiraState }) {
             Regenerate URL
           </button>
         </p>
-      </div>
+      </details>
       {error !== null && <p className="form-error panel-empty">{error}</p>}
 
       <ConfirmDialog
