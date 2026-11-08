@@ -43,7 +43,7 @@ export function DeployHookPanel({
   const url = `${origin}/api/hooks/deploy/${current}`;
   const shown = show ? url : `${origin}/api/hooks/deploy/${"•".repeat(12)}${current.slice(-4)}`;
   const curl = `curl -fsS -X POST ${url}`;
-  const gha = `- name: Consent scan after deploy\n  run: curl -fsS -X POST "\${{ secrets.${GHA_SECRET} }}"`;
+  const gha = `- name: Consent check\n  uses: ConsentinelHQ/consentinel/action@main\n  with:\n    hook-url: \${{ secrets.${GHA_SECRET} }}`;
 
   const regenerate = async (): Promise<void> => {
     setBusy(true);
@@ -86,7 +86,8 @@ export function DeployHookPanel({
 
       <p className="quiet" style={{ marginTop: 16 }}>
         GitHub Actions: save the URL as a repository secret named <code>{GHA_SECRET}</code>, then
-        add this step after your deploy step:
+        add this step after your deploy step. It waits for the scan and fails the job if the release
+        adds a critical finding, with the fix in the job summary.
       </p>
       <div className="allowlist-code">
         <pre>{gha}</pre>

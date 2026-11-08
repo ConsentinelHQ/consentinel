@@ -303,17 +303,17 @@ export default function HowItWorks() {
         <div data-reveal className="wrap center">
           <h2>Scans that follow your releases.</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
-            Most consent breaks ship with a release: a new tag, a theme update, an app install.
-            Every monitored site gets a private URL that runs a scan the moment you deploy. If a
-            release breaks consent, you get the alert within minutes, not at the next scheduled
-            scan.
+            Most consent breaks ship with a release: a new tag, a theme update, an app install. Our
+            GitHub Action scans the site right after you deploy and fails the job if the release
+            adds a tracker that fires after visitors opt out. The job summary lists each new
+            finding, the fix, and the Google Tag Manager tag to change.
           </p>
           <div className="allowlist-code" style={{ marginTop: "1.75rem", textAlign: "left" }}>
-            <pre>{`- name: Consent scan after deploy\n  run: curl -fsS -X POST "\${{ secrets.CONSENTINEL_DEPLOY_HOOK }}"`}</pre>
+            <pre>{`- name: Consent check\n  uses: ConsentinelHQ/consentinel/action@main\n  with:\n    hook-url: \${{ secrets.CONSENTINEL_DEPLOY_HOOK }}`}</pre>
           </div>
           <p className="quiet" style={{ marginTop: "1rem" }}>
-            One step after your deploy in GitHub Actions. Works the same from any CI system, Shopify
-            Flow, or Zapier: it’s a single HTTP POST.
+            One step after your deploy in GitHub Actions. From any other CI system, Shopify Flow, or
+            Zapier, it’s a single HTTP POST, and you get the alert within minutes.
           </p>
         </div>
       </section>

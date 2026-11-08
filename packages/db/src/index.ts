@@ -1,6 +1,7 @@
 export * from "./schema.js";
 export * from "./client.js";
 export * from "./repository.js";
+export * from "./regression.js";
 export * from "./fingerprint.js";
 export * from "./evidence.js";
 export * from "./queue-info.js";

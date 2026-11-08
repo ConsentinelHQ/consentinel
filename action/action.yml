@@ -1,0 +1,54 @@
+name: Consentinel consent check
+description: Scan your site after a deploy and fail the job if a new tracker fires after visitors opt out.
+author: Consentinel
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  hook-url:
+    description: Your site's deploy URL from Consentinel (Site settings > Scan after every deploy). Store it as a secret.
+    required: true
+  fail-on:
+    description: "new: fail on critical findings that weren't in recent scans. any: fail on any critical finding. never: report only."
+    required: false
+    default: new
+  wait:
+    description: Wait for the scan to finish. Set to false to start the scan and move on.
+    required: false
+    default: "true"
+  timeout-minutes:
+    description: How long to wait for the result.
+    required: false
+    default: "15"
+  fail-on-error:
+    description: Fail the job if Consentinel can't run the scan. Off by default, so an outage on our side never blocks your deploy.
+    required: false
+    default: "false"
+
+outputs:
+  scan-id:
+    description: The scan ID.
+    value: ${{ steps.check.outputs.scan-id }}
+  report-url:
+    description: Link to the full report in Consentinel.
+    value: ${{ steps.check.outputs.report-url }}
+  verdict:
+    description: "pass, fail, baseline, error, or started (when wait is false)."
+    value: ${{ steps.check.outputs.verdict }}
+  new-critical:
+    description: Number of new critical findings.
+    value: ${{ steps.check.outputs.new-critical }}
+
+runs:
+  using: composite
+  steps:
+    - id: check
+      shell: bash
+      run: '"$GITHUB_ACTION_PATH/check.sh"'
+      env:
+        CONSENTINEL_HOOK: ${{ inputs.hook-url }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        WAIT: ${{ inputs.wait }}
+        TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
+        FAIL_ON_ERROR: ${{ inputs.fail-on-error }}

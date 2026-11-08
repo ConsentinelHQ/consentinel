@@ -319,7 +319,8 @@ export default function Home() {
           <h2>Clean today. Broken next week.</h2>
           <p className="lede" style={{ marginTop: "1.25rem" }}>
             Every tag marketing adds can break consent again. We rescan daily and email you the
-            moment one does. $99/month per site.
+            moment one does, and our GitHub Action checks every release as it ships. $99/month per
+            site.
           </p>
           <p style={{ marginTop: "1.25rem" }}>
             <Link className="arrow-link" href="/pricing">

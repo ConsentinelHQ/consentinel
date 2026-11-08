@@ -68,6 +68,8 @@ jobs:
           }
       - run: pnpm typecheck --filter=!@consentinel/scanner
       - run: pnpm test --filter=!@consentinel/scanner
+      - name: GitHub Action script
+        run: action/test.sh
       - run: pnpm build --filter=!@consentinel/scanner
 
   # Website-only PRs don't touch the scanner, so its browser job is skipped.
