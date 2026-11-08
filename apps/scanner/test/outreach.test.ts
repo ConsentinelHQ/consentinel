@@ -831,7 +831,10 @@ assert.equal(domainFromSubject("Re: Consentinel for olipop.com"), "olipop.com");
     shop.html,
     /<a href="https:\/\/apps\.shopify\.com\/consentinel-1">Shopify App Store<\/a>/,
   );
-  assert.match(shop.text, /also on the Shopify App Store if you'd rather run it from your admin/);
+  assert.match(
+    shop.text,
+    /also on the Shopify App Store \(https:\/\/apps\.shopify\.com\/consentinel-1\) if you'd rather run it from your admin/,
+  );
 }
 
 // ---------- Multi-contact ----------

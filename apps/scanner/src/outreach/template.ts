@@ -240,7 +240,7 @@ export function render({
     ...items.map((b) => `- ${b}`),
     "",
     pitch("getconsentinel.com"),
-    ...(shopify ? ["", store("Shopify App Store")] : []),
+    ...(shopify ? ["", store(`Shopify App Store (${SHOPIFY_LISTING})`)] : []),
     "",
     close,
     "",
