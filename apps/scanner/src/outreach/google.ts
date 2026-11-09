@@ -173,6 +173,14 @@ export async function getDraft(id: string): Promise<GmailPart | null> {
   return r.message?.payload ?? {};
 }
 
+/** Draft ids matching a Gmail search, up to 100. */
+export async function listDrafts(q: string): Promise<string[]> {
+  const r = await google<{ drafts?: { id: string }[] }>(
+    `${GMAIL}/drafts?maxResults=100&q=${encodeURIComponent(q)}`,
+  );
+  return (r.drafts ?? []).map((d) => d.id);
+}
+
 /** Drafts sitting in Gmail, up to 500. */
 export async function countDrafts(): Promise<number> {
   const r = await google<{ drafts?: unknown[] }>(`${GMAIL}/drafts?maxResults=500`);

@@ -7,6 +7,7 @@ import {
   updateRow,
   type Sheet,
   type SheetRow,
+  type Thread,
 } from "./google.js";
 import { header } from "./mail.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record } from "./state.js";
@@ -29,11 +30,36 @@ const HANDS_OFF = /do not|don't|hold|avoid|skip|wait|unsubscribe/i;
 const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+/** The retired first-email subject. Charlie won't send anything that carries it (Nov 9, 2026). */
+export const OLD_SUBJECT = /privacy issues on /i;
+
+/**
+ * How a later email goes out: in the first email's thread, or as a fresh email
+ * with the current subject when that thread carries the retired one.
+ */
+export function threadPlan(
+  domain: string,
+  first: { subject: string; threadId: string; messageId: string },
+): { subject: string; fresh: boolean; thread?: Thread } {
+  if (!first.subject || OLD_SUBJECT.test(first.subject)) {
+    return { subject: subjectFor(domain), fresh: true };
+  }
+  return {
+    subject: first.subject,
+    fresh: false,
+    ...(first.messageId
+      ? { thread: { threadId: first.threadId, messageId: first.messageId } }
+      : {}),
+  };
+}
+
 export function followUpEmail(input: {
   domain: string;
   firstName: string;
   subject: string;
   postalAddress: string;
+  /** A new thread: keep the subject as is, no "Re:". */
+  fresh?: boolean;
 }): Email {
   const greeting = `Hi ${input.firstName.trim() || "there"},`;
   // Nov 8, 2026: matches the first email's voice. One new thing (the GTM fix), one easy ask.
@@ -61,7 +87,8 @@ export function followUpEmail(input: {
     `<p>${sig.map(esc).join("<br>")}</p>`,
     `<p style="color:#888;font-size:12px">${esc(optOut)}${address ? `<br>${esc(address)}` : ""}</p>`,
   ].join("\n");
-  const subject = /^re:/i.test(input.subject) ? input.subject : `Re: ${input.subject}`;
+  const subject =
+    input.fresh || /^re:/i.test(input.subject) ? input.subject : `Re: ${input.subject}`;
   return { subject, text, html };
 }
 
@@ -154,19 +181,19 @@ export async function followups(
       continue;
     }
     const first = await getMessage(firstId);
+    const plan = threadPlan(domain, {
+      subject: header(first.payload, "Subject"),
+      threadId: first.threadId,
+      messageId: header(first.payload, "Message-ID") || header(first.payload, "Message-Id"),
+    });
     const draft = followUpEmail({
       domain,
       firstName: (row.values["Contact"] ?? "").trim().split(/\s+/)[0] ?? "",
-      subject: header(first.payload, "Subject") || subjectFor(domain),
+      subject: plan.subject,
       postalAddress: opts.postalAddress,
+      fresh: plan.fresh,
     });
-    const messageId = header(first.payload, "Message-ID") || header(first.payload, "Message-Id");
-    const id = await createDraft(
-      opts.from,
-      email,
-      draft,
-      messageId ? { threadId: first.threadId, messageId } : undefined,
-    );
+    const id = await createDraft(opts.from, email, draft, plan.thread);
     record({ domain, action: "drafted", email, messageId: id, reason: "follow-up" });
     // Colleagues get theirs in their own thread, only if Charlie sent them the first email.
     let extra = 0;
@@ -177,17 +204,22 @@ export async function followups(
       const msg = await getMessage(theirs[0]!);
       // A colleague emailed later than contact 1 waits their own 5 business days, so skip for now.
       if (nyDate(addBusinessDays(msg.at, FOLLOW_UP_AFTER)) > today) continue;
-      const mid = header(msg.payload, "Message-ID") || header(msg.payload, "Message-Id");
+      const p = threadPlan(domain, {
+        subject: header(msg.payload, "Subject"),
+        threadId: msg.threadId,
+        messageId: header(msg.payload, "Message-ID") || header(msg.payload, "Message-Id"),
+      });
       const fid = await createDraft(
         opts.from,
         m.email,
         followUpEmail({
           domain,
           firstName: m.firstName,
-          subject: header(msg.payload, "Subject") || subjectFor(domain),
+          subject: p.subject,
           postalAddress: opts.postalAddress,
+          fresh: p.fresh,
         }),
-        mid ? { threadId: msg.threadId, messageId: mid } : undefined,
+        p.thread,
       );
       record({
         domain,
