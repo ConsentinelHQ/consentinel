@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { askForScanNotifications } from "./scan-notifier";
 
 export function ScanNowButton({
   siteId,
@@ -16,6 +17,8 @@ export function ScanNowButton({
 
   const run = useCallback(async (): Promise<void> => {
     if (busy) return;
+    // The click is the only moment a browser lets us ask.
+    askForScanNotifications();
     setBusy(true);
     setError(null);
     try {

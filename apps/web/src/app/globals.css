@@ -2994,6 +2994,29 @@ section.panel.panel-gap {
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* Quiet, safe action: green on hover, never dark or red. */
+.notify-toggle {
+  align-self: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #71717a;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.notify-toggle:hover,
+.notify-toggle:focus-visible {
+  background: none;
+  color: #15803d;
+  text-decoration: underline;
+}
+.notify-state {
+  align-self: center;
+  color: #71717a;
+  font-size: 0.85rem;
+}
+
 .link-button {
   padding: 0;
   border: none;
