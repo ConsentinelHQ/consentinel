@@ -12,6 +12,8 @@ import { nyDate, parseDay, repoRoot, type Entry, type Paused } from "./state.js"
 export interface Metrics {
   hours: number;
   users: { total: number; new: number };
+  /** Real accounts, newest first. Absent on older web deploys. */
+  accounts?: { email: string; plan: string; new: boolean }[];
   revenue: { estMrr: number; paying: number; pastDue: number; byPlan: Record<string, number> };
   monitoredSites: number;
   scans: Record<string, { total: number; failed: number }>;
@@ -86,6 +88,12 @@ export function renderBrief(b: BriefInput): string {
     lines.push(
       `*Product (${span}):* ${plural(m.users.new, "signup")} (${String(m.users.total)} total), ${plural(free, "free scan")}, ${plural(sched, "scheduled scan")} across ${plural(m.monitoredSites, "monitored site")}`,
     );
+    if (m.accounts?.length) {
+      const list = m.accounts
+        .map((u) => `${u.email} (${u.plan}${u.new ? ", new" : ""})`)
+        .join(", ");
+      lines.push(`*Accounts:* ${list}`);
+    }
     lines.push(
       `*Inbound (${span}):* ${plural(m.leads.total, "lead")} (${String(m.leads.consented)} consented), ${plural(m.inquiries, "inquiry", "inquiries")}${m.reportOpens !== undefined ? `, ${plural(m.reportOpens, "prospect report opened", "prospect reports opened")}` : ""}`,
     );
