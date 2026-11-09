@@ -320,7 +320,19 @@ const fu = followUpEmail({
   postalAddress: "",
 });
 assert.equal(fu.subject, "Re: Privacy issues on olaplex.com");
-assert.match(fu.text, /^Hi Kevin,\n\nFollowing up on my email about olaplex\.com/);
+assert.match(
+  fu.text,
+  /^Hi Kevin,\n\nQuick follow-up on olaplex\.com in case my last email got buried\./,
+);
+assert.match(
+  fu.text,
+  /exact setting to change\.\n\nOr you can run a free scan yourself anytime at getconsentinel\.com\./,
+);
+assert.match(fu.text, /\n\nCheers,\nCharlie\nFounder, Consentinel\n/);
+assert.deepEqual(
+  [...fu.html.matchAll(/href="([^"]+)"/g)].map((m) => m[1]),
+  ["https://www.getconsentinel.com/"],
+);
 assert.match(fu.text, /I won't email again\.$/);
 assert.doesNotMatch(fu.text, /—/);
 assert.equal(
