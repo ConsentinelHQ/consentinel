@@ -10,6 +10,7 @@ import {
 } from "@consentinel/db";
 import { ScheduleControl } from "@/components/schedule-control";
 import { ScanNowButton } from "@/components/scan-now-button";
+import { NotifyToggle } from "@/components/notify-toggle";
 import { ScanProgress } from "@/components/scan-progress";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { LocalTime } from "@/components/local-time";
@@ -87,6 +88,7 @@ export default async function SitePage({ params }: { params: Promise<{ siteId: s
         {site.schedule !== "off" && site.archivedAt === null && site.pausedAt === null && (
           <PauseScansButton paused={false} siteId={site.id} />
         )}
+        <NotifyToggle />
       </div>
 
       <p className="quiet demand-site-link">

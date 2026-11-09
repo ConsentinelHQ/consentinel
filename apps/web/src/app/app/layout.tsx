@@ -4,11 +4,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { AppNav } from "@/components/app-nav";
 import { SideUser } from "@/components/side-user";
+import { ScanNotifier } from "@/components/scan-notifier";
 
 // Side rail on desktop, top bar on mobile.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="dash">
+      <ScanNotifier />
       <aside className="dash-side">
         <Link className="nav-mark dash-mark" href="/app">
           <Image alt="" height={22} src="/logo.svg" width={22} />
