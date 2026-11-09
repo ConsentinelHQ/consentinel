@@ -146,6 +146,36 @@ export async function GET(request: Request): Promise<NextResponse> {
     mrr += spec.perSite ? spec.price * Math.max(o.planQuantity, 1) : spec.price;
   }
 
+  // Every real account for the brief, newest first, with the best plan across its orgs.
+  const planOf = new Map<string, string>();
+  for (const o of orgRows) {
+    const entitled = isEntitled({
+      orgId: o.orgId,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      stripeSubscriptionItemId: null,
+      plan: o.plan,
+      planStatus: o.planStatus,
+      planQuantity: o.planQuantity,
+      currentPeriodEnd: null,
+    });
+    if (entitled && isPaidPlan(o.plan)) planOf.set(o.orgId, PLANS[o.plan].name);
+  }
+  const accounts = [...realUsers]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 50)
+    .map((u) => {
+      const plans = memberRows
+        .filter((m) => m.userId === u.id)
+        .map((m) => planOf.get(m.orgId))
+        .filter((n): n is string => Boolean(n));
+      return {
+        email: u.email,
+        plan: plans[0] ?? "Free",
+        new: u.createdAt > since,
+      };
+    });
+
   const scansByTrigger: Record<string, { total: number; failed: number }> = {};
   for (const r of scanRows) {
     if (!realScan(r.siteId)) continue;
@@ -183,6 +213,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       total: realUsers.length,
       new: realUsers.filter((u) => u.createdAt > since).length,
     },
+    accounts,
     revenue: { estMrr: mrr, paying, pastDue, byPlan },
     monitoredSites: siteRows.filter(
       (s) => !internalSites.has(s.id) && s.archivedAt === null && s.schedule !== "off",

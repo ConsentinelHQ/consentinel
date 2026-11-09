@@ -469,6 +469,10 @@ const brief = renderBrief({
   metrics: {
     hours: 24,
     users: { total: 12, new: 1 },
+    accounts: [
+      { email: "new@brand.com", plan: "Growth", new: true },
+      { email: "old@shop.com", plan: "Free", new: false },
+    ],
     revenue: { estMrr: 1287, paying: 3, pastDue: 1, byPlan: { Monitor: 2, Growth: 1 } },
     monitoredSites: 11,
     scans: { public: { total: 9, failed: 1 }, scheduled: { total: 11, failed: 2 } },
@@ -563,6 +567,11 @@ assert.deepEqual(
 );
 
 // Repeat failures for one site read once, with a count.
+assert.match(
+  brief,
+  /\*Accounts:\* new@brand\.com \(Growth, new\), old@shop\.com \(Free\)\n\*Inbound/,
+);
+
 const failBrief = renderBrief({
   now: briefNow,
   hours: 24,
