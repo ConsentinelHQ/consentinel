@@ -81,6 +81,7 @@ import { prep, reportLink } from "./prep.js";
 import { mark, sync, type Mark } from "./sync.js";
 import { render } from "./template.js";
 import { redraft } from "./redraft.js";
+import { fixSubjects } from "./fix-subjects.js";
 
 /**
  * Daily outreach: scan -> evidence -> contact -> email -> sheet.
@@ -99,6 +100,7 @@ import { redraft } from "./redraft.js";
  *   pnpm --filter @consentinel/scanner outreach queue add a.com,b.com | queue status | queue known
  *   pnpm --filter @consentinel/scanner outreach run --from-sheet --then-queue --limit 5
  *   pnpm --filter @consentinel/scanner outreach redraft [--limit 30]
+ *   pnpm --filter @consentinel/scanner outreach fix-subjects
  *   pnpm --filter @consentinel/scanner outreach agency add --domain a.com --name "A" --clients x.com,y.com,z.com --source url
  *   pnpm --filter @consentinel/scanner outreach agency run [--limit 2] | agency status
  *   pnpm --filter @consentinel/scanner outreach agency contact --domain a.com --name "First Last" --title t --source url
@@ -670,6 +672,10 @@ async function main(): Promise<void> {
       } else {
         console.log(JSON.stringify(await draftPress(cfg("OUTREACH_FROM")), null, 2));
       }
+      break;
+    }
+    case "fix-subjects": {
+      console.log(JSON.stringify(await fixSubjects(log), null, 2));
       break;
     }
     case "redraft": {

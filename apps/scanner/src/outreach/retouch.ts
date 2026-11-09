@@ -12,7 +12,8 @@ import {
 } from "./google.js";
 import { header } from "./mail.js";
 import { addBusinessDays, dayToDate, nyDate, parseDay, record } from "./state.js";
-import { stillFire, subjectFor, type Email } from "./template.js";
+import { stillFire, type Email } from "./template.js";
+import { threadPlan } from "./followup.js";
 
 /**
  * One-time GPC re-touch for prospects who never replied. Each gets at most one
@@ -48,6 +49,8 @@ export function retouchEmail(input: {
   subject: string;
   gpcIgnored: string[];
   postalAddress: string;
+  /** A new thread: keep the subject as is, no "Re:". */
+  fresh?: boolean;
 }): Email {
   const greeting = `Hi ${input.firstName.trim() || "there"},`;
   const finding = `One more finding on ${input.domain} since my last note. With Global Privacy Control turned on (the browser opt-out setting California requires sites to honor), ${stillFire(input.gpcIgnored)}.`;
@@ -80,7 +83,8 @@ export function retouchEmail(input: {
     `<p>${sig.map(esc).join("<br>")}</p>`,
     `<p style="color:#888;font-size:12px">${esc(optOut)}${address ? `<br>${esc(address)}` : ""}</p>`,
   ].join("\n");
-  const subject = /^re:/i.test(input.subject) ? input.subject : `Re: ${input.subject}`;
+  const subject =
+    input.fresh || /^re:/i.test(input.subject) ? input.subject : `Re: ${input.subject}`;
   return { subject, text, html };
 }
 
@@ -172,20 +176,20 @@ export async function retouch(
       continue;
     }
     const first = await getMessage(firstId);
+    const plan = threadPlan(domain, {
+      subject: header(first.payload, "Subject"),
+      threadId: first.threadId,
+      messageId: header(first.payload, "Message-ID") || header(first.payload, "Message-Id"),
+    });
     const draft = retouchEmail({
       domain,
       firstName: (row.values["Contact"] ?? "").trim().split(/\s+/)[0] ?? "",
-      subject: header(first.payload, "Subject") || subjectFor(domain),
+      subject: plan.subject,
       gpcIgnored,
       postalAddress: opts.postalAddress,
+      fresh: plan.fresh,
     });
-    const messageId = header(first.payload, "Message-ID") || header(first.payload, "Message-Id");
-    const id = await createDraft(
-      opts.from,
-      email,
-      draft,
-      messageId ? { threadId: first.threadId, messageId } : undefined,
-    );
+    const id = await createDraft(opts.from, email, draft, plan.thread);
     record({ domain, action: "drafted", email, messageId: id, reason: REASON });
     await update(row, {
       "Next action": "Review re-touch draft",

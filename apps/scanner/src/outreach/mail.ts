@@ -30,6 +30,12 @@ export function extractText(part: GmailPart): string {
   return "";
 }
 
+/** Raw body of the first part with this MIME type, decoded. */
+export function partBody(part: GmailPart, mime: string): string {
+  const hit = find(part, mime);
+  return hit?.body?.data ? decode(hit.body.data) : "";
+}
+
 function find(part: GmailPart, mime: string): GmailPart | undefined {
   if (part.mimeType === mime) return part;
   for (const p of part.parts ?? []) {

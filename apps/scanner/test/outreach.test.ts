@@ -18,7 +18,7 @@ import {
   shouldPause,
   type Entry,
 } from "../src/outreach/state.js";
-import { dueForFollowUp, dueToClose, followUpEmail } from "../src/outreach/followup.js";
+import { dueForFollowUp, dueToClose, followUpEmail, threadPlan } from "../src/outreach/followup.js";
 import { firstNameFrom, reportReply } from "../src/outreach/prep.js";
 import { isOwn, leadEmail, pickLeads, type Lead } from "../src/outreach/inbound.js";
 import { isStore, storeSignals } from "../src/outreach/queue.js";
@@ -339,6 +339,39 @@ assert.equal(
   followUpEmail({ domain: "x.com", firstName: "", subject: "Re: hi", postalAddress: "" }).subject,
   "Re: hi",
 );
+
+// Old-subject threads get a fresh email with the current subject (Nov 9, 2026).
+{
+  const old = threadPlan("tula.com", {
+    subject: "Privacy issues on tula.com",
+    threadId: "t1",
+    messageId: "<m1>",
+  });
+  assert.deepEqual(old, { subject: "Consentinel for tula.com", fresh: true });
+  const cur = threadPlan("tula.com", {
+    subject: "Consentinel for tula.com",
+    threadId: "t1",
+    messageId: "<m1>",
+  });
+  assert.deepEqual(cur, {
+    subject: "Consentinel for tula.com",
+    fresh: false,
+    thread: { threadId: "t1", messageId: "<m1>" },
+  });
+  const freshFu = followUpEmail({
+    domain: "tula.com",
+    firstName: "A",
+    subject: old.subject,
+    postalAddress: "",
+    fresh: true,
+  });
+  assert.equal(freshFu.subject, "Consentinel for tula.com");
+  assert.equal(
+    followUpEmail({ domain: "tula.com", firstName: "A", subject: cur.subject, postalAddress: "" })
+      .subject,
+    "Re: Consentinel for tula.com",
+  );
+}
 
 // Threaded drafts carry the reply headers.
 const threaded = Buffer.from(
