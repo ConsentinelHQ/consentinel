@@ -1,3 +1,4 @@
+import { CollapsibleSection } from "./collapsible-section";
 import type { FreeReport } from "@/lib/free-report";
 
 type GtmSummary = NonNullable<FreeReport["gtm"]>;
@@ -18,17 +19,22 @@ export function GtmPanel({ report }: { report: FreeReport }) {
       : `${String(unguarded)} marketing ${unguarded === 1 ? "tag has" : "tags have"} no consent check`;
 
   return (
-    <section id="report-gtm" aria-labelledby="gtm-title" className="gpc-test">
-      <div className="gpc-test-head">
-        <div>
-          <span className="gpc-test-kicker">Tag manager check</span>
-          <h2 className="gpc-test-title" id="gtm-title">
-            Google Tag Manager
-          </h2>
+    <CollapsibleSection
+      className="gpc-test"
+      head={
+        <div className="gpc-test-head">
+          <div>
+            <span className="gpc-test-kicker">Tag manager check</span>
+            <h2 className="gpc-test-title" id="gtm-title">
+              Google Tag Manager
+            </h2>
+          </div>
+          <span className={`gpc-test-verdict${unguarded === 0 ? " pass" : ""}`}>{verdict}</span>
         </div>
-        <span className={`gpc-test-verdict${unguarded === 0 ? " pass" : ""}`}>{verdict}</span>
-      </div>
-
+      }
+      id="report-gtm"
+      labelledBy="gtm-title"
+    >
       <p className="gpc-test-lede">
         We read the published {gtm.containers.length === 1 ? "container" : "containers"} (
         {gtm.containers.map((c) => `${c.id}, ${String(c.tags)} tags`).join("; ")}) and checked each
@@ -41,6 +47,6 @@ export function GtmPanel({ report }: { report: FreeReport }) {
               ? "None of the findings above load through GTM, so their fixes are in your site code or apps."
               : "The full report names the exact tag behind each finding and the setting to change."}
       </p>
-    </section>
+    </CollapsibleSection>
   );
 }

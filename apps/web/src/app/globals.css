@@ -1862,7 +1862,7 @@ dialog.confirm .confirm-body {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-.pass {
+.passes .pass {
   position: relative;
   overflow: hidden;
   padding: 1.75rem 1.5rem;
@@ -1871,10 +1871,10 @@ dialog.confirm .confirm-body {
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(50, 20, 120, 0.06);
 }
-.pass h3 {
+.passes .pass h3 {
   margin: 0 0 0.6rem;
 }
-.pass > p {
+.passes .pass > p {
   font-size: 15px;
   line-height: 1.55;
 }
@@ -7630,4 +7630,186 @@ a.pager-step:hover {
   .report-jump {
     display: none;
   }
+}
+
+/* ---------- report: collapsible sections ---------- */
+.collapsible-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+.collapsible-head-main {
+  flex: 1;
+  min-width: 0;
+}
+.collapsible-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin: -0.15rem -0.35rem 0 0;
+  padding: 0;
+  color: var(--ink-soft);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.collapsible-toggle:hover {
+  color: var(--ink);
+  background: var(--paper-alt);
+  border-color: var(--hairline);
+}
+.collapsible-toggle:focus-visible {
+  outline: 2px solid var(--gated);
+  outline-offset: 2px;
+}
+.collapsible-toggle svg {
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.collapsible.is-collapsed .collapsible-toggle svg {
+  transform: rotate(-90deg);
+}
+.collapsible-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.collapsible.is-collapsed .collapsible-body {
+  grid-template-rows: 0fr;
+}
+.collapsible-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+/* The findings card: the toggle sits inside the specimen header row. */
+.specimen.collapsible > .collapsible-head {
+  align-items: center;
+  padding-right: 1rem;
+}
+.specimen.collapsible > .collapsible-head .specimen-head {
+  border-bottom: none;
+}
+.specimen.collapsible:not(.is-collapsed) > .collapsible-head {
+  border-bottom: 1px solid var(--hairline);
+}
+@media print {
+  .collapsible-toggle {
+    display: none;
+  }
+  .collapsible.is-collapsed .collapsible-body {
+    grid-template-rows: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .collapsible-body,
+  .collapsible-toggle svg {
+    transition: none;
+  }
+}
+
+/* ---------- accessibility: linked pages, exact details, screenshots ---------- */
+.a11y-pages li {
+  display: contents;
+}
+.a11y-page-link {
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+.a11y-page-link:hover {
+  border-color: var(--gated);
+  background: color-mix(in srgb, var(--gated) 6%, var(--paper));
+}
+.a11y-page-link.skipped {
+  color: var(--ink-soft);
+}
+.a11y-page-arrow {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.a11y-examples {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.a11y-example {
+  padding: 0.8rem;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+.a11y-example-where {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
+.a11y-example-where a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.a11y-example-where a:hover {
+  color: var(--gated);
+}
+.a11y-shot {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 0.6rem;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+}
+.a11y-contrast,
+.a11y-reason {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.a11y-reason {
+  display: block;
+  color: var(--ink);
+}
+.a11y-swatch {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 1.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+}
+.a11y-code {
+  display: block;
+  padding: 0.45rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  word-break: break-all;
+  background: var(--paper-alt);
+  border-radius: 6px;
+}
+.a11y-selector {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  word-break: break-all;
 }

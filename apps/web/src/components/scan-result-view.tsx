@@ -4,6 +4,7 @@ import { AccessibilityPanel } from "./accessibility-panel";
 import { DisclosurePanel } from "./disclosure-panel";
 import { GpcPanel } from "./gpc-panel";
 import { GtmPanel } from "./gtm-panel";
+import { CollapsibleSection } from "./collapsible-section";
 import { ReportJump } from "./report-jump";
 import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
@@ -192,11 +193,17 @@ function Report({
 
         <ReportJump report={report} />
 
-        <div className="specimen" id="report-findings" style={{ marginTop: "3rem" }}>
-          <div className="specimen-head">
-            <span className="specimen-url">{report.url}</span>
-            <span className="verdict pass">No violations found</span>
-          </div>
+        <CollapsibleSection
+          className="specimen"
+          head={
+            <div className="specimen-head">
+              <span className="specimen-url">{report.url}</span>
+              <span className="verdict pass">No violations found</span>
+            </div>
+          }
+          id="report-findings"
+          style={{ marginTop: "3rem" }}
+        >
           <ul className="ledger">
             {report.correctlyGated.length > 0 ? (
               report.correctlyGated.map((vendor) => (
@@ -219,7 +226,7 @@ function Report({
               </li>
             )}
           </ul>
-        </div>
+        </CollapsibleSection>
 
         {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
         {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
@@ -327,33 +334,39 @@ function Report({
 
       <ReportJump report={report} />
 
-      <div className="specimen" id="report-findings" style={{ marginTop: "3rem" }}>
-        <div className="specimen-head">
-          <div className="specimen-id">
-            <span className="specimen-url">{report.url}</span>
-            <span className="scan-when">
-              Scanned{" "}
-              {new Intl.DateTimeFormat("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                timeZone: "America/New_York",
-                timeZoneName: "short",
-              }).format(new Date(report.scannedAt))}
+      <CollapsibleSection
+        className="specimen"
+        head={
+          <div className="specimen-head">
+            <div className="specimen-id">
+              <span className="specimen-url">{report.url}</span>
+              <span className="scan-when">
+                Scanned{" "}
+                {new Intl.DateTimeFormat("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: "America/New_York",
+                  timeZoneName: "short",
+                }).format(new Date(report.scannedAt))}
+              </span>
+            </div>
+            <span className={`verdict${report.counts.critical === 0 ? " pass" : ""}`}>
+              {/* "0 critical, 1 to clean up" reads as a contradiction next to a
+                headline about trackers firing. Say the thing that’s true. */}
+              {report.counts.critical > 0
+                ? `${report.counts.critical} critical, ${report.counts.warning} to clean up`
+                : report.counts.warning > 0
+                  ? `${report.counts.warning} to clean up, nothing critical`
+                  : "Nothing firing before consent"}
             </span>
           </div>
-          <span className={`verdict${report.counts.critical === 0 ? " pass" : ""}`}>
-            {/* "0 critical, 1 to clean up" reads as a contradiction next to a
-                headline about trackers firing. Say the thing that’s true. */}
-            {report.counts.critical > 0
-              ? `${report.counts.critical} critical, ${report.counts.warning} to clean up`
-              : report.counts.warning > 0
-                ? `${report.counts.warning} to clean up, nothing critical`
-                : "Nothing firing before consent"}
-          </span>
-        </div>
+        }
+        id="report-findings"
+        style={{ marginTop: "3rem" }}
+      >
         <ul className="ledger">
           {orderByChain(report.findings).map((finding) => (
             <li
@@ -435,7 +448,7 @@ function Report({
             </ul>
           </details>
         )}
-      </div>
+      </CollapsibleSection>
 
       {upsell && <NextStepCta report={report} />}
 

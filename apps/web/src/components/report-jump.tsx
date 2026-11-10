@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FreeReport } from "@/lib/free-report";
+import { OPEN_SECTION_EVENT } from "./collapsible-section";
 
 interface Item {
   id: string;
@@ -112,6 +113,8 @@ export function ReportJump({ report }: { report: FreeReport }) {
                 const el = document.getElementById(item.id);
                 if (!el) return;
                 e.preventDefault();
+                // Open it first if it was folded, then scroll once it has height.
+                window.dispatchEvent(new CustomEvent(OPEN_SECTION_EVENT, { detail: item.id }));
                 el.scrollIntoView({ behavior: "smooth", block: "start" });
                 history.replaceState(null, "", `#${item.id}`);
                 setActive(item.id);

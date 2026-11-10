@@ -1,3 +1,4 @@
+import { CollapsibleSection } from "./collapsible-section";
 import type { FreeReport } from "@/lib/free-report";
 
 type Disclosure = NonNullable<FreeReport["disclosure"]>;
@@ -37,24 +38,25 @@ export function DisclosurePanel({
   const pass = check.status === "checked" && missing === 0;
 
   return (
-    <section
-      id="report-disclosure"
-      aria-labelledby="disclosure-title"
+    <CollapsibleSection
       className="gpc-test disclosure-test"
-    >
-      <div className="gpc-test-head">
-        <div>
-          <span className="gpc-test-kicker">
-            <span aria-hidden="true" className="gpc-test-signal" />
-            Disclosure check
-          </span>
-          <h2 className="gpc-test-title" id="disclosure-title">
-            Privacy policy vs. what runs
-          </h2>
+      head={
+        <div className="gpc-test-head">
+          <div>
+            <span className="gpc-test-kicker">
+              <span aria-hidden="true" className="gpc-test-signal" />
+              Disclosure check
+            </span>
+            <h2 className="gpc-test-title" id="disclosure-title">
+              Privacy policy vs. what runs
+            </h2>
+          </div>
+          <span className={`gpc-test-verdict${pass ? " pass" : ""}`}>{verdict}</span>
         </div>
-        <span className={`gpc-test-verdict${pass ? " pass" : ""}`}>{verdict}</span>
-      </div>
-
+      }
+      id="report-disclosure"
+      labelledBy="disclosure-title"
+    >
       {check.status === "no-policy" && (
         <p className="gpc-test-lede">
           We couldn’t find a privacy policy linked from this page. California’s online privacy law
@@ -114,7 +116,7 @@ export function DisclosurePanel({
           ))}
         </p>
       )}
-    </section>
+    </CollapsibleSection>
   );
 }
 
