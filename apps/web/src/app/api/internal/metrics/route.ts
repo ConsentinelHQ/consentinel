@@ -160,6 +160,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       planStatus: o.planStatus,
       planQuantity: o.planQuantity,
       currentPeriodEnd: null,
+      archivedAt: o.archivedAt,
     });
     if (entitled && isPaidPlan(o.plan)) planOf.set(o.orgId, PLANS[o.plan].name);
   }
