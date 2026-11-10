@@ -13,6 +13,12 @@ const schema = z.object({
   SCAN_MIN_REQUESTS: z.coerce.number().int().positive().default(12),
   // Used to build links in alert emails. No trailing slash.
   APP_URL: z.string().url().default("https://www.getconsentinel.com"),
+  // Accessibility Monitor runs after the consent passes, in its own browser. Up to 10 pages.
+  ACCESSIBILITY_TIMEOUT_MS: z.coerce.number().int().positive().default(240_000),
+  ACCESSIBILITY_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
   SCAN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(3),
   /** Fixtures and local dev only. Never true in production - see safety.ts. */
   ALLOW_PRIVATE_SCAN_TARGETS: z

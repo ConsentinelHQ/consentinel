@@ -104,6 +104,14 @@ export function can(state: BillingState | null, feature: Feature): boolean {
   return activePlan(state)?.[feature] ?? false;
 }
 
+/**
+ * Pages Accessibility Monitor audits per scan. Free scans and Monitor get the
+ * homepage; Growth and Agency get the plan's page budget at no extra cost.
+ */
+export function accessibilityPageLimit(state: BillingState | null): number {
+  return activePlan(state)?.pagesPerScan ?? 1;
+}
+
 /** Free orgs can still add people; alerts only fire on paid schedules anyway. */
 export function externalRecipientLimit(state: BillingState | null): number {
   return activePlan(state)?.externalRecipients ?? PLANS.monitoring.externalRecipients;

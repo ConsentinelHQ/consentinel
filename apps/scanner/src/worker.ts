@@ -5,6 +5,9 @@ import {
   markScanBlocked,
   markScanFailed,
   getScanTokenForScan,
+  getOrgIdForScan,
+  getBillingState,
+  accessibilityPageLimit,
   getScan,
   markScanRunning,
   recordPolicyVersions,
@@ -18,7 +21,13 @@ import {
   type ScanJobData,
 } from "@consentinel/queue";
 import { scanDetailed, ScanBlockedError, UncredibleScanError } from "./index.js";
-import { alertOnDisclosure, alertOnPolicyChange, alertOnRegression } from "./alerting.js";
+import {
+  alertOnAccessibility,
+  alertOnDisclosure,
+  alertOnPolicyChange,
+  alertOnRegression,
+} from "./alerting.js";
+import { auditAccessibility } from "./accessibility.js";
 import { postJiraScanFailure, postJiraVerdict } from "./jira-sync.js";
 import { notifyWaitingLeads } from "./notify-ready.js";
 import { Sentry } from "./instrument.js";
@@ -95,6 +104,22 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         throw error;
       }
       const { result, policies } = detailed;
+
+      // Accessibility Monitor: own browser, own timeout. A failure here never fails the scan.
+      if (config.ACCESSIBILITY_ENABLED) {
+        try {
+          const orgId = await getOrgIdForScan(db, scanId);
+          const maxPages = accessibilityPageLimit(orgId ? await getBillingState(db, orgId) : null);
+          result.accessibility = await withTimeout(
+            auditAccessibility(check.url, { maxPages, ...tokenOpts }),
+            config.ACCESSIBILITY_TIMEOUT_MS,
+          );
+        } catch (error) {
+          console.error("accessibility audit failed", { scanId, error });
+          Sentry.captureException(error, { tags: { area: "accessibility" }, extra: { scanId } });
+        }
+      }
+
       await completeScan(db, scanId, result);
 
       // Archive the policy text beside the scan. Only for a customer's site, and
@@ -139,6 +164,13 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
       }
 
+      try {
+        await alertOnAccessibility(db, scanId, config);
+      } catch (error) {
+        console.error("accessibility alert failed", { scanId, error });
+        Sentry.captureException(error, { tags: { area: "alerting" }, extra: { scanId } });
+      }
+
       // "Email me the results" from a visitor who didn't wait. Never fails the scan.
       try {
         await notifyWaitingLeads(db, scanId, config);
@@ -162,7 +194,8 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       concurrency: config.SCAN_CONCURRENCY,
       // A wedged page must not hold a slot forever.
       // Two scans on the GPC path, so the lock must cover both.
-      lockDuration: 2 * config.SCAN_TIMEOUT_MS + 30_000,
+      // Plus the accessibility audit, which runs after them.
+      lockDuration: 2 * config.SCAN_TIMEOUT_MS + config.ACCESSIBILITY_TIMEOUT_MS + 30_000,
     },
   );
 

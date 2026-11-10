@@ -5,7 +5,7 @@ import { ANNUAL_PRICES, PLANS } from "@consentinel/db";
 export const metadata: Metadata = {
   title: "Pricing - Consentinel",
   description:
-    "A free scan of any page. Monitoring from $99 a month per site, with plans for growing brands and agencies.",
+    "A free scan of any page. Consent and accessibility monitoring from $99 a month per site, with plans for growing brands and agencies.",
 };
 
 const { monitoring, growth, agency } = PLANS;
@@ -36,6 +36,7 @@ export default function Pricing() {
               <li>Your privacy policy checked against every vendor that ran</li>
               <li>Full findings by email</li>
               <li>The exact Google Tag Manager tag behind each finding</li>
+              <li>An accessibility score and the top WCAG 2.2 AA issues</li>
             </ul>
             <Link className="tier-cta" href="/#scan">
               Scan a site
@@ -63,6 +64,10 @@ export default function Pricing() {
               <li>Every finding carries the request or cookie that proves it, and the fix</li>
               <li>Fixes traced to the exact Google Tag Manager tag and consent setting</li>
               <li>Shareable report links for whoever has to make the change</li>
+              <li>
+                Accessibility Monitor: WCAG 2.2 AA checks on your homepage, with an alert when a new
+                issue appears
+              </li>
               <li>{monitoring.historyDays} days of scan history</li>
             </ul>
             {/* Signed-out visitors go through sign-up and land on the plan picker. */}
@@ -85,6 +90,10 @@ export default function Pricing() {
               <li>Up to {growth.includedSites} sites</li>
               <li>Everything in {monitoring.name}</li>
               <li>12 months of scan history</li>
+              <li>
+                Accessibility Monitor on up to {growth.pagesPerScan} pages per site: product,
+                collection, cart and more
+              </li>
               <li>
                 Product, cart and checkout pages scanned <span className="soon">Coming soon</span>
               </li>

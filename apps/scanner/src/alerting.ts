@@ -16,6 +16,7 @@ import {
   slackPayload,
   teamsPayload,
   type ChatMessage,
+  sendAccessibilityAlert,
   sendDisclosureAlert,
   sendPolicyChangeAlert,
   sendRegressionAlert,
@@ -24,6 +25,7 @@ import {
   diffPolicy,
   disclosureChanges,
   isMeaningfulChange,
+  newSeriousIssues,
   type DisclosureChange,
   type ScanResult,
 } from "@consentinel/shared";
@@ -134,6 +136,52 @@ export async function alertOnDisclosure(
   });
   if (!result.sent) console.error("disclosure alert not sent", { scanId, reason: result.reason });
   else console.log(`disclosure alert sent for ${scan.url}: ${String(changes.length)} vendors`);
+}
+
+/**
+ * Emails the org when a critical or serious accessibility check starts failing that
+ * passed on the previous scan. Same triggers as the other alerts. Only compares scans
+ * audited on the same page budget, so a plan upgrade doesn't read as a regression.
+ */
+export async function alertOnAccessibility(
+  db: Database,
+  scanId: string,
+  config: ScannerConfig,
+): Promise<void> {
+  const scan = await getScan(db, scanId);
+  if (!scan?.siteId || !scan.result?.accessibility) return;
+  if (scan.trigger !== "scheduled" && scan.trigger !== "deploy" && scan.trigger !== "jira") return;
+  const current = scan.result.accessibility;
+  const [previous] = await findPreviousScans(db, scan.siteId, scan.id, 1);
+  const before = previous?.result?.accessibility;
+  if (!before || before.pageLimit !== current.pageLimit) return;
+  // A page that failed to load last time would make every issue on it look new.
+  const failedBefore = new Set(
+    before.pages.filter((p) => p.status === "failed").map((p) => new URL(p.url).pathname),
+  );
+  const added = newSeriousIssues(before, current).filter(
+    (i) => !i.pages.every((path) => failedBefore.has(path)),
+  );
+  if (added.length === 0) return;
+
+  const reportUrl = `${config.APP_URL}/app/scans/${scanId}`;
+  const host = new URL(scan.url).hostname.replace(/^www\./, "");
+  await postChat(db, scan.siteId, {
+    text: `${String(added.length)} new accessibility ${added.length === 1 ? "issue" : "issues"} on ${host}: ${added.map((i) => i.title).join(", ")}.`,
+    link: { url: reportUrl, label: "See the report" },
+  });
+  const { to, external } = await recipientsFor(db, scan.siteId, config);
+  if (to.length === 0 && external.length === 0) return;
+  const result = await sendAccessibilityAlert({
+    to,
+    external,
+    siteUrl: scan.url,
+    added,
+    score: current.score,
+    reportUrl,
+  });
+  if (!result.sent)
+    console.error("accessibility alert not sent", { scanId, reason: result.reason });
 }
 
 /** More versions than this in a week means the page changes on every load: stop alerting. */

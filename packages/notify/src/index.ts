@@ -6,3 +6,8 @@ export { sendDisclosureAlert, disclosureSubject, type DisclosureAlertInput } fro
 export { sendPolicyChangeAlert, policyChangeSubject, type PolicyChangeInput } from "./policy.js";
 export * from "./chat.js";
 export { sendJiraAuthAlert } from "./jira-auth.js";
+export {
+  sendAccessibilityAlert,
+  accessibilitySubject,
+  type AccessibilityAlertInput,
+} from "./accessibility.js";

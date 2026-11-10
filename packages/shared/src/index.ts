@@ -5,3 +5,4 @@ export * from "./report.js";
 export * from "./demand.js";
 export * from "./disclosure.js";
 export * from "./policy-diff.js";
+export * from "./accessibility.js";

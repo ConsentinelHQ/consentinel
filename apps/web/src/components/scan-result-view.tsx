@@ -1,5 +1,6 @@
 "use client";
 
+import { AccessibilityPanel } from "./accessibility-panel";
 import { DisclosurePanel } from "./disclosure-panel";
 import { GpcPanel } from "./gpc-panel";
 import { GtmPanel } from "./gtm-panel";
@@ -220,6 +221,13 @@ function Report({
         {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
         {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
         {report.gtm && <GtmPanel report={report} />}
+        {report.accessibility && (
+          <AccessibilityPanel
+            planNote={!upsell && !branded}
+            summary={report.accessibility}
+            upsell={upsell}
+          />
+        )}
 
         {!branded && (
           <div className="gate">
@@ -429,6 +437,13 @@ function Report({
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
       {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
       {report.gtm && <GtmPanel report={report} />}
+      {report.accessibility && (
+        <AccessibilityPanel
+          planNote={!upsell && !branded}
+          summary={report.accessibility}
+          upsell={upsell}
+        />
+      )}
 
       {/* Nothing is withheld from an owner, so there’s nothing to gate. */}
       {report.lockedCount > 0 && <EmailGate lockedCount={report.lockedCount} scanId={scanId} />}
