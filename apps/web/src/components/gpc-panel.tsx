@@ -1,3 +1,4 @@
+import { CollapsibleSection } from "./collapsible-section";
 import type { FreeReport } from "@/lib/free-report";
 
 type GpcCheck = NonNullable<FreeReport["gpcCheck"]>;
@@ -15,20 +16,25 @@ export function GpcPanel({ check }: { check: GpcCheck }) {
       : `${String(ignored)} ad ${ignored === 1 ? "vendor" : "vendors"} ignored it`;
 
   return (
-    <section id="report-gpc" aria-labelledby="gpc-test-title" className="gpc-test">
-      <div className="gpc-test-head">
-        <div>
-          <span className="gpc-test-kicker">
-            <span aria-hidden="true" className="gpc-test-signal" />
-            Browser opt-out test
-          </span>
-          <h2 className="gpc-test-title" id="gpc-test-title">
-            Global Privacy Control
-          </h2>
+    <CollapsibleSection
+      className="gpc-test"
+      head={
+        <div className="gpc-test-head">
+          <div>
+            <span className="gpc-test-kicker">
+              <span aria-hidden="true" className="gpc-test-signal" />
+              Browser opt-out test
+            </span>
+            <h2 className="gpc-test-title" id="gpc-test-title">
+              Global Privacy Control
+            </h2>
+          </div>
+          <span className={`gpc-test-verdict${ignored === 0 ? " pass" : ""}`}>{verdict}</span>
         </div>
-        <span className={`gpc-test-verdict${ignored === 0 ? " pass" : ""}`}>{verdict}</span>
-      </div>
-
+      }
+      id="report-gpc"
+      labelledBy="gpc-test-title"
+    >
       <p className="gpc-test-lede">
         We loaded the page with Global Privacy Control on and didn’t touch the banner. From January
         1, 2027, California requires every browser to offer this setting, so this is how most
@@ -62,7 +68,7 @@ export function GpcPanel({ check }: { check: GpcCheck }) {
             ? "The page didn’t confirm the opt-out. California requires showing whether the signal was honored."
             : "The page didn’t show an opt-out confirmation."}
       </p>
-    </section>
+    </CollapsibleSection>
   );
 }
 

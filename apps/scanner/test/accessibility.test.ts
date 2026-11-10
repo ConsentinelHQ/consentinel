@@ -48,7 +48,7 @@ const PAGES: Record<string, string> = {
      <a href="/products/tee">Tee</a> <a href="/cart">Cart</a>`,
   ),
   "/products/tee": layout(`<h1>Tee</h1><img src="/a.png"><input type="number" name="qty">`),
-  "/cart": layout(`<h1>Cart</h1><p>Empty</p>`),
+  "/cart": layout(`<h1>Cart</h1><p style="color:#999;background:#aaa">Empty</p>`),
 };
 
 const server = http.createServer((req, res) => {

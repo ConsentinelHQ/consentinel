@@ -1,3 +1,4 @@
+import { CollapsibleSection } from "./collapsible-section";
 import type { FreeReport } from "@/lib/free-report";
 
 type Summary = NonNullable<FreeReport["accessibility"]>;
@@ -11,6 +12,17 @@ const IMPACT_LABEL: Record<Issue["impact"], string> = {
   moderate: "Moderate",
   minor: "Minor",
 };
+
+/** Key pages keep their label; other pages show their path, which says more than "Page". */
+function pageName(p: { url: string; label: string }): string {
+  if (p.label !== "Page") return p.label;
+  try {
+    const path = new URL(p.url).pathname.replace(/\/$/, "");
+    return path.length > 32 ? `…${path.slice(-30)}` : path || "/";
+  } catch {
+    return p.label;
+  }
+}
 
 function band(score: number): "good" | "fair" | "poor" {
   if (score >= 90) return "good";
@@ -33,6 +45,14 @@ export function AccessibilityPanel({
   /** The owner's in-app view: say what a bigger plan adds. */
   planNote?: boolean;
 }) {
+  const origin = (() => {
+    try {
+      return new URL(summary.pages[0]?.url ?? "").origin;
+    } catch {
+      return "";
+    }
+  })();
+  const pageUrl = (path: string): string => `${origin}${path}`;
   // Free rows never carry a fix, full rows always do.
   const full = summary.issues.some((i) => i.fix !== undefined);
   const total = summary.issues.length + summary.lockedCount;
@@ -51,22 +71,27 @@ export function AccessibilityPanel({
   const C = 163.4;
 
   return (
-    <section id="report-accessibility" aria-labelledby="a11y-title" className="gpc-test a11y-test">
-      <div className="gpc-test-head">
-        <div>
-          <span className="gpc-test-kicker">
-            <span aria-hidden="true" className="gpc-test-signal" />
-            Accessibility check
+    <CollapsibleSection
+      className="gpc-test a11y-test"
+      head={
+        <div className="gpc-test-head">
+          <div>
+            <span className="gpc-test-kicker">
+              <span aria-hidden="true" className="gpc-test-signal" />
+              Accessibility check
+            </span>
+            <h2 className="gpc-test-title" id="a11y-title">
+              Accessibility, {summary.standard}
+            </h2>
+          </div>
+          <span className={`gpc-test-verdict${total === 0 && audited.length > 0 ? " pass" : ""}`}>
+            {verdict}
           </span>
-          <h2 className="gpc-test-title" id="a11y-title">
-            Accessibility, {summary.standard}
-          </h2>
         </div>
-        <span className={`gpc-test-verdict${total === 0 && audited.length > 0 ? " pass" : ""}`}>
-          {verdict}
-        </span>
-      </div>
-
+      }
+      id="report-accessibility"
+      labelledBy="a11y-title"
+    >
       {audited.length > 0 && (
         <div className="a11y-score">
           <svg
@@ -108,15 +133,26 @@ export function AccessibilityPanel({
       {summary.pages.length > 1 && (
         <ul className="gpc-test-list a11y-pages">
           {summary.pages.map((p, i) => (
-            <li
-              className={`gpc-test-chip ${p.status === "ok" ? (p.issues === 0 ? "good" : "bad") : ""}`}
-              key={p.url}
-              style={{ animationDelay: `${String(120 + i * 70)}ms` }}
-              title={p.status === "failed" ? `Not checked: ${p.error ?? "failed"}` : p.url}
-            >
-              <span aria-hidden="true" className="gpc-test-dot" />
-              {p.label}
-              {p.status === "failed" ? " (not checked)" : ""}
+            <li key={p.url}>
+              <a
+                className={`gpc-test-chip a11y-page-link ${p.status === "ok" ? (p.issues === 0 ? "good" : "bad") : "skipped"}`}
+                href={p.url}
+                style={{ animationDelay: `${String(120 + i * 70)}ms` }}
+                rel="noopener noreferrer nofollow"
+                target="_blank"
+                title={
+                  p.status === "failed"
+                    ? `Not checked (${p.error ?? "failed"}): ${p.url}`
+                    : `${plural(p.issues, "issue")} · ${p.url}`
+                }
+              >
+                <span aria-hidden="true" className="gpc-test-dot" />
+                {pageName(p)}
+                {p.status === "failed" ? " (not checked)" : ""}
+                <span aria-hidden="true" className="a11y-page-arrow">
+                  ↗
+                </span>
+              </a>
             </li>
           ))}
         </ul>
@@ -139,10 +175,43 @@ export function AccessibilityPanel({
                   <summary>How to fix it</summary>
                   <p className="proof-fix">{issue.fix}</p>
                   {issue.examples && issue.examples.length > 0 && (
-                    <ul className="proof-list">
+                    <ul className="a11y-examples">
                       {issue.examples.map((e, i) => (
-                        <li key={`${e.page}-${String(i)}`}>
-                          {e.page} · {e.html}
+                        <li className="a11y-example" key={`${e.page}-${String(i)}`}>
+                          <div className="a11y-example-where">
+                            <a
+                              href={pageUrl(e.page)}
+                              rel="noopener noreferrer nofollow"
+                              target="_blank"
+                            >
+                              {e.page === "/" ? "Homepage" : e.page} ↗
+                            </a>
+                          </div>
+                          {e.shot && (
+                            <img
+                              alt={`Failing element on ${e.page}, outlined in red`}
+                              className="a11y-shot"
+                              loading="lazy"
+                              src={e.shot}
+                            />
+                          )}
+                          {e.contrast && (
+                            <p className="a11y-contrast">
+                              <span
+                                className="a11y-swatch"
+                                style={{ background: e.contrast.bg, color: e.contrast.fg }}
+                              >
+                                Aa
+                              </span>
+                              <span>
+                                Text {e.contrast.fg} on {e.contrast.bg}:{" "}
+                                <strong>{e.contrast.ratio}:1</strong>, needs {e.contrast.required}:1
+                              </span>
+                            </p>
+                          )}
+                          {e.summary && !e.contrast && <p className="a11y-reason">{e.summary}</p>}
+                          <code className="a11y-code">{e.html}</code>
+                          <span className="a11y-selector">{e.selector}</span>
                         </li>
                       ))}
                     </ul>
@@ -188,6 +257,6 @@ export function AccessibilityPanel({
           ? ` ${plural(summary.needsReview, "check")} need a manual look.`
           : ""}
       </p>
-    </section>
+    </CollapsibleSection>
   );
 }

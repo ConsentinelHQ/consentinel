@@ -26,7 +26,17 @@ export interface AccessibilityIssue {
   /** Elements failing, summed over pages. */
   instances: number;
   /** A few failing elements, capped. Full report only. */
-  examples: Array<{ page: string; selector: string; html: string }>;
+  examples: Array<{
+    page: string;
+    selector: string;
+    html: string;
+    /** axe's exact reason, e.g. "Element has insufficient color contrast of 2.85 ...". */
+    summary?: string;
+    /** Measured colors and ratio for contrast failures. */
+    contrast?: { fg: string; bg: string; ratio: number; required: number };
+    /** JPEG data URL of the element outlined in context. Paid scans only. */
+    shot?: string;
+  }>;
   /** What to change. Full report only. */
   fix: string;
   helpUrl: string;

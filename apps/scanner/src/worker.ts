@@ -8,6 +8,7 @@ import {
   getOrgIdForScan,
   getBillingState,
   accessibilityPageLimit,
+  activePlan,
   getScan,
   markScanRunning,
   recordPolicyVersions,
@@ -109,12 +110,15 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       if (config.ACCESSIBILITY_ENABLED) {
         try {
           const orgId = await getOrgIdForScan(db, scanId);
-          const maxPages = accessibilityPageLimit(orgId ? await getBillingState(db, orgId) : null);
+          const billing = orgId ? await getBillingState(db, orgId) : null;
+          const maxPages = accessibilityPageLimit(billing);
           result.accessibility = await withTimeout(
             auditAccessibility(check.url, {
               maxPages,
               // Finish inside the hard timeout with whatever pages are done.
               budgetMs: config.ACCESSIBILITY_TIMEOUT_MS - 20_000,
+              // Screenshots live in the stored result: paying customers only.
+              screenshots: activePlan(billing) !== null,
               ...tokenOpts,
             }),
             config.ACCESSIBILITY_TIMEOUT_MS,
