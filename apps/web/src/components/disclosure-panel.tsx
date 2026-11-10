@@ -37,7 +37,11 @@ export function DisclosurePanel({
   const pass = check.status === "checked" && missing === 0;
 
   return (
-    <section aria-labelledby="disclosure-title" className="gpc-test disclosure-test">
+    <section
+      id="report-disclosure"
+      aria-labelledby="disclosure-title"
+      className="gpc-test disclosure-test"
+    >
       <div className="gpc-test-head">
         <div>
           <span className="gpc-test-kicker">
