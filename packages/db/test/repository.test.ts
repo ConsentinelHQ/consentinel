@@ -11,6 +11,8 @@ import {
   findCachedScan,
   getScan,
   listScansForSite,
+  countScansBefore,
+  pageScansForSite,
   markScanRunning,
   upsertUser,
 } from "../src/repository";
@@ -221,6 +223,39 @@ async function main(): Promise<void> {
 
   const history = await listScansForSite(db, siteId);
   check("site history returns its scans", history.length === 1 && history[0]?.id === scan2.id);
+
+  // --- paged history ---
+  const epoch = new Date(0);
+  const page1 = await pageScansForSite(db, { siteId, since: epoch, limit: 10, offset: 0 });
+  check(
+    "paged history counts and returns the site's scans",
+    page1.total === 1 && page1.rows[0]?.id === scan2.id,
+  );
+  check("paged history skips the stored result", !("result" in (page1.rows[0] ?? {})));
+  const none = await pageScansForSite(db, {
+    siteId,
+    since: epoch,
+    status: "failed",
+    limit: 10,
+    offset: 0,
+  });
+  check("status filter excludes completed scans", none.total === 0 && none.rows.length === 0);
+  const past = await pageScansForSite(db, { siteId, since: epoch, limit: 10, offset: 10 });
+  check(
+    "offset past the end returns no rows but the full total",
+    past.rows.length === 0 && past.total === 1,
+  );
+  const future = await pageScansForSite(db, {
+    siteId,
+    since: new Date(Date.now() + 86_400_000),
+    limit: 10,
+    offset: 0,
+  });
+  check("history window excludes older scans", future.total === 0);
+  check(
+    "older scans are counted as hidden",
+    (await countScansBefore(db, siteId, new Date(Date.now() + 86_400_000))) === 1,
+  );
 
   // --- evidence seal ---
   const sealed1 = await getScan(db, scan1.id);

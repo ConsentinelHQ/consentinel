@@ -27,6 +27,7 @@ import {
   users,
   type ScanRow,
   type ScanSchedule,
+  type ScanStatus,
   type ScanTrigger,
 } from "./schema.js";
 import { fingerprintFinding } from "./fingerprint.js";
@@ -191,6 +192,115 @@ export async function listScansForSite(
       .orderBy(desc(scans.queuedAt))
       .limit(limit)
   );
+}
+
+export const HISTORY_SORTS = ["newest", "oldest", "most-critical", "fewest-critical"] as const;
+export type HistorySort = (typeof HISTORY_SORTS)[number];
+export const HISTORY_STATUSES = ["all", "complete", "failed", "active"] as const;
+export type HistoryStatus = (typeof HISTORY_STATUSES)[number];
+
+export interface HistoryQuery {
+  siteId: string;
+  /** Scans older than this are outside the plan's history window. */
+  since: Date;
+  sort?: HistorySort;
+  status?: HistoryStatus;
+  /** "all" or one trigger, e.g. "scheduled". */
+  trigger?: string;
+  limit: number;
+  offset: number;
+}
+
+/** One history row: the list columns only, never the stored result. */
+export interface HistoryRow {
+  id: string;
+  status: ScanStatus;
+  trigger: string;
+  criticalCount: number;
+  warningCount: number;
+  blockedBy: string | null;
+  queuedAt: Date;
+  startedAt: Date | null;
+  finishedAt: Date | null;
+  /** Accessibility score, when the scan ran the check. */
+  accessibilityScore: number | null;
+}
+
+/**
+ * A page of scan history plus the total matching the filters. Selects list columns
+ * only: the stored result is large and the list never needs it.
+ */
+export async function pageScansForSite(
+  db: Database,
+  q: HistoryQuery,
+): Promise<{ rows: HistoryRow[]; total: number }> {
+  const when = sql`coalesce(${scans.finishedAt}, ${scans.queuedAt})`;
+  const conditions = [
+    eq(scans.siteId, q.siteId),
+    sql`${when} >= ${q.since.toISOString()}::timestamptz`,
+  ];
+  if (q.status === "complete") conditions.push(eq(scans.status, "complete"));
+  if (q.status === "failed") conditions.push(eq(scans.status, "failed"));
+  if (q.status === "active") conditions.push(inArray(scans.status, ["queued", "running"]));
+  if (q.trigger && q.trigger !== "all")
+    conditions.push(eq(scans.trigger, q.trigger as ScanTrigger));
+  const where = and(...conditions);
+
+  const order =
+    q.sort === "oldest"
+      ? [asc(scans.queuedAt)]
+      : q.sort === "most-critical"
+        ? [desc(scans.criticalCount), desc(scans.queuedAt)]
+        : q.sort === "fewest-critical"
+          ? // Failed scans have no count; keep them out of the "cleanest" end.
+            [sql`(${scans.status} <> 'complete')`, asc(scans.criticalCount), desc(scans.queuedAt)]
+          : [desc(scans.queuedAt)];
+
+  const [rows, [count]] = await Promise.all([
+    db
+      .select({
+        id: scans.id,
+        status: scans.status,
+        trigger: scans.trigger,
+        criticalCount: scans.criticalCount,
+        warningCount: scans.warningCount,
+        blockedBy: scans.blockedBy,
+        queuedAt: scans.queuedAt,
+        startedAt: scans.startedAt,
+        finishedAt: scans.finishedAt,
+        accessibilityScore: sql<
+          number | null
+        >`(${scans.result} -> 'accessibility' ->> 'score')::int`,
+      })
+      .from(scans)
+      .where(where)
+      .orderBy(...order)
+      .limit(q.limit)
+      .offset(q.offset),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(scans)
+      .where(where),
+  ]);
+  return { rows, total: count?.n ?? 0 };
+}
+
+/** Scans kept but outside the plan's history window. */
+export async function countScansBefore(
+  db: Database,
+  siteId: string,
+  before: Date,
+): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(scans)
+    .where(
+      and(
+        eq(scans.siteId, siteId),
+        sql`coalesce(${scans.finishedAt}, ${scans.queuedAt}) < ${before.toISOString()}::timestamptz`,
+      ),
+    );
+  return row?.n ?? 0;
 }
 
 /**
