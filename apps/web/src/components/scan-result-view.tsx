@@ -4,6 +4,7 @@ import { AccessibilityPanel } from "./accessibility-panel";
 import { DisclosurePanel } from "./disclosure-panel";
 import { GpcPanel } from "./gpc-panel";
 import { GtmPanel } from "./gtm-panel";
+import { ReportJump } from "./report-jump";
 import { ScanProgress } from "./scan-progress";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
@@ -189,7 +190,9 @@ function Report({
 
         {actions}
 
-        <div className="specimen" style={{ marginTop: "3rem" }}>
+        <ReportJump report={report} />
+
+        <div className="specimen" id="report-findings" style={{ marginTop: "3rem" }}>
           <div className="specimen-head">
             <span className="specimen-url">{report.url}</span>
             <span className="verdict pass">No violations found</span>
@@ -322,7 +325,9 @@ function Report({
         );
       })()}
 
-      <div className="specimen" style={{ marginTop: "3rem" }}>
+      <ReportJump report={report} />
+
+      <div className="specimen" id="report-findings" style={{ marginTop: "3rem" }}>
         <div className="specimen-head">
           <div className="specimen-id">
             <span className="specimen-url">{report.url}</span>

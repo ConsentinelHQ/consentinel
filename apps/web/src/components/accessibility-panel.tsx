@@ -51,7 +51,7 @@ export function AccessibilityPanel({
   const C = 163.4;
 
   return (
-    <section aria-labelledby="a11y-title" className="gpc-test a11y-test">
+    <section id="report-accessibility" aria-labelledby="a11y-title" className="gpc-test a11y-test">
       <div className="gpc-test-head">
         <div>
           <span className="gpc-test-kicker">

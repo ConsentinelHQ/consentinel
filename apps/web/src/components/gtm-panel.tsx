@@ -18,7 +18,7 @@ export function GtmPanel({ report }: { report: FreeReport }) {
       : `${String(unguarded)} marketing ${unguarded === 1 ? "tag has" : "tags have"} no consent check`;
 
   return (
-    <section aria-labelledby="gtm-title" className="gpc-test">
+    <section id="report-gtm" aria-labelledby="gtm-title" className="gpc-test">
       <div className="gpc-test-head">
         <div>
           <span className="gpc-test-kicker">Tag manager check</span>

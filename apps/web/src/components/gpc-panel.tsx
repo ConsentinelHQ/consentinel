@@ -15,7 +15,7 @@ export function GpcPanel({ check }: { check: GpcCheck }) {
       : `${String(ignored)} ad ${ignored === 1 ? "vendor" : "vendors"} ignored it`;
 
   return (
-    <section aria-labelledby="gpc-test-title" className="gpc-test">
+    <section id="report-gpc" aria-labelledby="gpc-test-title" className="gpc-test">
       <div className="gpc-test-head">
         <div>
           <span className="gpc-test-kicker">
