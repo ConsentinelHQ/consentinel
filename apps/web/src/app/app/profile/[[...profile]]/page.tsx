@@ -1,13 +1,24 @@
 import { UserProfile } from "@clerk/nextjs";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getBillingState, listUserOrgs } from "@consentinel/db";
+import { AccountActions } from "@/components/account-actions";
 import { ProfileTabs } from "@/components/profile-tabs";
+import { requireSession } from "@/lib/auth";
+import { db } from "@/lib/server";
 
 export const metadata: Metadata = { title: "Profile" };
 
 // Clerk owns identity, so its profile handles avatar, name, emails, password,
 // two-step verification, connected Google sign-in and signed-in devices.
-export default function Profile() {
+export const dynamic = "force-dynamic";
+
+export default async function Profile() {
+  const session = await requireSession();
+  const [billing, orgs] = await Promise.all([
+    getBillingState(db(), session.orgId),
+    listUserOrgs(db(), session.userId),
+  ]);
+  const teamOrgs = orgs.filter((o) => o.memberCount > 1).map((o) => o.name);
   return (
     <div className="wrap app-content">
       <div className="app-head">
@@ -46,16 +57,17 @@ export default function Profile() {
               navbarMobileMenuRow: { display: "none" },
               scrollBox: { borderRadius: "0", boxShadow: "none", border: "none" },
               pageScrollBox: { padding: "0" },
-              // Deleting here would orphan sites and keep a subscription billing. Support does it.
+              // Clerk's delete only removes the sign-in. Ours below also cancels billing and data.
               profileSection__danger: { display: "none" },
             },
           }}
         />
       </div>
-      <p className="quiet profile-foot">
-        Need to delete your account? <Link href="/contact">Contact us</Link> and we&apos;ll remove
-        it along with your sites and any subscription.
-      </p>
+      <AccountActions
+        archived={Boolean(billing?.archivedAt)}
+        canManage={session.role === "owner" || session.role === "org:admin"}
+        teamOrgs={teamOrgs}
+      />
     </div>
   );
 }

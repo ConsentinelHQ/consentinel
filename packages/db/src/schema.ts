@@ -88,6 +88,8 @@ export const orgs = pgTable(
     brandColor: text("brand_color"),
     brandWebsite: text("brand_website"),
     currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    /** Archived by the customer: monitoring, alerts and integrations off, data kept. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

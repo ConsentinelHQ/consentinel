@@ -25,6 +25,13 @@ const TRIAL_DAYS = 7;
 export async function POST(request: Request): Promise<NextResponse> {
   const session = await requireSession();
   const database = db();
+  const archivedState = await getBillingState(database, session.orgId);
+  if (archivedState?.archivedAt) {
+    return NextResponse.json(
+      { error: "This account is archived. Restore it from your Profile first." },
+      { status: 409 },
+    );
+  }
 
   // No body or an unknown plan falls back to Monitor, which keeps old clients working.
   const body: unknown = await request.json().catch(() => null);

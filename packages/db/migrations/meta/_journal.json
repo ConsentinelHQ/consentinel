@@ -141,6 +141,13 @@
       "when": 1794095037504,
       "tag": "0019_normal_lady_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794103749494,
+      "tag": "0020_lowly_bloodstorm",
+      "breakpoints": true
     }
   ]
 }

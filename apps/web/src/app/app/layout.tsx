@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AppNav } from "@/components/app-nav";
+import { ArchivedBanner } from "@/components/archived-banner";
 import { SideUser } from "@/components/side-user";
 import { ScanNotifier } from "@/components/scan-notifier";
 
@@ -60,7 +61,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <SideUser />
         </div>
       </aside>
-      <main className="dash-main">{children}</main>
+      <main className="dash-main">
+        <ArchivedBanner />
+        {children}
+      </main>
     </div>
   );
 }
