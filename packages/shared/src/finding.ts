@@ -1,3 +1,4 @@
+import type { AccessibilityAudit } from "./accessibility.js";
 import type { DisclosureCheck } from "./disclosure.js";
 /**
  * Consentinel — shared finding schema.
@@ -218,6 +219,8 @@ export interface ScanResult {
   disclosure?: DisclosureCheck;
   /** The site's Google Tag Manager containers, read from their public files. Absent when none loaded. */
   gtm?: GtmAudit;
+  /** Accessibility Monitor: automated WCAG 2.2 AA checks. Absent when not run. */
+  accessibility?: AccessibilityAudit;
 }
 
 export interface GpcCheck {

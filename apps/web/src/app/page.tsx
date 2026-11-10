@@ -178,6 +178,10 @@ const FAQ = [
     a: "No code, no tag, no plugin. We scan from the outside the same way a visitor, or a plaintiff’s firm, would. Sites behind Cloudflare bot protection can allowlist our scanner.",
   },
   {
+    q: "Do you check accessibility too?",
+    a: "Yes. Every scan runs automated WCAG 2.2 AA checks with axe-core, the open-source engine most accessibility teams use. Monitor covers your homepage; Growth and Agency cover up to 10 pages per site. Automated checks catch a share of issues, so it’s a monitor, not a certification.",
+  },
+  {
     q: "How is this different from the scanner in my CMP?",
     a: "CMP scanners list cookies so you can categorize them. Consentinel tests whether your banner actually works, records evidence counsel can use, and rescans daily so a new tag can’t quietly break it.",
   },
@@ -367,6 +371,46 @@ export default function Home() {
 
           <p className="jira-foot center">
             Two-minute setup with Jira Cloud, on Growth and Agency.{" "}
+            <Link className="arrow-link" href="/pricing">
+              See plans <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      <section className="a11y-home">
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <p className="eyebrow">Accessibility Monitor</p>
+              <h2>The other lawsuit your site can draw.</h2>
+            </div>
+            <p className="lede">
+              Every scan also runs WCAG 2.2 AA checks on your homepage, product, collection and cart
+              pages. You get a score, every failing element, the fix, and an alert when a release
+              adds a new issue.
+            </p>
+          </div>
+
+          <div className="tiles">
+            <div className="tile">
+              <p className="stat">5,000+</p>
+              <p>ADA website accessibility lawsuits filed in US courts in 2025.</p>
+            </div>
+            <div className="tile">
+              <p className="stat">70%</p>
+              <p>
+                Of them named online stores. Missing alt text and unlabeled fields lead the list.
+              </p>
+            </div>
+            <div className="tile">
+              <p className="stat">$0 extra</p>
+              <p>Included in every plan. Growth and Agency check up to 10 pages per site.</p>
+            </div>
+          </div>
+
+          <p className="jira-foot center">
+            Automated checks find a share of WCAG issues, not all of them.{" "}
             <Link className="arrow-link" href="/pricing">
               See plans <span aria-hidden="true">&rarr;</span>
             </Link>

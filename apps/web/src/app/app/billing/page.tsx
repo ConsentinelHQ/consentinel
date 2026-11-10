@@ -138,11 +138,17 @@ export default async function Billing({
                     <li>Daily scans and new-issue alerts</li>
                     <li>Scan after every deploy</li>
                     {p.pagesPerScan > 1 ? (
-                      <li>
-                        Product, cart and checkout pages <em>Coming soon</em>
-                      </li>
+                      <>
+                        <li>Accessibility checks on up to {p.pagesPerScan} pages</li>
+                        <li>
+                          Product, cart and checkout pages <em>Coming soon</em>
+                        </li>
+                      </>
                     ) : (
-                      <li>Homepage scanned</li>
+                      <>
+                        <li>Homepage scanned</li>
+                        <li>Accessibility checks on the homepage</li>
+                      </>
                     )}
                     <li>
                       {p.historyDays === 365 ? "12 months" : `${String(p.historyDays)} days`} of

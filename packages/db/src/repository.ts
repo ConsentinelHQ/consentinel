@@ -530,6 +530,17 @@ export async function getScanTokenForScan(db: Database, scanId: string): Promise
   return rows[0]?.token ?? null;
 }
 
+/** The owning org of a scan's site, for plan lookups. Null for anonymous scans. */
+export async function getOrgIdForScan(db: Database, scanId: string): Promise<string | null> {
+  const rows = await db
+    .select({ orgId: sites.orgId })
+    .from(scans)
+    .innerJoin(sites, eq(sites.id, scans.siteId))
+    .where(eq(scans.id, scanId))
+    .limit(1);
+  return rows[0]?.orgId ?? null;
+}
+
 /** Soft delete or restore. Scans, reports, and share links are never touched. */
 export async function setSiteArchived(
   db: Database,

@@ -1,5 +1,6 @@
 import { canonicalVendor, isUnattributed, SEVERITY_RANK } from "./severity.js";
 import type { DisclosureCheck } from "./disclosure.js";
+import { toAccessibilitySummary, type AccessibilitySummary } from "./accessibility.js";
 import { type Finding, type GpcCheck, type ScanResult, type Severity } from "./finding.js";
 
 /**
@@ -51,6 +52,8 @@ export interface FreeReport {
   disclosure?: DisclosureCheck;
   /** Google Tag Manager containers read from the page. Absent when none loaded. */
   gtm?: GtmSummary;
+  /** Accessibility Monitor. Free view: score and top issues only. Absent when not run. */
+  accessibility?: AccessibilitySummary;
   scanId: string;
   url: string;
   scannedAt: string;
@@ -371,17 +374,30 @@ function withGpcCheck(report: FreeReport, result: ScanResult): FreeReport {
 }
 
 export function toFreeReport(result: ScanResult): FreeReport {
-  return withGpcCheck(
-    adaptForGpc(withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) })),
+  return withAccessibility(
+    withGpcCheck(
+      adaptForGpc(withRowCount({ ...toFreeReportBase(result), gpc: observedUnderGpc(result) })),
+      result,
+    ),
     result,
+    false,
   );
 }
 
 export function toFullReport(result: ScanResult): FreeReport {
-  return withGpcCheck(
-    adaptForGpc(withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) })),
+  return withAccessibility(
+    withGpcCheck(
+      adaptForGpc(withRowCount({ ...toFullReportBase(result), gpc: observedUnderGpc(result) })),
+      result,
+    ),
     result,
+    true,
   );
+}
+
+function withAccessibility(report: FreeReport, result: ScanResult, full: boolean): FreeReport {
+  if (!result.accessibility) return report;
+  return { ...report, accessibility: toAccessibilitySummary(result.accessibility, full) };
 }
 
 /** Children point at the parent; parents list what fixing them also clears. */
