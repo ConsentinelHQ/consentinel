@@ -111,7 +111,12 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
           const orgId = await getOrgIdForScan(db, scanId);
           const maxPages = accessibilityPageLimit(orgId ? await getBillingState(db, orgId) : null);
           result.accessibility = await withTimeout(
-            auditAccessibility(check.url, { maxPages, ...tokenOpts }),
+            auditAccessibility(check.url, {
+              maxPages,
+              // Finish inside the hard timeout with whatever pages are done.
+              budgetMs: config.ACCESSIBILITY_TIMEOUT_MS - 20_000,
+              ...tokenOpts,
+            }),
             config.ACCESSIBILITY_TIMEOUT_MS,
           );
         } catch (error) {

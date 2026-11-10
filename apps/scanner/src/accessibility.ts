@@ -30,7 +30,17 @@ export interface AccessibilityOptions {
   maxPages: number;
   scanToken?: string;
   identify?: boolean;
+  /**
+   * Stop starting new pages after this long and return what finished. Keeps a slow
+   * store's 7 audited pages instead of losing all 10 to an outer timeout.
+   */
+  budgetMs?: number;
 }
+
+/** Most pages finish in 10-20s; one that hangs (polling, a wedged script) is cut off here. */
+const PAGE_HARD_LIMIT_MS = 45_000;
+/** Pages audited at once. Each is a tab in one browser, so memory stays flat. */
+const PAGE_CONCURRENCY = 2;
 
 /** The pages shoppers use, in the order they matter. Matched against same-site links. */
 const KEY_PAGES: ReadonlyArray<{ label: string; re: RegExp }> = [
@@ -323,30 +333,60 @@ export async function auditAccessibility(
         );
       });
     }
-    const page = await context.newPage();
+    const started = Date.now();
+    const budget = opts.budgetMs ?? Number.POSITIVE_INFINITY;
+    // A fresh tab per page: one that hangs can't poison the next.
+    const auditInTab = async (url: string): Promise<PageAudit> => {
+      const page = await context.newPage();
+      try {
+        return await withLimit(auditPage(page, url), PAGE_HARD_LIMIT_MS);
+      } finally {
+        await page.close().catch(() => undefined);
+      }
+    };
 
-    const home = await auditPage(page, homeUrl);
+    const home = await auditInTab(homeUrl);
     const targets = pickAuditPages(homeUrl, home.hrefs, opts.maxPages);
+    const results = new Map<string, PageAudit>();
+    const [first, ...rest] = targets;
+    if (first) results.set(first.url, home);
+
+    // A homepage we couldn't audit means the rest won't go better.
+    if (!home.error) {
+      let next = 0;
+      const lane = async (): Promise<void> => {
+        while (next < rest.length) {
+          const t = rest[next++];
+          if (!t) break;
+          // Leave room for the slowest page to finish inside the budget.
+          if (Date.now() - started > budget - PAGE_HARD_LIMIT_MS) {
+            results.set(t.url, { violations: [], incomplete: [], hrefs: [], error: "time limit" });
+            continue;
+          }
+          results.set(t.url, await auditInTab(t.url));
+        }
+      };
+      await Promise.all(Array.from({ length: PAGE_CONCURRENCY }, lane));
+    }
+
+    // Report pages in pick order, not finish order.
     const pages: AccessibilityPage[] = [];
     const perPage: Array<{ path: string; violations: AxeRuleResult[] }> = [];
-    let needsReview = new Set<string>();
-
-    const record = (t: { url: string; label: string }, r: PageAudit): void => {
+    const needsReview = new Set<string>();
+    for (const t of targets) {
+      const r = results.get(t.url);
+      if (!r) continue;
       if (r.error) {
         pages.push({ url: t.url, label: t.label, status: "failed", issues: 0, error: r.error });
-        return;
+        continue;
       }
       pages.push({ url: t.url, label: t.label, status: "ok", issues: r.violations.length });
       perPage.push({ path: pathOf(t.url), violations: r.violations });
-      needsReview = new Set([...needsReview, ...r.incomplete]);
-    };
-
-    const [first, ...rest] = targets;
-    if (first) record(first, home);
-    // A homepage we couldn't audit means the rest won't go better.
-    if (!home.error) {
-      for (const t of rest) record(t, await auditPage(page, t.url));
+      for (const id of r.incomplete) needsReview.add(id);
     }
+    console.log(
+      `[a11y] ${homeUrl}: ${String(perPage.length)}/${String(targets.length)} pages in ${String(Date.now() - started)}ms`,
+    );
 
     const issues = mergeViolations(perPage);
     return {
@@ -415,6 +455,23 @@ async function auditPage(page: Page, url: string): Promise<PageAudit> {
       hrefs: [],
       error: err instanceof Error ? (err.message.split("\n")[0] ?? "failed") : "failed",
     };
+  }
+}
+
+async function withLimit(p: Promise<PageAudit>, ms: number): Promise<PageAudit> {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<PageAudit>((resolve) => {
+        timer = setTimeout(
+          () => resolve({ violations: [], incomplete: [], hrefs: [], error: "page timed out" }),
+          ms,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
