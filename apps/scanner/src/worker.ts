@@ -1,4 +1,5 @@
 import { Worker, type Job } from "bullmq";
+import IORedis from "ioredis";
 import {
   completeScan,
   createDbWithConnection,
@@ -29,6 +30,7 @@ import {
   alertOnRegression,
 } from "./alerting.js";
 import { auditAccessibility } from "./accessibility.js";
+import { redisLiveSink } from "./live-redis.js";
 import { postJiraScanFailure, postJiraVerdict } from "./jira-sync.js";
 import { notifyWaitingLeads } from "./notify-ready.js";
 import { Sentry } from "./instrument.js";
@@ -49,6 +51,12 @@ export interface RunningWorker {
 export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker {
   const { db, sql } = createDbWithConnection(config.DATABASE_URL);
   const connection = redisConnection(config.REDIS_URL);
+  // Its own client: the live view's writes must never queue behind BullMQ's blocking reads.
+  const liveRedis = new IORedis(config.REDIS_URL, {
+    maxRetriesPerRequest: 1,
+    connectTimeout: 5_000,
+  });
+  liveRedis.on("error", () => undefined);
 
   const worker = new Worker<ScanJobData>(
     SCAN_QUEUE,
@@ -67,13 +75,14 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
       }
 
       await markScanRunning(db, scanId);
+      const live = redisLiveSink(liveRedis, scanId);
       // Customer allowlist token, if their Cloudflare rule expects one.
       const scanToken = await getScanTokenForScan(db, scanId);
       const tokenOpts = scanToken ? { scanToken } : {};
       let detailed;
       try {
         detailed = await withTimeout(
-          scanDetailed(check.url, { minRequests: config.SCAN_MIN_REQUESTS, ...tokenOpts }),
+          scanDetailed(check.url, { minRequests: config.SCAN_MIN_REQUESTS, live, ...tokenOpts }),
           config.SCAN_TIMEOUT_MS,
         );
         // No reject control to click, usually a US visitor on a CCPA-model site.
@@ -84,6 +93,7 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
             scanDetailed(check.url, {
               minRequests: config.SCAN_MIN_REQUESTS,
               gpc: true,
+              live,
               ...tokenOpts,
             }),
             config.SCAN_TIMEOUT_MS,
@@ -119,6 +129,7 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
               budgetMs: config.ACCESSIBILITY_TIMEOUT_MS - 20_000,
               // Screenshots live in the stored result: paying customers only.
               screenshots: activePlan(billing) !== null,
+              live,
               ...tokenOpts,
             }),
             config.ACCESSIBILITY_TIMEOUT_MS,
@@ -129,6 +140,8 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
         }
       }
 
+      live.phase("Done");
+      await live.close();
       await completeScan(db, scanId, result);
 
       // Archive the policy text beside the scan. Only for a customer's site, and
@@ -235,6 +248,7 @@ export function startWorker(config: ScannerConfig = loadConfig()): RunningWorker
   const shutdown = async (): Promise<void> => {
     // close(false) lets in-flight scans finish rather than orphaning them mid-browser.
     await worker.close();
+    await liveRedis.quit().catch(() => undefined);
     await sql.end();
   };
 

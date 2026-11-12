@@ -8,6 +8,8 @@ import {
 } from "./cmp/detect.js";
 import { acceptConsent, rejectConsent } from "./cmp/driver.js";
 import { readPolicies, type PolicyText } from "./policy.js";
+import { NO_LIVE, streamFrames, type LiveSink } from "./live.js";
+import { classify } from "./signatures.js";
 
 const GOTO_TIMEOUT = 20_000;
 const NETWORK_IDLE_TIMEOUT = 8_000;
@@ -63,6 +65,8 @@ export interface ScanOptions {
    * denied pass already sent GPC, since that pass is the same observation.
    */
   gpcPass?: boolean;
+  /** Live scan view: phases, vendors and frames as the scan runs. */
+  live?: LiveSink;
 }
 
 /** Visible confirmation that the opt-out signal was processed. */
@@ -212,6 +216,7 @@ async function newCapturedContext(
   targetUrl: string,
   opts: ScanOptions,
   signalGpc = false,
+  onRequest?: (url: string) => void,
 ): Promise<CapturedContext> {
   const browser = await chromium.launch();
   // Clean profile per pass - no shared state.
@@ -285,6 +290,7 @@ async function newCapturedContext(
       ...(initiator ? { initiator } : {}),
       ...(postData ? { postData: postData.slice(0, 16384) } : {}),
     });
+    onRequest?.(url);
 
     const host = registrableHost(url);
     const firstParty =
@@ -437,14 +443,42 @@ async function seedIdentity(page: Page): Promise<{ email: boolean; phone: boolea
   return { email, phone };
 }
 
+/**
+ * Reports each consent-required vendor once per pass, and only after `armed`:
+ * a tag that loads after the visitor said no is the moment worth showing.
+ */
+function vendorWatch(
+  live: LiveSink,
+  detail: string,
+): { onRequest: (url: string) => void; arm: () => void } {
+  const seen = new Set<string>();
+  let armed = false;
+  return {
+    arm: () => {
+      armed = true;
+    },
+    onRequest: (u: string) => {
+      if (!armed || live === NO_LIVE) return;
+      const sig = classify(u);
+      if (!sig?.consentRequired || seen.has(sig.vendor)) return;
+      seen.add(sig.vendor);
+      live.event("vendor", sig.vendor, detail);
+    },
+  };
+}
+
 export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawScan> {
   const probePii = opts.probePii ?? process.env["CONSENTINEL_PII_PROBE"] === "1";
+  const live = opts.live ?? NO_LIVE;
   // --- Pass 0: detection ---
+  live.phase("Opening the page");
   const probe = await newCapturedContext(url, opts);
   await gotoWithFallback(probe.page, url);
   await probe.page.waitForTimeout(600);
+  await live.frame(probe.page, true);
   const cmp = await detectCmp(probe.page, probe.requests);
   const consentMode = await detectConsentMode(probe.page);
+  if (cmp.detected) live.event("info", `Found the ${cmp.detected.name} cookie banner`);
   // Read the policies here, once, in the clean probe context: they don't depend on consent state.
   const runDisclosure = opts.disclosure ?? process.env["CONSENTINEL_DISCLOSURE"] !== "0";
   const policies = runDisclosure ? await readPolicies(probe.page, url) : undefined;
@@ -453,11 +487,22 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   const cmpId = cmp.detected?.id ?? null;
 
   // --- Pass A: consent REJECTED (or default-denied if no CMP) ---
-  const a = await newCapturedContext(url, opts, opts.gpc === true);
+  const aWatch = vendorWatch(
+    live,
+    opts.gpc ? "loaded with Global Privacy Control on" : "loaded after Reject all",
+  );
+  live.phase(opts.gpc ? "Testing Global Privacy Control" : "Declining cookies");
+  const a = await newCapturedContext(url, opts, opts.gpc === true, aWatch.onRequest);
+  const stopA = streamFrames(live, a.page);
   const deniedResponse = await gotoCapturing(a.page, url);
+  await live.frame(a.page, true);
   let deniedInteraction: ConsentInteraction;
   if (cmpId) {
     const r = await rejectConsent(a.page, cmpId);
+    if (r.ok) live.event("info", "Clicked Reject all");
+    // GPC, or no reject to click: whatever loads from here on ignored the opt-out.
+    if (r.ok || opts.gpc) aWatch.arm();
+    await live.frame(a.page, true);
     deniedInteraction = r.ok
       ? { kind: "reject", performed: true, selector: r.selector }
       : // bannerPresent separates "we could not click it" from "it never appeared",
@@ -473,8 +518,10 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
       kind: "none",
       reason: "no CMP detected - default state is the denied state",
     };
+    if (opts.gpc) aWatch.arm();
   }
   await provokeLateTags(a.page, a.requests);
+  stopA();
   const seeded = probePii ? await seedIdentity(a.page) : null;
   if (seeded)
     process.stderr.write(
@@ -494,7 +541,9 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   await a.browser.close();
 
   // --- Pass B: consent GRANTED ---
+  live.phase("Accepting cookies to compare");
   const b = await newCapturedContext(url, opts);
+  const stopB = streamFrames(live, b.page);
   const grantedResponse = await gotoCapturing(b.page, url);
   let grantedInteraction: ConsentInteraction;
   if (cmpId) {
@@ -509,6 +558,7 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
     };
   }
   await provokeLateTags(b.page, b.requests);
+  stopB();
   const grantedPass: PassResult = {
     requests: b.requests,
     cookies: await snapshotCookies(b.context, b.setters),
@@ -523,9 +573,15 @@ export async function scanUrl(url: string, opts: ScanOptions = {}): Promise<RawS
   const runGpc = (opts.gpcPass ?? process.env["CONSENTINEL_GPC_PASS"] !== "0") && !opts.gpc;
   let gpcPass: PassResult | undefined;
   if (runGpc) {
-    const c = await newCapturedContext(url, opts, true);
+    live.phase("Testing Global Privacy Control");
+    const cWatch = vendorWatch(live, "loaded with Global Privacy Control on");
+    // No click to wait for: the signal is on from the first request.
+    cWatch.arm();
+    const c = await newCapturedContext(url, opts, true, cWatch.onRequest);
+    const stopC = streamFrames(live, c.page);
     const gpcResponse = await gotoCapturing(c.page, url);
     await provokeLateTags(c.page, c.requests);
+    stopC();
     gpcPass = {
       requests: c.requests,
       cookies: await snapshotCookies(c.context, c.setters),
