@@ -44,6 +44,7 @@ export function SiteFooter() {
           </nav>
           <nav aria-label="Guides and tools">
             <p className="site-footer-head">Guides and tools</p>
+            <Link href="/accessibility-checker">Accessibility checker</Link>
             <Link href="/gpc-checker">GPC checker</Link>
             <Link href="/gpc">Global Privacy Control by state</Link>
             <Link href="/cipa-demand-letter">Got a CIPA demand letter?</Link>

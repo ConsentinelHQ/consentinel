@@ -22,6 +22,39 @@ export interface Metrics {
   inquiries: number;
   /** Prospect report links opened in the window. Absent on older web deploys. */
   reportOpens?: number;
+  /** Shopify installs, newest first. Absent on older web deploys. */
+  shopifyInstalls?: {
+    shop: string;
+    domain: string | null;
+    plan: string;
+    installedAt: string;
+    new: boolean;
+  }[];
+}
+
+/**
+ * Installs we emailed first: the store's domain is on the sheet with a first
+ * email sent before the install. That's the founder-email channel working.
+ */
+export function installsFromOutreach(
+  installs: NonNullable<Metrics["shopifyInstalls"]>,
+  sheet: Sheet,
+): { domain: string; plan: string; new: boolean }[] {
+  const emailed = new Map<string, string>();
+  for (const r of sheet.rows) {
+    const d = normDomain(r.values["Domain"] ?? "");
+    const first = (r.values["First email"] ?? "").trim();
+    if (d && first) emailed.set(d, first);
+  }
+  return installs
+    .filter((i) => {
+      if (!i.domain) return false;
+      const first = emailed.get(normDomain(i.domain));
+      if (!first) return false;
+      const day = parseDay(first);
+      return day === null || day <= i.installedAt.slice(0, 10);
+    })
+    .map((i) => ({ domain: normDomain(i.domain ?? ""), plan: i.plan, new: i.new }));
 }
 
 export async function fetchMetrics(base: string, key: string, hours: number): Promise<Metrics> {
@@ -93,6 +126,16 @@ export function renderBrief(b: BriefInput): string {
         .map((u) => `${u.email} (${u.plan}${u.new ? ", new" : ""})`)
         .join(", ");
       lines.push(`*Accounts:* ${list}`);
+    }
+    if (m.shopifyInstalls) {
+      const all = m.shopifyInstalls;
+      const fresh = all.filter((i) => i.new);
+      const paid = all.filter((i) => i.plan !== "Free").length;
+      const fromEmail = installsFromOutreach(all, b.sheet);
+      const names = fresh.map((i) => i.domain ?? i.shop);
+      lines.push(
+        `*Shopify:* ${plural(fresh.length, "new install")}${names.length ? ` (${joinNames(names)})` : ""}. ${String(all.length)} total, ${String(paid)} paid. From outreach: ${fromEmail.length ? `${String(fromEmail.length)} (${joinNames(fromEmail.map((i) => `${i.domain}${i.plan !== "Free" ? `, ${i.plan}` : ""}`))})` : "0"}`,
+      );
     }
     lines.push(
       `*Inbound (${span}):* ${plural(m.leads.total, "lead")} (${String(m.leads.consented)} consented), ${plural(m.inquiries, "inquiry", "inquiries")}${m.reportOpens !== undefined ? `, ${plural(m.reportOpens, "prospect report opened", "prospect reports opened")}` : ""}`,

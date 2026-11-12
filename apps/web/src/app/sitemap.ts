@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/how-it-works`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/pricing`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/gpc`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/accessibility-checker`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/gpc-checker`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/cipa-demand-letter`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${BASE}/research/opt-out-report-2026`, changeFrequency: "monthly", priority: 0.9 },

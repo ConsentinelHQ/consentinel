@@ -10,6 +10,7 @@ import {
 import { address, bouncedRecipients, extractText, stripQuoted } from "../src/outreach/mail.js";
 import { isAutoReply, isBulk } from "../src/outreach/sync.js";
 import { NOT_A_SITE, cleanError, leadWith, tier, type Evidence } from "../src/outreach/evidence.js";
+import { installsFromOutreach } from "../src/outreach/brief.js";
 import { mime, normDomain, type SheetRow } from "../src/outreach/google.js";
 import {
   addBusinessDays,
@@ -883,7 +884,7 @@ assert.equal(domainFromSubject("Re: Consentinel for olipop.com"), "olipop.com");
   const shop = render({ domain: "x.com", firstName: "A", ev, postalAddress: "", shopify: true });
   assert.match(
     shop.html,
-    /<a href="https:\/\/apps\.shopify\.com\/consentinel-1">Shopify App Store<\/a>/,
+    /<a href="https:\/\/apps\.shopify\.com\/consentinel-1\?utm_source=consentinel[^"]*">Shopify App Store<\/a>/,
   );
   assert.match(
     shop.text,
@@ -1423,6 +1424,69 @@ assert.match(setPressAddress("nobody", "c@x.com", "https://a.com"), /no pitch/);
     a11y: { score: 96, severe: 0, top: [] },
   };
   assert.equal(leadWith(clean, false), null);
+}
+
+// Installs matched to outreach by storefront domain, only when emailed first.
+{
+  const sheet = {
+    headers: [],
+    domains: new Set<string>(),
+    rows: [
+      { rowNumber: 2, values: { Domain: "www.alpha.com", "First email": "2026-11-13" } },
+      { rowNumber: 3, values: { Domain: "beta.com", "First email": "" } },
+      { rowNumber: 4, values: { Domain: "gamma.com", "First email": "2026-11-20" } },
+    ],
+  };
+  const got = installsFromOutreach(
+    [
+      {
+        shop: "a.myshopify.com",
+        domain: "alpha.com",
+        plan: "Starter",
+        installedAt: "2026-11-14T10:00:00Z",
+        new: true,
+      },
+      {
+        shop: "b.myshopify.com",
+        domain: "beta.com",
+        plan: "Free",
+        installedAt: "2026-11-14T10:00:00Z",
+        new: true,
+      },
+      {
+        shop: "g.myshopify.com",
+        domain: "gamma.com",
+        plan: "Free",
+        installedAt: "2026-11-14T10:00:00Z",
+        new: false,
+      },
+      {
+        shop: "x.myshopify.com",
+        domain: null,
+        plan: "Free",
+        installedAt: "2026-11-14T10:00:00Z",
+        new: true,
+      },
+    ],
+    sheet,
+  );
+  assert.deepEqual(got, [{ domain: "alpha.com", plan: "Starter", new: true }]);
+  const tracked = render({
+    domain: "x.com",
+    firstName: "S",
+    ev: {
+      mode: "gpc",
+      critical: 1,
+      gated: 0,
+      firing: ["Criteo"],
+      a11y: { score: 50, severe: 3, top: [{ title: "Images missing alt text", instances: 4 }] },
+    },
+    postalAddress: "",
+    consentStrong: false,
+    shopify: true,
+  });
+  assert.match(tracked.html, /consentinel-1\?utm_source=consentinel&amp;utm_medium=email/);
+  assert.ok(!tracked.text.includes("utm_"), "visible URL stays clean");
 }
 
 console.log("outreach: all assertions passed");
