@@ -51,26 +51,40 @@ function page(apiKey: string): string {
   <section class="card" id="scan-card">
     <div id="scanning" class="state">
       <p class="eyebrow">Scanning your storefront</p>
-      <h1>Checking what runs after a visitor says no</h1>
+      <h1>Checking accessibility and what runs after a visitor says no</h1>
       <div class="bar"><span></span></div>
       <ol class="steps">
         <li>Reject all cookies</li>
         <li>Accept all cookies</li>
         <li>Global Privacy Control on</li>
+        <li>Accessibility check</li>
       </ol>
-      <p class="muted">This takes about a minute. You can leave this page open.</p>
+      <p class="muted">This takes a few minutes. You can leave this page open.</p>
     </div>
 
     <div id="result" class="state" hidden>
       <p class="eyebrow" id="scanned-at"></p>
       <h1 id="headline"></h1>
-      <div class="tiles">
-        <div class="tile critical"><b id="n-critical">0</b><span>Critical</span></div>
-        <div class="tile warning"><b id="n-warning">0</b><span>Warnings</span></div>
-        <div class="tile"><b id="n-info">0</b><span>Info</span></div>
+      <div class="sections" id="sections">
+        <div class="section" id="sec-a11y" hidden>
+          <div class="sec-head">
+            <div><p class="eyebrow">Accessibility</p><h2 id="a11y-title"></h2></div>
+            <div class="score" id="a11y-score"><b></b><span>out of 100</span></div>
+          </div>
+          <p class="muted" id="a11y-sub"></p>
+          <ul class="findings" id="a11y-issues"></ul>
+        </div>
+        <div class="section" id="sec-privacy">
+          <div class="sec-head"><div><p class="eyebrow">Privacy and cookies</p><h2 id="privacy-title"></h2></div></div>
+          <div class="tiles">
+            <div class="tile critical"><b id="n-critical">0</b><span>Critical</span></div>
+            <div class="tile warning"><b id="n-warning">0</b><span>Warnings</span></div>
+            <div class="tile"><b id="n-info">0</b><span>Info</span></div>
+          </div>
+          <p class="muted" id="cmp"></p>
+          <ul class="findings" id="findings"></ul>
+        </div>
       </div>
-      <p class="muted" id="cmp"></p>
-      <ul class="findings" id="findings"></ul>
       <div class="actions">
         <a class="btn primary" id="report" target="_blank" rel="noopener">Open full report</a>
         <button class="btn" id="rescan" type="button">Scan again</button>
@@ -93,34 +107,47 @@ function page(apiKey: string): string {
     <ul class="findings tags" id="theme-tags"></ul>
   </section>
 
-  <section class="card monitor" id="monitor-off" hidden>
-    <div>
-      <p class="eyebrow">Daily monitoring</p>
-      <h2>Know the day a tracker starts leaking</h2>
-      <p class="muted">Apps, theme edits and tag changes can break your opt-out overnight. We rescan your store every day and email you when an ad vendor starts firing after a visitor opts out. Every scan is kept as dated evidence.</p>
-      <ul class="ticks">
-        <li>Daily reject, accept and GPC tests</li>
-        <li>Email alerts on new violations</li>
-        <li>30 days of sealed scan history</li>
-      </ul>
-    </div>
-    <div class="price">
-      <b>$99</b><span>per month</span>
-      <button class="btn primary" id="subscribe" type="button">Start free trial</button>
-      <small id="trial-note">7 days free. Cancel any time.</small>
-    </div>
-  </section>
-
   <section class="card monitor on" id="monitor-on" hidden>
     <div>
-      <p class="eyebrow">Monitoring is on</p>
-      <h2>We're watching your store every day</h2>
-      <p class="muted">Alerts go to your store email. Each daily scan is sealed and kept for 30 days.</p>
+      <p class="eyebrow" id="on-eyebrow">Monitoring is on</p>
+      <h2 id="on-title">We're watching your store every day</h2>
+      <p class="muted" id="on-sub">Alerts go to your store email. Each daily scan is sealed and kept for 30 days.</p>
     </div>
     <span class="live"><i></i>Live</span>
   </section>
 
-  <p class="foot">California and other states require stores to honor Global Privacy Control. Tags that keep firing after an opt-out are what regulators and plaintiffs look for.</p>
+  <section class="card" id="plans" hidden>
+    <p class="eyebrow">Monitoring</p>
+    <h2 id="plans-title">Know the day something breaks</h2>
+    <p class="muted">Apps, theme edits and tag changes can add accessibility errors or break your opt-out overnight. We rescan your store and email you when something new fails. Every scan is kept as dated evidence.</p>
+    <div class="plan-grid">
+      <div class="plan" id="plan-starter">
+        <h3>Starter</h3>
+        <p class="amt"><b>$19</b><span>per month</span></p>
+        <ul class="ticks">
+          <li>Weekly accessibility and privacy scan</li>
+          <li>Email alerts on new issues</li>
+          <li>7 days of scan history</li>
+        </ul>
+        <button class="btn" data-plan="starter" type="button">Start free trial</button>
+      </div>
+      <div class="plan best" id="plan-monitor">
+        <h3>Monitor</h3>
+        <p class="amt"><b>$99</b><span>per month</span></p>
+        <ul class="ticks">
+          <li>Daily accessibility and privacy scan</li>
+          <li>Email alerts the day something breaks</li>
+          <li>30 days of sealed scan history</li>
+        </ul>
+        <button class="btn primary" data-plan="monitoring" id="monitor-btn" type="button">Start free trial</button>
+      </div>
+    </div>
+    <small class="note" id="plans-note">7 days free. Billed through Shopify. Cancel any time.</small>
+  </section>
+
+
+
+  <p class="foot">Accessibility checks follow WCAG 2.2 AA and can't catch everything a manual audit would. Tags that keep firing after an opt-out are what regulators look for.</p>
 </main>
 <script>${JS}</script>
 </body>
@@ -149,7 +176,7 @@ h2{margin:0 0 8px;font-size:19px}
 .muted{color:var(--soft);margin:0 0 12px}
 .bar{height:6px;border-radius:6px;background:var(--alt);overflow:hidden;margin:6px 0 18px}
 .bar span{display:block;height:100%;width:40%;border-radius:6px;background:var(--ink);animation:slide 1.6s var(--ease) infinite}
-.steps{list-style:none;padding:0;margin:0 0 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.steps{list-style:none;padding:0;margin:0 0 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .steps li{font-size:13px;padding:10px 12px;border-radius:10px;background:var(--alt);color:var(--soft);transition:all .4s var(--ease)}
 .steps li.active{background:var(--ink);color:#fff}
 .steps li.done{background:#e5f4e4;color:var(--ok)}
@@ -185,6 +212,29 @@ h2{margin:0 0 8px;font-size:19px}
 .price small{display:block;margin-top:8px;color:var(--soft);font-size:12px}
 .live{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ok)}
 .live i{width:10px;height:10px;border-radius:50%;background:var(--ok);animation:ping 1.8s var(--ease) infinite}
+.sections{display:flex;flex-direction:column;gap:22px;margin-bottom:18px}
+.section{animation:fade .4s var(--ease) both}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.sec-head h2{margin-bottom:10px}
+.score{flex:none;text-align:right}
+.score b{display:block;font-size:30px;line-height:1}
+.score span{font-size:12px;color:var(--soft)}
+.score.good b{color:var(--ok)}
+.score.fair b{color:var(--warn)}
+.score.poor b{color:var(--crit)}
+.findings i.serious{background:var(--crit)}
+.findings i.moderate{background:var(--warn)}
+.findings i.minor{background:var(--soft)}
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 10px}
+.plan{padding:20px;border-radius:14px;background:var(--alt);display:flex;flex-direction:column}
+.plan.best{background:#fff;border:1px solid var(--ink)}
+.plan h3{margin:0 0 6px;font-size:15px}
+.plan .amt{margin:0 0 12px}
+.plan .amt b{font-size:30px;line-height:1}
+.plan .amt span{color:var(--soft);font-size:13px;margin-left:6px}
+.plan .ticks{margin-bottom:16px;flex:1}
+.plan .btn{width:100%}
+.note{display:block;color:var(--soft);font-size:12px}
 .foot{color:var(--soft);font-size:13px;text-align:center;margin-top:20px}
 .checks{list-style:none;padding:0;margin:0 0 16px;display:grid;gap:8px}
 .checks li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--alt);font-size:14px;animation:fade .4s var(--ease) both}
@@ -202,7 +252,7 @@ h2{margin:0 0 8px;font-size:19px}
 @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(.8)}}
 @keyframes ping{0%{box-shadow:0 0 0 0 rgba(0,121,92,.45)}100%{box-shadow:0 0 0 10px rgba(0,121,92,0)}}
-@media (max-width:640px){.monitor{flex-direction:column;align-items:stretch}.steps{grid-template-columns:1fr}.findings b{min-width:6rem}}
+@media (max-width:640px){.monitor{flex-direction:column;align-items:stretch}.steps,.plan-grid{grid-template-columns:1fr}.findings b{min-width:6rem}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 `;
 
@@ -213,8 +263,10 @@ const JS = `
 
   async function token(){ return await window.shopify.idToken(); }
 
-  async function api(path, method){
-    var res = await fetch(path, { method: method || "GET", headers: { Authorization: "Bearer " + (await token()) } });
+  async function api(path, method, body){
+    var headers = { Authorization: "Bearer " + (await token()) };
+    if (body) headers["Content-Type"] = "application/json";
+    var res = await fetch(path, { method: method || "GET", headers: headers, body: body ? JSON.stringify(body) : undefined });
     var body = await res.json().catch(function(){ return {}; });
     if (!res.ok) throw new Error((body.error || "Something went wrong.") + (body.detail ? " " + body.detail : ""));
     return body;
@@ -238,10 +290,24 @@ const JS = `
 
   function render(state){
     $("site").textContent = state.siteUrl ? state.siteUrl.replace(/^https?:\\/\\//, "") : state.shop;
-    $("plan").textContent = state.monitoring ? "Monitoring on" : "Free scan";
+    var starter = state.plan === "starter";
+    $("plan").textContent = state.plan === "monitoring" ? "Monitor" : starter ? "Starter" : "Free scan";
     $("plan").className = "pill" + (state.monitoring ? " on" : "");
-    $("monitor-off").hidden = state.monitoring;
+    // Starter still sees Monitor as the upgrade; Monitor sees nothing to buy.
+    $("plans").hidden = state.plan === "monitoring";
+    $("plan-starter").hidden = starter;
+    $("plans-title").textContent = starter ? "Want daily scans?" : "Know the day something breaks";
+    $("plans-note").textContent = starter ? "Billed through Shopify. Starter ends when Monitor starts." : "7 days free. Billed through Shopify. Cancel any time.";
+    $("monitor-btn").textContent = starter ? "Upgrade to Monitor" : "Start free trial";
     $("monitor-on").hidden = !state.monitoring;
+    if (state.monitoring) {
+      $("on-eyebrow").textContent = starter ? "Starter is on" : "Monitor is on";
+      $("on-title").textContent = starter ? "We scan your store every week" : "We're watching your store every day";
+      $("on-sub").textContent = starter
+        ? "Alerts go to your store email. Scans are kept for 7 days. Upgrade to Monitor for daily scans and 30 days of history."
+        : "Alerts go to your store email. Each daily scan is sealed and kept for 30 days.";
+    }
+    maybeAskForReview(state);
 
     var scan = state.scan;
     if (!scan || scan.status === "queued" || scan.status === "running") {
@@ -263,7 +329,18 @@ const JS = `
     }
     show("result");
     $("scanned-at").textContent = scan.scannedAt ? "Scanned " + new Date(scan.scannedAt).toLocaleString() : "Latest scan";
-    $("headline").textContent = scan.headline || "Scan complete";
+    var critical = scan.counts ? scan.counts.critical : 0;
+    var a11yTotal = scan.accessibility ? scan.accessibility.total : 0;
+    var parts = [];
+    if (a11yTotal) parts.push(a11yTotal + " accessibility " + (a11yTotal === 1 ? "issue" : "issues"));
+    if (critical) parts.push(critical + " ad " + (critical === 1 ? "vendor" : "vendors") + " tracking after opt-out");
+    $("headline").textContent = parts.length
+      ? (parts.length === 2 && critical > 0 && scan.accessibility && scan.accessibility.score >= 70 ? [parts[1], parts[0]] : parts).join(" and ")
+      : scan.accessibility ? "No issues found in this scan" : (scan.headline || "Scan complete");
+    $("privacy-title").textContent = critical === 0
+      ? "Your opt-out works"
+      : critical + " ad " + (critical === 1 ? "vendor keeps" : "vendors keep") + " tracking after opt-out";
+    renderA11y(scan.accessibility, critical);
     ["critical","warning","info"].forEach(function(k){
       var n = scan.counts ? scan.counts[k] : 0;
       $("n-" + k).textContent = n; $("n-" + k).className = n === 0 ? "zero" : "";
@@ -287,6 +364,48 @@ const JS = `
     lastCmp = scan.cmpName || null;
     loadSetup(scan.id);
     if (scan.reportUrl) { $("report").href = scan.reportUrl; $("report").hidden = false; } else { $("report").hidden = true; }
+  }
+
+  function renderA11y(a, privacyCritical){
+    var sec = $("sec-a11y");
+    if (!a) { sec.hidden = true; return; }
+    sec.hidden = false;
+    var band = a.score >= 90 ? "good" : a.score >= 70 ? "fair" : "poor";
+    $("a11y-score").className = "score " + band;
+    $("a11y-score").querySelector("b").textContent = a.score;
+    var severe = a.counts.critical + a.counts.serious;
+    $("a11y-title").textContent = a.total === 0
+      ? "No automated issues found"
+      : a.total + " accessibility " + (a.total === 1 ? "issue" : "issues") + (severe ? ", " + severe + " serious" : "");
+    $("a11y-sub").textContent = a.total === 0
+      ? "Automated checks can't catch everything, but these are the ones accessibility claims cite most."
+      : "Missing alt text, low contrast and unlabeled buttons are what accessibility claims cite most. The full report shows each element and the fix.";
+    var list = $("a11y-issues"); list.textContent = "";
+    a.issues.forEach(function(i, n){
+      var li = document.createElement("li"); li.style.animationDelay = (n * 60) + "ms";
+      var dot = document.createElement("i"); dot.className = i.impact;
+      var b = document.createElement("b"); b.textContent = i.impact.charAt(0).toUpperCase() + i.impact.slice(1);
+      var t = document.createElement("span"); t.textContent = i.title + (i.instances > 1 ? " (" + i.instances + " elements)" : "");
+      li.appendChild(dot); li.appendChild(b); li.appendChild(t); list.appendChild(li);
+    });
+    // Worst section first: privacy leads only when trackers leak and accessibility is fair or better.
+    var privacyFirst = privacyCritical > 0 && a.score >= 70;
+    var wrap = $("sections");
+    wrap.insertBefore(privacyFirst ? $("sec-privacy") : sec, wrap.firstChild);
+  }
+
+  var REVIEW_KEY = "consentinel.reviewAskedAt";
+  function maybeAskForReview(state){
+    if (!state.askForReview) return;
+    try {
+      var last = Number(localStorage.getItem(REVIEW_KEY) || 0);
+      if (Date.now() - last < 30 * 24 * 60 * 60 * 1000) return;
+      localStorage.setItem(REVIEW_KEY, String(Date.now()));
+    } catch (e) {}
+    // Shopify decides whether to show it and rate-limits on its side.
+    setTimeout(function(){
+      try { if (window.shopify && window.shopify.reviews) window.shopify.reviews.request(); } catch (e) {}
+    }, 2500);
   }
 
   var setupFor = null;
@@ -362,12 +481,14 @@ const JS = `
 
   $("rescan").addEventListener("click", function(){ rescan(this); });
   $("retry").addEventListener("click", function(){ rescan(this); });
-  $("subscribe").addEventListener("click", async function(){
-    var btn = this; btn.disabled = true;
-    try {
-      var r = await api("/api/shopify/billing", "POST");
-      window.open(r.confirmationUrl, "_top");
-    } catch (e) { toast(e.message, true); btn.disabled = false; }
+  document.querySelectorAll("[data-plan]").forEach(function(b){
+    b.addEventListener("click", async function(){
+      var btn = this; btn.disabled = true;
+      try {
+        var r = await api("/api/shopify/billing", "POST", { plan: btn.getAttribute("data-plan") });
+        window.open(r.confirmationUrl, "_top");
+      } catch (e) { toast(e.message, true); btn.disabled = false; }
+    });
   });
 
   load();

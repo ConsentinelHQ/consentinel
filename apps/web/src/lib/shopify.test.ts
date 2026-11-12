@@ -5,6 +5,9 @@ import {
   adminAppUrl,
   frameAncestors,
   isShopDomain,
+  reviewMoment,
+  shopifyPlanForName,
+  SHOPIFY_PLANS,
   toPlanStatusFromShopify,
   verifySessionToken,
   verifyWebhookHmac,
@@ -78,4 +81,30 @@ void test("helpers", () => {
   assert.equal(toPlanStatusFromShopify("ACTIVE"), "active");
   assert.equal(toPlanStatusFromShopify("CANCELLED"), "canceled");
   assert.equal(toPlanStatusFromShopify("PENDING"), null);
+});
+
+void test("charge names map back to plans and never collide", () => {
+  assert.equal(shopifyPlanForName("Consentinel Starter"), "starter");
+  assert.equal(shopifyPlanForName("Consentinel Monitor"), "monitoring");
+  assert.equal(shopifyPlanForName("Something else"), null);
+  assert.equal(shopifyPlanForName(undefined), null);
+  assert.equal(SHOPIFY_PLANS.starter.price, 19);
+  assert.equal(SHOPIFY_PLANS.monitoring.price, 99);
+});
+
+void test("review ask waits for a real win", () => {
+  const installedAt = new Date("2026-11-01T00:00:00Z");
+  const base = { installedAt, paid: false, completeScans: 2, firstCritical: 4, latestCritical: 4 };
+  // One scan: never.
+  assert.equal(
+    reviewMoment({ ...base, now: new Date("2026-11-20T00:00:00Z"), completeScans: 1 }),
+    false,
+  );
+  // Fewer critical findings than the first scan: yes.
+  assert.equal(reviewMoment({ ...base, now: installedAt, latestCritical: 1 }), true);
+  // No change, free store: no.
+  assert.equal(reviewMoment({ ...base, now: new Date("2026-11-20T00:00:00Z") }), false);
+  // Paid for a week: yes. Paid for 3 days: no.
+  assert.equal(reviewMoment({ ...base, paid: true, now: new Date("2026-11-08T00:00:00Z") }), true);
+  assert.equal(reviewMoment({ ...base, paid: true, now: new Date("2026-11-04T00:00:00Z") }), false);
 });

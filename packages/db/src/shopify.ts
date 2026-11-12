@@ -1,5 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import type { Database } from "./client.js";
+import { PLANS } from "./plans.js";
 import { orgs, sites, type PlanStatus } from "./schema.js";
 
 /**
@@ -14,11 +15,18 @@ export interface ShopifyOrg {
   planStatus: PlanStatus | null;
   siteId: string | null;
   siteUrl: string | null;
+  /** Install time, near enough: the org is created on first load. */
+  createdAt: Date;
 }
 
 export async function findShopifyOrg(db: Database, key: string): Promise<ShopifyOrg | null> {
   const [org] = await db
-    .select({ id: orgs.id, plan: orgs.plan, planStatus: orgs.planStatus })
+    .select({
+      id: orgs.id,
+      plan: orgs.plan,
+      planStatus: orgs.planStatus,
+      createdAt: orgs.createdAt,
+    })
     .from(orgs)
     .where(eq(orgs.clerkOrgId, key))
     .limit(1);
@@ -36,6 +44,7 @@ export async function findShopifyOrg(db: Database, key: string): Promise<Shopify
     planStatus: org.planStatus,
     siteId: site?.id ?? null,
     siteUrl: site?.url ?? null,
+    createdAt: org.createdAt,
   };
 }
 
@@ -57,29 +66,39 @@ export async function createShopifyOrg(db: Database, key: string, name: string):
 }
 
 /**
- * Mirrors the Shopify charge onto the org. Active turns on daily scans for the
- * store; anything else drops the plan, and the scheduler stops on its own.
+ * Mirrors the Shopify charge onto the org. Active turns on scans at the plan's
+ * cadence (Starter weekly, Monitor daily); anything else drops the plan, and the
+ * scheduler stops on its own.
  */
 export async function applyShopifyPlan(
   db: Database,
   orgId: string,
-  state: { status: PlanStatus; currentPeriodEnd: Date | null },
+  state: {
+    status: PlanStatus;
+    currentPeriodEnd: Date | null;
+    /** Which Shopify plan is active. Defaults to Monitor for charges made before Starter. */
+    plan?: "starter" | "monitoring";
+  },
 ): Promise<void> {
   const active = state.status === "active";
+  const plan = state.plan ?? "monitoring";
+  const schedule = PLANS[plan].schedule;
   await db
     .update(orgs)
     .set({
-      plan: active ? "monitoring" : "none",
+      plan: active ? plan : "none",
       planStatus: state.status,
       planQuantity: active ? 1 : 0,
       currentPeriodEnd: state.currentPeriodEnd,
     })
     .where(eq(orgs.id, orgId));
   if (active) {
+    // Set the cadence on every switch, so a Starter-to-Monitor upgrade goes daily
+    // and a downgrade goes weekly. Pausing lives in pausedAt, so it survives this.
     await db
       .update(sites)
-      .set({ schedule: "daily" })
-      .where(and(eq(sites.orgId, orgId), eq(sites.schedule, "off")));
+      .set({ schedule })
+      .where(and(eq(sites.orgId, orgId), ne(sites.schedule, schedule)));
   }
 }
 

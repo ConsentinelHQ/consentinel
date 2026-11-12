@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import {
   ANNUAL_PRICES,
   PLANS,
+  webPlans,
   activePlan,
   countOrgSites,
   getBillingState,
@@ -114,7 +115,7 @@ export default async function Billing({
       ) : !pending ? (
         <>
           <div className="plan-grid">
-            {Object.values(PLANS).map((p) => {
+            {webPlans().map((p) => {
               const sites = Math.max(1, siteCount);
               return (
                 <div className="plan-card" key={p.id}>

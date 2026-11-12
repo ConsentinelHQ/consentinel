@@ -13,7 +13,7 @@ export function stripe(): Stripe {
   return client;
 }
 
-const PRICE_ENV: Record<PaidPlan, string> = {
+const PRICE_ENV: Partial<Record<PaidPlan, string>> = {
   monitoring: "STRIPE_PRICE_MONITORING",
   growth: "STRIPE_PRICE_GROWTH",
   agency: "STRIPE_PRICE_AGENCY",
@@ -21,6 +21,7 @@ const PRICE_ENV: Record<PaidPlan, string> = {
 
 export function priceIdFor(plan: PaidPlan): string {
   const name = PRICE_ENV[plan];
+  if (!name) throw new Error(`${plan} isn't sold through Stripe`);
   const price = process.env[name];
   if (!price?.startsWith("price_")) throw new Error(`${name} must be a price id`);
   return price;
@@ -30,7 +31,8 @@ export function priceIdFor(plan: PaidPlan): string {
 export function planForPrice(priceId: string | undefined): PaidPlan | null {
   if (!priceId) return null;
   for (const plan of Object.keys(PRICE_ENV) as PaidPlan[]) {
-    if (process.env[PRICE_ENV[plan]] === priceId) return plan;
+    const monthly = PRICE_ENV[plan];
+    if (monthly && process.env[monthly] === priceId) return plan;
     const yearly = ANNUAL_PRICE_ENV[plan];
     if (yearly && process.env[yearly] === priceId) return plan;
   }

@@ -1,7 +1,7 @@
 # Shopify app
 
 Embedded app inside Shopify admin. Installs in one click, scans the store's primary
-domain right away, and sells daily monitoring at $99/month (7-day trial) through
+domain right away, and sells monitoring at $19/month (Starter, weekly) or $99/month (Monitor, daily), 7-day trial, through
 Shopify billing.
 
 ## How it works
@@ -41,6 +41,6 @@ Until step 3 is done every Shopify route answers 404, so this ships dark.
   - Free scan the moment you install. No setup, no code.
   - Works with any consent banner: Consentmo, Pandectes, OneTrust, Cookiebot and more.
   - Daily monitoring with email alerts and dated, sealed evidence of every scan.
-- Pricing: Free scan. Monitor $99/month, 7-day free trial.
+- Pricing: Free scan. Starter $19/month (weekly scans, 7 days of history) or Monitor $99/month (daily scans, 30 days of history). 7-day free trial on the first plan; upgrading from Starter to Monitor bills from day one. Charge names "Consentinel Starter" and "Consentinel Monitor" identify the plan, so never rename them.
 - Category: Store management > Privacy and security.
 - Listing fee: one-time registration charged by Shopify. Confirm before paying.
