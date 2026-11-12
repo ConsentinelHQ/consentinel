@@ -42,6 +42,39 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     "Global Privacy Control. California has settled with Sephora ($1.2M) and Healthline ($1.55M) " +
     "over opt-outs that didn’t work.";
 
+  // Accessibility: same "worst first" rule as the report page, Shopify app and outreach.
+  const a11y = report.accessibility ?? null;
+  const a11yTotal = a11y ? a11y.issues.length + a11y.lockedCount : 0;
+  const a11yFirst = a11yTotal > 0 && (report.counts.critical === 0 || (a11y?.score ?? 100) < 70);
+  const a11yLine = a11y
+    ? a11yTotal === 0
+      ? `Accessibility: ${String(a11y.score)}/100, no automated issues found`
+      : `Accessibility: ${String(a11y.score)}/100, ${String(a11yTotal)} ${a11yTotal === 1 ? "issue" : "issues"}`
+    : null;
+  const a11yRows = a11y ? a11y.issues.slice(0, 6) : [];
+  const a11yHtml = a11y
+    ? `<div style="margin:0 0 24px;padding:16px 18px;border:1px solid #e4e4e7;border-radius:12px">
+      <p style="margin:0 0 10px;font-size:15px;font-weight:600">${esc(a11yLine ?? "")}</p>
+      ${a11yRows
+        .map(
+          (i) =>
+            `<p style="margin:0 0 6px;font-size:14px;line-height:1.5"><strong style="color:${i.impact === "critical" || i.impact === "serious" ? "#b91c1c" : "#b25000"}">${esc(i.impact.charAt(0).toUpperCase() + i.impact.slice(1))}</strong> &middot; ${esc(i.title)}${i.instances > 1 ? ` (${String(i.instances)} elements)` : ""}</p>`,
+        )
+        .join("")}
+      <p style="margin:10px 0 0;font-size:12px;color:#6e6e73">Automated WCAG 2.2 AA checks catch a share of issues, not all of them.</p>
+    </div>`
+    : "";
+  const a11yText = a11y
+    ? [
+        a11yLine ?? "",
+        ...a11yRows.map(
+          (i) =>
+            `  [${i.impact.toUpperCase()}] ${i.title}${i.instances > 1 ? ` (${String(i.instances)} elements)` : ""}`,
+        ),
+        "",
+      ]
+    : [];
+
   const callout = top?.triggers
     ? `One tag, ${String(top.triggers.length + 1)} findings. ${top.vendor} also loads ${joinList(top.triggers)}. Fix it first and all of them stop.`
     : null;
@@ -51,8 +84,10 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     <p style="margin:0 0 12px;color:#3f3f46;font-size:15px;line-height:1.5">${esc(lede)}</p>
     ${gpc ? `<p style="margin:0 0 16px;color:#3f3f46;font-size:14px;line-height:1.5">${esc(stakes)}</p>` : ""}
     ${callout ? `<p style="margin:0 0 20px;padding:12px 14px;background:#fef2f2;border-left:3px solid #b91c1c;border-radius:6px;font-size:14px;line-height:1.5">${esc(callout)}</p>` : ""}
+    ${a11yFirst ? a11yHtml : ""}
     <p style="margin:0 0 14px;font-size:13px;color:#6e6e73">${esc(report.url)} &middot; <strong style="color:#1d1d1f">${esc(verdict)}</strong></p>
     ${rows.map(renderRow).join("")}
+    ${a11yFirst ? "" : a11yHtml.replace("margin:0 0 24px", "margin:24px 0 0")}
     ${
       report.correctlyGated.length > 0
         ? `<p style="margin:20px 0 0;color:#00795c;font-size:14px">Stopped correctly: ${esc(report.correctlyGated.join(", "))}</p>`
@@ -65,7 +100,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     }
     <div style="margin:28px 0 0;padding:20px;border:1px solid #e4e4e7;border-radius:12px">
       <p style="margin:0 0 6px;font-size:16px;font-weight:600">Know the moment this changes.</p>
-      <p style="margin:0 0 14px;color:#6e6e73;font-size:14px;line-height:1.5">Consentinel rescans your site on a schedule and emails you when a new tag fires before consent, before a regulator or a plaintiff finds it.</p>
+      <p style="margin:0 0 14px;color:#6e6e73;font-size:14px;line-height:1.5">Consentinel rescans your site on a schedule and emails you when a new accessibility issue shows up or a tag fires before consent, before a shopper or a regulator finds it.</p>
       <a href="${esc(appUrl())}/pricing" style="display:inline-block;padding:11px 18px;background:#1d1d1f;color:#ffffff;text-decoration:none;border-radius:10px;font-size:14px">Start monitoring</a>
     </div>`;
 
@@ -75,6 +110,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     ...(gpc ? ["", stakes] : []),
     ...(callout ? ["", callout] : []),
     "",
+    ...(a11yFirst ? a11yText : []),
     `${report.url} - ${verdict}`,
     "",
     ...rows.flatMap((f) => [
@@ -87,6 +123,7 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
     ...(report.correctlyGated.length > 0
       ? [`Stopped correctly: ${report.correctlyGated.join(", ")}`, ""]
       : []),
+    ...(a11yFirst ? [] : a11yText),
     `Start monitoring: ${appUrl()}/pricing`,
   ].join("\n");
 
@@ -100,7 +137,10 @@ export async function sendReportEmail(to: string, result: ScanResult): Promise<S
   return sendEmail({
     from: process.env["REPORT_FROM_EMAIL"] ?? "Consentinel <reports@consentinelhq.com>",
     to: [to],
-    subject: `${host}: ${report.headline}`,
+    subject:
+      a11yFirst && a11y
+        ? `${host}: accessibility ${String(a11y.score)}/100, ${String(a11yTotal)} ${a11yTotal === 1 ? "issue" : "issues"}`
+        : `${host}: ${report.headline}`,
     html,
     text,
   });

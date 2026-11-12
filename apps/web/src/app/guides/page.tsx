@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { A11Y_GUIDES } from "@/lib/a11y-guides";
 import { GUIDES } from "@/lib/guides";
 import { INTEGRATIONS } from "@/lib/integration-help";
 import { REPORT } from "@/lib/research";
 
 export const metadata: Metadata = {
-  title: "Guides and tools: GPC, opt-outs and consent platform fixes",
+  title: "Guides and tools: accessibility, GPC and consent platform fixes",
   description:
-    "Free GPC checker, state-by-state GPC law, CIPA demand letter help, opt-out research, and fix guides for OneTrust, Cookiebot, Osano, Didomi and TrustArc.",
+    "Free accessibility and GPC checkers, accessibility fix guides, state-by-state GPC law, CIPA demand letter help, opt-out research, and fix guides for OneTrust, Cookiebot, Osano, Didomi and TrustArc.",
   alternates: { canonical: "/guides" },
 };
 
@@ -15,6 +16,11 @@ const GROUPS: { title: string; items: { href: string; name: string; blurb: strin
   {
     title: "Tools",
     items: [
+      {
+        href: "/accessibility-checker",
+        name: "Accessibility checker",
+        blurb: "A free WCAG 2.2 AA scan with a 0-100 score and the fix for every issue.",
+      },
       {
         href: "/gpc-checker",
         name: "GPC checker",
@@ -24,9 +30,17 @@ const GROUPS: { title: string; items: { href: string; name: string; blurb: strin
       {
         href: "/#scan",
         name: "Free site scan",
-        blurb: "Reject, accept and GPC passes, with every tag that ran when it shouldn't have.",
+        blurb: "Accessibility checks plus reject, accept and GPC passes, in one scan.",
       },
     ],
+  },
+  {
+    title: "Accessibility",
+    items: A11Y_GUIDES.map((g) => ({
+      href: `/accessibility/${g.slug}`,
+      name: g.title,
+      blurb: g.description,
+    })),
   },
   {
     title: "Laws and legal risk",

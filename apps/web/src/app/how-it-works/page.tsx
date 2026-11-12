@@ -5,7 +5,7 @@ import { ScanForm } from "@/components/scan-form";
 export const metadata: Metadata = {
   title: "How it works - Consentinel",
   description:
-    "Consentinel loads your site twice, once refusing consent and once accepting it, and reports every tracker that ignored the difference. Every finding carries the request or cookie that proves it.",
+    "Consentinel loads your site refusing consent, accepting it and with Global Privacy Control on, then runs WCAG 2.2 AA accessibility checks. Every finding carries the proof and the fix.",
 };
 
 // Anonymized from a real store: one ad tag pulled in eight more through cookie syncs.
@@ -77,8 +77,8 @@ export default function HowItWorks() {
           <h1>We don’t ask your site. We watch it.</h1>
           <p className="lede">
             A consent banner records a choice. It doesn’t prove anything was honored. Consentinel
-            loads your site twice, under two different answers, and reports every difference between
-            what you promised and what actually happened.
+            loads your site under different answers, reports every difference between what you
+            promised and what happened, then checks the page for accessibility issues.
           </p>
         </div>
       </section>
@@ -260,6 +260,46 @@ export default function HowItWorks() {
               </ul>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section>
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <p className="eyebrow">Accessibility</p>
+              <h2>Then we check it the way a screen reader meets it.</h2>
+            </div>
+            <p className="lede">
+              Every scan also loads your pages in a clean browser and runs automated WCAG 2.2 A and
+              AA rules with axe-core, the open-source engine most accessibility teams use. You get a
+              0-100 score, each failing element, why it fails and the fix.
+            </p>
+          </div>
+          <ul className="limits" style={{ marginTop: "1.75rem" }}>
+            <li>
+              <strong>What it catches.</strong> Images without alt text, text that fails contrast,
+              buttons and links with no name, form fields without labels, a missing page language.
+              These are the issues accessibility claims against online stores cite most.
+            </li>
+            <li>
+              <strong>Which pages.</strong> The homepage on every plan. Growth and Agency add up to
+              10 pages per site: product, collection, cart and more.
+            </li>
+            <li>
+              <strong>Proof and alerts.</strong> Paid plans get a screenshot of each failing
+              element, and an alert when a release adds a new critical or serious issue.
+            </li>
+            <li>
+              <strong>What it can&apos;t do.</strong> Automated checks catch a share of issues.
+              Whether alt text is accurate, or a checkout works by keyboard, needs a person. We
+              never call a site compliant.
+            </li>
+          </ul>
+          <p style={{ marginTop: "1.25rem" }}>
+            Try it on any page with the{" "}
+            <Link href="/accessibility-checker">free accessibility checker</Link>.
+          </p>
         </div>
       </section>
 

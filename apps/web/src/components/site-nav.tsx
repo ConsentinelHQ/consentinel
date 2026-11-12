@@ -22,6 +22,7 @@ export function SiteNav() {
         </Link>
         <nav className="nav-links">
           <Link href="/how-it-works">How it works</Link>
+          <Link href="/accessibility-checker">Accessibility</Link>
           <Link href="/guides">Guides</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/contact">Contact</Link>

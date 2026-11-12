@@ -244,6 +244,46 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="a11y-home">
+        <div data-reveal className="wrap">
+          <div className="split">
+            <div>
+              <p className="eyebrow">Accessibility Monitor</p>
+              <h2>The lawsuit most online stores draw.</h2>
+            </div>
+            <p className="lede">
+              Every scan also runs WCAG 2.2 AA checks on your homepage, product, collection and cart
+              pages. You get a score, every failing element, the fix, and an alert when a release
+              adds a new issue.
+            </p>
+          </div>
+
+          <div className="tiles">
+            <div className="tile">
+              <p className="stat">5,000+</p>
+              <p>ADA website accessibility lawsuits filed in US courts in 2025.</p>
+            </div>
+            <div className="tile">
+              <p className="stat">70%</p>
+              <p>
+                Of them named online stores. Missing alt text and unlabeled fields lead the list.
+              </p>
+            </div>
+            <div className="tile">
+              <p className="stat">$0 extra</p>
+              <p>Included in every plan. Growth and Agency check up to 10 pages per site.</p>
+            </div>
+          </div>
+
+          <p className="jira-foot center">
+            Automated checks find a share of WCAG issues, not all of them.{" "}
+            <Link className="arrow-link" href="/pricing">
+              See plans <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </p>
+        </div>
+      </section>
+
       <section className="tinted">
         <div data-reveal className="wrap">
           <div className="split">
@@ -364,46 +404,6 @@ export default function Home() {
 
           <p className="jira-foot center">
             Two-minute setup with Jira Cloud, on Growth and Agency.{" "}
-            <Link className="arrow-link" href="/pricing">
-              See plans <span aria-hidden="true">&rarr;</span>
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      <section className="a11y-home">
-        <div data-reveal className="wrap">
-          <div className="split">
-            <div>
-              <p className="eyebrow">Accessibility Monitor</p>
-              <h2>The other lawsuit your site can draw.</h2>
-            </div>
-            <p className="lede">
-              Every scan also runs WCAG 2.2 AA checks on your homepage, product, collection and cart
-              pages. You get a score, every failing element, the fix, and an alert when a release
-              adds a new issue.
-            </p>
-          </div>
-
-          <div className="tiles">
-            <div className="tile">
-              <p className="stat">5,000+</p>
-              <p>ADA website accessibility lawsuits filed in US courts in 2025.</p>
-            </div>
-            <div className="tile">
-              <p className="stat">70%</p>
-              <p>
-                Of them named online stores. Missing alt text and unlabeled fields lead the list.
-              </p>
-            </div>
-            <div className="tile">
-              <p className="stat">$0 extra</p>
-              <p>Included in every plan. Growth and Agency check up to 10 pages per site.</p>
-            </div>
-          </div>
-
-          <p className="jira-foot center">
-            Automated checks find a share of WCAG issues, not all of them.{" "}
             <Link className="arrow-link" href="/pricing">
               See plans <span aria-hidden="true">&rarr;</span>
             </Link>
