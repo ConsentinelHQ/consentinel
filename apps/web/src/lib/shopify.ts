@@ -13,9 +13,28 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const SHOPIFY_API_VERSION = process.env["SHOPIFY_API_VERSION"] ?? "2026-07";
 
-/** The one plan we sell in Shopify. Same price and limits as Monitor on the web. */
-export const SHOPIFY_PLAN_NAME = "Consentinel Monitor";
-export const SHOPIFY_PLAN_PRICE = 99;
+/**
+ * Plans sold through Shopify billing. The charge name is how we tell them apart
+ * later, so never rename one: existing charges would stop matching.
+ */
+export type ShopifyPlanId = "starter" | "monitoring";
+
+export const SHOPIFY_PLANS: Readonly<Record<ShopifyPlanId, { name: string; price: number }>> = {
+  starter: { name: "Consentinel Starter", price: 19 },
+  monitoring: { name: "Consentinel Monitor", price: 99 },
+};
+
+export function isShopifyPlanId(value: unknown): value is ShopifyPlanId {
+  return value === "starter" || value === "monitoring";
+}
+
+/** Our plan for a Shopify charge name, or null if it isn't one of ours. */
+export function shopifyPlanForName(name: string | null | undefined): ShopifyPlanId | null {
+  for (const id of Object.keys(SHOPIFY_PLANS) as ShopifyPlanId[]) {
+    if (SHOPIFY_PLANS[id].name === name) return id;
+  }
+  return null;
+}
 
 export interface ShopifyConfig {
   apiKey: string;
@@ -218,6 +237,7 @@ export interface ShopifySubscription {
   name: string;
   status: string;
   currentPeriodEnd: string | null;
+  plan: ShopifyPlanId;
 }
 
 export async function fetchActiveSubscription(
@@ -231,16 +251,17 @@ export async function fetchActiveSubscription(
     accessToken,
     `{ currentAppInstallation { activeSubscriptions { id name status currentPeriodEnd } } }`,
   );
-  return (
-    data.currentAppInstallation.activeSubscriptions.find((s) => s.name === SHOPIFY_PLAN_NAME) ??
-    null
-  );
+  for (const sub of data.currentAppInstallation.activeSubscriptions) {
+    const plan = shopifyPlanForName(sub.name);
+    if (plan) return { ...sub, plan };
+  }
+  return null;
 }
 
 export async function createSubscription(
   shop: string,
   accessToken: string,
-  opts: { returnUrl: string; test: boolean; trialDays: number },
+  opts: { plan: ShopifyPlanId; returnUrl: string; test: boolean; trialDays: number },
 ): Promise<string> {
   const data = await adminGraphql<{
     appSubscriptionCreate: {
@@ -257,7 +278,7 @@ export async function createSubscription(
       }
     }`,
     {
-      name: SHOPIFY_PLAN_NAME,
+      name: SHOPIFY_PLANS[opts.plan].name,
       returnUrl: opts.returnUrl,
       test: opts.test,
       trialDays: opts.trialDays,
@@ -265,7 +286,7 @@ export async function createSubscription(
         {
           plan: {
             appRecurringPricingDetails: {
-              price: { amount: SHOPIFY_PLAN_PRICE, currencyCode: "USD" },
+              price: { amount: SHOPIFY_PLANS[opts.plan].price, currencyCode: "USD" },
               interval: "EVERY_30_DAYS",
             },
           },
@@ -311,4 +332,27 @@ export function errorDetail(error: unknown): string {
 export function frameAncestors(shop: string | null): string {
   const shopSrc = isShopDomain(shop) ? ` https://${shop}` : "";
   return `frame-ancestors https://admin.shopify.com${shopSrc};`;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Success moment for the review ask: a later scan has fewer critical findings
+ * than the first one, or the store has been on a paid plan a week. Two scans
+ * minimum so nobody gets asked on install day.
+ */
+export function reviewMoment(input: {
+  installedAt: Date;
+  now: Date;
+  paid: boolean;
+  firstCritical: number | null;
+  latestCritical: number | null;
+  completeScans: number;
+}): boolean {
+  if (input.completeScans < 2 || input.firstCritical === null || input.latestCritical === null) {
+    return false;
+  }
+  const improved = input.latestCritical < input.firstCritical;
+  const settled = input.paid && input.now.getTime() - input.installedAt.getTime() >= 7 * DAY_MS;
+  return improved || settled;
 }

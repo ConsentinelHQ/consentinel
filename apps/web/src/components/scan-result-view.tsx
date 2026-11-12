@@ -523,8 +523,9 @@ function ShopifyCta({ report, installUrl }: { report: FreeReport; installUrl: st
     <div className="gate monitor-cta shopify-cta">
       <h3>Fix it from your Shopify admin.</h3>
       <p className="quiet">
-        {host} runs on Shopify. Our Shopify app shows the theme file and line each tag lives in, and
-        rescans your store every day. The scan is free, and monitoring is billed through Shopify.
+        {host} runs on Shopify. Our Shopify app shows each accessibility issue and the theme file
+        and line each tag lives in, then rescans your store for you. The scan is free, and
+        monitoring starts at $19/month, billed through Shopify.
       </p>
       <a
         className="tier-cta primary"

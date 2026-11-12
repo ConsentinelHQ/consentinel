@@ -5,6 +5,8 @@ import {
   applyShopifyPlan,
   addSite,
   createShopifyOrg,
+  and,
+  asc,
   desc,
   eq,
   findShopifyOrg,
@@ -18,6 +20,7 @@ import { db, scanQueue } from "@/lib/server";
 import {
   bearer,
   exchangeToken,
+  reviewMoment,
   fetchActiveSubscription,
   fetchShopInfo,
   shopOrgKey,
@@ -87,9 +90,12 @@ async function syncPlan(org: ShopifyOrg, shop: string, accessToken: string): Pro
   const hadPlan = org.plan !== "none" || org.planStatus !== null;
   // Never-paid stores stay at planStatus null rather than "canceled".
   if (!sub && !hadPlan) return;
-  if (status === org.planStatus && (status === "active") === (org.plan !== "none")) return;
+  const plan = sub?.plan ?? null;
+  const samePlan = status === "active" ? org.plan === plan : org.plan === "none";
+  if (status === org.planStatus && samePlan) return;
   await applyShopifyPlan(db(), org.orgId, {
     status,
+    ...(plan ? { plan } : {}),
     currentPeriodEnd: sub?.currentPeriodEnd ? new Date(sub.currentPeriodEnd) : null,
   });
 }
@@ -98,7 +104,11 @@ export interface AppState {
   shop: string;
   siteUrl: string | null;
   monitoring: boolean;
+  /** "starter", "monitoring" or null when nothing is paid. */
+  plan: "starter" | "monitoring" | null;
   planStatus: string | null;
+  /** True once the merchant has seen a win worth a review. Shopify throttles the ask. */
+  askForReview: boolean;
   scan: {
     id: string;
     status: string;
@@ -110,6 +120,12 @@ export interface AppState {
     counts: { critical: number; warning: number; info: number } | null;
     cmpName: string | null;
     findings: { vendor: string; title: string; severity: string }[];
+    accessibility: {
+      score: number;
+      counts: { critical: number; serious: number; moderate: number; minor: number };
+      issues: { title: string; impact: string; instances: number }[];
+      total: number;
+    } | null;
     reportUrl: string | null;
   } | null;
 }
@@ -122,7 +138,12 @@ export async function appState(shop: string, org: ShopifyOrg): Promise<AppState>
     shop,
     siteUrl: org.siteUrl,
     monitoring: org.plan !== "none" && org.planStatus === "active",
+    plan:
+      org.planStatus === "active" && (org.plan === "starter" || org.plan === "monitoring")
+        ? org.plan
+        : null,
     planStatus: org.planStatus,
+    askForReview: false,
     scan: null,
   };
   if (!org.siteId) return base;
@@ -135,13 +156,29 @@ export async function appState(shop: string, org: ShopifyOrg): Promise<AppState>
     .limit(1);
   if (!scan) return base;
 
+  const done = await database
+    .select({ critical: scans.criticalCount })
+    .from(scans)
+    .where(and(eq(scans.siteId, org.siteId), eq(scans.status, "complete")))
+    .orderBy(asc(scans.queuedAt));
+  const askForReview = reviewMoment({
+    installedAt: org.createdAt,
+    now: new Date(),
+    paid: base.monitoring,
+    firstCritical: done[0]?.critical ?? null,
+    latestCritical: done[done.length - 1]?.critical ?? null,
+    completeScans: done.length,
+  });
+
   const complete = scan.status === "complete" && scan.result;
   const report = complete && scan.result ? toFullReport(scan.result) : null;
   const token = complete ? await getOrCreateShareToken(database, scan.id) : null;
   const order: Record<string, number> = { critical: 0, warning: 1, info: 2 };
 
+  const a11y = report?.accessibility ?? null;
   return {
     ...base,
+    askForReview,
     scan: {
       id: scan.id,
       status: scan.status,
@@ -165,6 +202,16 @@ export async function appState(shop: string, org: ShopifyOrg): Promise<AppState>
             .slice(0, 6)
             .map((f) => ({ vendor: f.vendor, title: f.title, severity: f.severity }))
         : [],
+      accessibility: a11y
+        ? {
+            score: a11y.score,
+            counts: a11y.counts,
+            issues: a11y.issues
+              .slice(0, 5)
+              .map((i) => ({ title: i.title, impact: i.impact, instances: i.instances })),
+            total: a11y.issues.length + a11y.lockedCount,
+          }
+        : null,
       reportUrl: token
         ? `${ORIGIN}/shopify/report/${scan.id}?t=${encodeURIComponent(token)}`
         : null,

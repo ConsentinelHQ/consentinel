@@ -4,7 +4,7 @@ import { isEntitled, type BillingState } from "./billing.js";
  * Every tier in one place. Gates read from here, never from plan names, so a
  * reprice or a new tier is a data change, not a code hunt.
  */
-export type PaidPlan = "monitoring" | "growth" | "agency";
+export type PaidPlan = "starter" | "monitoring" | "growth" | "agency";
 
 export interface PlanSpec {
   id: PaidPlan;
@@ -24,12 +24,35 @@ export interface PlanSpec {
   workspaces: boolean;
   whiteLabel: boolean;
   api: boolean;
+  /** Scan cadence a paid site gets. */
+  schedule: "daily" | "weekly";
+  /** Sold only through Shopify billing; hidden from web pricing and checkout. */
+  shopifyOnly: boolean;
 }
 
 export type Feature =
   "slack" | "teams" | "jira" | "pdfExport" | "workspaces" | "whiteLabel" | "api";
 
 export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
+  starter: {
+    id: "starter",
+    name: "Starter",
+    price: 19,
+    perSite: true,
+    includedSites: 0,
+    pagesPerScan: 1,
+    historyDays: 7,
+    externalRecipients: 2,
+    slack: false,
+    teams: false,
+    jira: false,
+    pdfExport: false,
+    workspaces: false,
+    whiteLabel: false,
+    api: false,
+    schedule: "weekly",
+    shopifyOnly: true,
+  },
   monitoring: {
     id: "monitoring",
     name: "Monitor",
@@ -46,6 +69,8 @@ export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
     workspaces: false,
     whiteLabel: false,
     api: false,
+    schedule: "daily",
+    shopifyOnly: false,
   },
   growth: {
     id: "growth",
@@ -63,6 +88,8 @@ export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
     workspaces: false,
     whiteLabel: false,
     api: false,
+    schedule: "daily",
+    shopifyOnly: false,
   },
   agency: {
     id: "agency",
@@ -80,8 +107,15 @@ export const PLANS: Readonly<Record<PaidPlan, PlanSpec>> = {
     workspaces: true,
     whiteLabel: true,
     api: true,
+    schedule: "daily",
+    shopifyOnly: false,
   },
 };
+
+/** Plans the web billing page and Stripe checkout offer. */
+export function webPlans(): PlanSpec[] {
+  return Object.values(PLANS).filter((p) => !p.shopifyOnly);
+}
 
 export function isPaidPlan(plan: string): plan is PaidPlan {
   return Object.prototype.hasOwnProperty.call(PLANS, plan);

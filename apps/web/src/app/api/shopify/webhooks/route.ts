@@ -5,6 +5,7 @@ import {
   isShopDomain,
   shopOrgKey,
   shopifyConfig,
+  shopifyPlanForName,
   toPlanStatusFromShopify,
   verifyWebhookHmac,
 } from "@/lib/shopify";
@@ -53,10 +54,15 @@ export async function POST(request: Request): Promise<NextResponse> {
         };
         const sub = body.app_subscription;
         const status = sub?.status ? toPlanStatusFromShopify(sub.status) : null;
+        const plan = shopifyPlanForName(sub?.name);
         const org = await findShopifyOrg(database, key);
-        if (org && status) {
+        // A cancel on the old charge during an upgrade arrives as its own event.
+        // Only an active charge decides the plan; the session sync covers the rest.
+        if (org && status && (plan || status !== "active")) {
+          if (status !== "active" && plan && org.plan !== "none" && org.plan !== plan) break;
           await applyShopifyPlan(database, org.orgId, {
             status,
+            ...(plan ? { plan } : {}),
             currentPeriodEnd: sub?.current_period_end ? new Date(sub.current_period_end) : null,
           });
         }
