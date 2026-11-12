@@ -42,6 +42,8 @@ export interface TemplateInput {
 }
 
 export const SHOPIFY_LISTING = "https://apps.shopify.com/consentinel-1";
+/** Clicked link only; the visible URL stays clean. Shows up as a source in App Store analytics. */
+export const SHOPIFY_LISTING_TRACKED = `${SHOPIFY_LISTING}?utm_source=consentinel&utm_medium=email&utm_campaign=outreach`;
 
 /** One line per role, after the findings. Plain, no pitch. */
 export const ROLE_LINE: Readonly<Record<Role, string | null>> = {
@@ -279,7 +281,7 @@ function renderA11y(input: TemplateInput, a: A11yEvidence, consentStrong: boolea
     p(esc(why)),
     `<ul>${items.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`,
     shopify
-      ? p(linked(pitchShop, SHOPIFY_LISTING, "Shopify app"))
+      ? p(linked(pitchShop, SHOPIFY_LISTING_TRACKED, "Shopify app"))
       : p(linked(pitchWeb, SITE, "getconsentinel.com")),
     p(esc(close)),
     p(sig.map(esc).join("<br>")),
@@ -366,7 +368,7 @@ function renderConsent({
     p(esc(leadIn(ev, domain))),
     `<ul>${items.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`,
     p(linked(pitch, SITE, "getconsentinel.com")),
-    ...(shopify ? [p(linked(store, SHOPIFY_LISTING, "Shopify App Store"))] : []),
+    ...(shopify ? [p(linked(store, SHOPIFY_LISTING_TRACKED, "Shopify App Store"))] : []),
     p(esc(close)),
     p(sig.map(esc).join("<br>")),
     `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,

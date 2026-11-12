@@ -60,6 +60,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         .select({
           orgId: orgs.id,
           key: orgs.clerkOrgId,
+          createdAt: orgs.createdAt,
           plan: orgs.plan,
           planStatus: orgs.planStatus,
           planQuantity: orgs.planQuantity,
@@ -70,6 +71,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         .select({
           id: sites.id,
           orgId: sites.orgId,
+          url: sites.url,
           schedule: sites.schedule,
           archivedAt: sites.archivedAt,
         })
@@ -208,8 +210,30 @@ export async function GET(request: Request): Promise<NextResponse> {
     paying,
   };
 
+  // Shopify installs, newest first, with the storefront domain so the brief can
+  // match them to outreach. Test stores are left out like everything else.
+  const hostOf = (url: string | undefined): string | null => {
+    try {
+      return url ? new URL(url).hostname.replace(/^www\./, "") : null;
+    } catch {
+      return null;
+    }
+  };
+  const shopifyInstalls = orgRows
+    .filter((o) => o.key.startsWith("shopify:") && !internalOrgs.has(o.orgId))
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 100)
+    .map((o) => ({
+      shop: o.key.slice("shopify:".length),
+      domain: hostOf(siteRows.find((s) => s.orgId === o.orgId)?.url),
+      plan: planOf.get(o.orgId) ?? "Free",
+      installedAt: o.createdAt.toISOString(),
+      new: o.createdAt > since,
+    }));
+
   return NextResponse.json({
     hours,
+    shopifyInstalls,
     funnel,
     reportOpens: opens?.n ?? 0,
     users: {
