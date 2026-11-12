@@ -8,21 +8,13 @@ import { ScanForm } from "@/components/scan-form";
 import { Parallax } from "@/components/parallax";
 import { StackCards } from "@/components/stack-cards";
 
-// The hero object is a real finding set, not an illustration. What the product
-// produces is the most persuasive thing it has.
+// The hero object is a real finding set, not an illustration: both halves of the
+// scan, accessibility (wcag) and privacy, mixed the way a real store reads.
 const SPECIMEN = [
-  { severity: "critical", title: "Meta Pixel fired before consent was given", vendor: "meta" },
-  {
-    severity: "critical",
-    title: "Email address sent to Google Analytics in plain text",
-    vendor: "ga4",
-  },
-  {
-    severity: "critical",
-    title: "Google Analytics ignored a denied consent signal",
-    vendor: "ga4",
-  },
-  { severity: "warning", title: "Cookie _fbp written before consent", vendor: "cookie" },
+  { severity: "critical", title: "14 product images missing alt text", vendor: "wcag" },
+  { severity: "critical", title: "Meta Pixel fired after Reject all", vendor: "meta" },
+  { severity: "critical", title: "Add to cart button has no accessible name", vendor: "wcag" },
+  { severity: "warning", title: "Text contrast too low on 22 elements", vendor: "wcag" },
   { severity: "ok", title: "TikTok Pixel waited for consent", vendor: "tiktok" },
 ] as const;
 
