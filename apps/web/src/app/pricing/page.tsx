@@ -5,7 +5,7 @@ import { ANNUAL_PRICES, PLANS } from "@consentinel/db";
 export const metadata: Metadata = {
   title: "Pricing - Consentinel",
   description:
-    "A free scan of any page. Consent and accessibility monitoring from $99 a month per site, with plans for growing brands and agencies.",
+    "A free scan of any page. Accessibility and privacy monitoring from $99 a month per site, $19 on Shopify, with plans for growing brands and agencies.",
 };
 
 const { monitoring, growth, agency } = PLANS;
@@ -17,8 +17,13 @@ export default function Pricing() {
         <div className="wrap">
           <h1>Monitoring from $99 a month.</h1>
           <p className="lede">
-            Audit tools in this category hide their pricing behind a sales call. Ours is on this
-            page. Scan anything free, and pay only when you want it watched.
+            Accessibility and privacy monitoring, priced on the page, no sales call. Scan anything
+            free, and pay only when you want it watched. On Shopify? Plans start at $19 a month in
+            the{" "}
+            <a href="https://apps.shopify.com/consentinel-1?utm_source=consentinel&utm_medium=site&utm_campaign=pricing">
+              Shopify app
+            </a>
+            .
           </p>
         </div>
       </section>
@@ -57,7 +62,7 @@ export default function Pricing() {
                 A scan after every deploy, with a GitHub Action that fails the build on a new
                 violation
               </li>
-              <li>An email the moment a new tracker fires before consent</li>
+              <li>An email the moment a new accessibility issue or tracker shows up</li>
               <li>
                 An alert when a vendor starts running that your privacy policy doesn’t mention
               </li>
