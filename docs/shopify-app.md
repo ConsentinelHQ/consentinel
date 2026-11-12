@@ -32,7 +32,7 @@ Until step 3 is done every Shopify route answers 404, so this ships dark.
 
 ## App Store listing (draft)
 
-- Name: Consentinel: Opt-out Checker
+- Name: Consentinel: ADA & Privacy (listing name; app config name is "Consentinel")
 - Tagline: Prove your store stops tracking when shoppers opt out.
 - Intro: Your consent app says it blocks trackers. We check. Consentinel loads your
   store three ways (Reject all, Accept all, Global Privacy Control on) and shows every

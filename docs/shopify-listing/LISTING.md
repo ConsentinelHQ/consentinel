@@ -5,25 +5,41 @@ Character counts are checked against the form limits.
 
 ## Basic info
 
-- **App name:** Consentinel: Opt-out Checker
+- **App name:** Consentinel: ADA & Privacy
 - **App icon:** `app-icon-1200.png` (1200x1200)
-- **Primary category:** Store management > Privacy and security
+- **Primary category:** Cookie consent (changing it needs an appeal)
 - **Languages:** English
+
+Live copy as of Nov 12, 2026 (accessibility-first relaunch).
 
 ## Introduction
 
-See every ad tracker that keeps running after a shopper opts out. Free scan on install.
+Find the accessibility and privacy issues on your store. No overlay: real issues with the fix.
 
 ## App details
 
-Your consent app says it blocks trackers. We check. Consentinel visits your store three ways: Reject all, Accept all, and with Global Privacy Control on. It names every ad vendor that keeps tracking after a shopper says no, with the request that proves it. Retailers are being sued under California's wiretap law for exactly this. It also reads your theme to show the exact file and line each tag is hardcoded in, so you can fix it in minutes. Install for a free scan, then turn on daily monitoring to get an email the day something new starts leaking.
+Consentinel scans your store for the issues accessibility and privacy claims cite most: missing alt text, low contrast, unlabeled buttons, and ad tags that keep tracking after a shopper opts out. Every issue comes with the element, the theme file and the fix. Already using a cookie banner or accessibility widget? Keep it. We check whether it actually works. Free scan, then weekly or daily monitoring with email alerts.
 
 ## Features
 
-- Free scan of your live storefront the moment you install
-- Shows the theme file and line each ad tag lives in, and whether it has a consent check
-- Works with any consent app: Consentmo, Pandectes, OneTrust, Cookiebot
-- Daily rescans and email alerts when a new tracker ignores an opt-out
+- Automated WCAG 2.2 AA accessibility checks with a 0-100 score
+- Tests your cookie banner: reject, accept and Global Privacy Control
+- Weekly or daily rescans with email alerts when something breaks
+- Shows the theme file and line where each ad tag lives
+- Sealed scan history as dated evidence
+
+## Search
+
+- **Subtitle:** Find accessibility and privacy issues, with the fix for each
+- **Search terms:** accessibility, ADA compliance, WCAG, cookie consent, CCPA
+- **Title tag:** Consentinel: Accessibility and privacy checks for your store
+- **Meta description:** Free scan finds accessibility issues (WCAG 2.2 AA) and ad trackers that ignore cookie opt-outs, with the fix for each. Weekly or daily monitoring.
+
+## Plans (manual pricing, handles never change)
+
+- **free:** Full scan on install / Rescan any time / Accessibility and cookie banner tests
+- **starter:** $19/month, 7-day trial. Weekly accessibility and privacy scan / Email alerts on new issues / 7 days of scan history
+- **monitor:** $99/month, 7-day trial. Daily accessibility and privacy scan / Email alerts the day something breaks / 30 days of sealed scan history
 
 ## Screenshots (1600x900, in this order)
 
@@ -36,38 +52,3 @@ Alt text:
 1. Scan results listing ad vendors that kept tracking after Reject all
 2. Scan in progress across reject, accept and Global Privacy Control
 3. Daily monitoring offer at $99 per month with a 7-day free trial
-
-## Pricing
-
-- **Free:** one scan on install, rescan any time
-- **Monitor:** $99/month, 7-day free trial. Daily rescans, email alerts, 30 days of sealed scan history.
-
-## Search terms
-
-GPC, cookie consent, CCPA, opt-out, privacy compliance
-
-## Links
-
-- **Privacy policy:** https://www.getconsentinel.com/privacy
-- **Website:** https://www.getconsentinel.com/store-help
-- **Support email:** charlie@consentinelhq.com
-- **FAQ:** https://www.getconsentinel.com/store-help
-
-## For the review team
-
-Testing instructions:
-
-> Install on any store. The app scans the store's primary domain right away and shows results in about a minute. Development stores are password protected, so the scan reports "Your store is password protected"; turn off the storefront password under Online Store > Preferences and click Try again for a full scan. "Start free trial" creates a test charge on development stores. The "Store setup" card uses the two read-only scopes: read_themes lists the live theme file and line where each ad tag is hardcoded (with an Edit code link into the theme editor), and read_privacy_settings shows whether Shopify's cookie banner and "Do not sell or share" page are on. Both work on password-protected development stores. To see a tag found, add `<script src="https://connect.facebook.net/en_US/fbevents.js"></script>` to layout/theme.liquid and reload the app. All charges go through the Shopify Billing API; nothing in the app links to our website's pricing or checkout, and the full report opens without site navigation.
-
-## Screencast (you record, about 2 minutes)
-
-Record the screen with QuickTime (File > New Screen Recording), upload unlisted to YouTube or Loom, paste the link.
-
-1. Dev Dashboard > install Consentinel on the test store (show the install screen).
-2. App opens, approve the read_themes and read_privacy_settings permissions, scan runs, results show.
-3. Scroll to Store setup: privacy settings and the theme file and line for each hardcoded tag. Click Edit code to show it opens the theme editor.
-4. Click Open full report, scroll briefly, close the tab.
-5. Click Start free trial, approve the test charge, land back on "Monitoring on".
-6. Uninstall the app from Settings > Apps (shows clean uninstall).
-
-Voiceover isn't required. If you want one: "Consentinel tests whether a store's trackers stop after a shopper opts out, then monitors it daily."
