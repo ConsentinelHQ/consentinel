@@ -62,7 +62,7 @@ export function ScanForm() {
         </button>
       </form>
       <Turnstile onToken={onToken} />
-      <p className="quiet">Free. No account. Results in about a minute.</p>
+      <p className="quiet">Free. No account. Results in a couple of minutes.</p>
       {error ? (
         <p className="error" role="alert">
           {error}
