@@ -9,7 +9,7 @@ import {
 } from "../src/outreach/backlog.js";
 import { address, bouncedRecipients, extractText, stripQuoted } from "../src/outreach/mail.js";
 import { isAutoReply, isBulk } from "../src/outreach/sync.js";
-import { NOT_A_SITE, cleanError, tier, type Evidence } from "../src/outreach/evidence.js";
+import { NOT_A_SITE, cleanError, leadWith, tier, type Evidence } from "../src/outreach/evidence.js";
 import { mime, normDomain, type SheetRow } from "../src/outreach/google.js";
 import {
   addBusinessDays,
@@ -1358,6 +1358,71 @@ assert.match(setPressAddress("nobody", "c@x.com", "https://a.com"), /no pitch/);
   assert.ok(f.subject.startsWith("Re: "));
   assert.ok(f.text.startsWith("Hi Luís,"));
   assert.ok(!f.text.includes("\u2014"));
+}
+
+// Accessibility-led email (Nov 12): weak consent, strong accessibility.
+{
+  const a11y = {
+    score: 58,
+    severe: 7,
+    top: [
+      { title: "Images missing alt text", instances: 14 },
+      { title: "Text contrast too low", instances: 22 },
+      { title: "Buttons without a name", instances: 1 },
+    ],
+  };
+  const weak: Evidence = { mode: "gpc", critical: 1, gated: 0, firing: ["Criteo"], a11y };
+  assert.equal(leadWith(weak, false), "a11y");
+  const shop = render({
+    domain: "x.com",
+    firstName: "Sam",
+    ev: weak,
+    postalAddress: "",
+    consentStrong: false,
+    shopify: true,
+  });
+  assert.equal(shop.subject, "Consentinel for x.com");
+  assert.match(shop.text, /accessibility and privacy issues/);
+  assert.match(shop.text, /- Images missing alt text \(14 elements\)/);
+  assert.match(shop.text, /- Buttons without a name\n/);
+  assert.match(shop.text, /free Shopify app \(https:\/\/apps\.shopify\.com\/consentinel-1\)/);
+  assert.ok(!/Global Privacy Control/.test(shop.text), "weak consent stays out");
+  assert.ok(!shop.text.includes("\u2014"));
+  const web = render({
+    domain: "x.com",
+    firstName: "Sam",
+    ev: weak,
+    postalAddress: "",
+    consentStrong: false,
+  });
+  assert.match(web.text, /free scan anytime at getconsentinel\.com/);
+  assert.match(web.text, /Teams, Jira or Slack/);
+
+  // Strong consent and fair accessibility: consent leads, accessibility is one bullet.
+  const both: Evidence = { ...rejected, a11y: { ...a11y, score: 76 } };
+  assert.equal(leadWith(both, true), "consent");
+  const c = render({ domain: "x.com", firstName: "A", ev: both, postalAddress: "" });
+  assert.match(c.text, /5 ad vendors are still firing/);
+  assert.match(
+    c.text,
+    /- Separately, your homepage scores 76\/100 .* 7 serious issues \(images missing alt text is the biggest\)/,
+  );
+
+  // Strong consent but poor accessibility: accessibility leads, consent is one bullet.
+  const poor: Evidence = { ...rejected, a11y };
+  assert.equal(leadWith(poor, true), "a11y");
+  const pr = render({ domain: "x.com", firstName: "A", ev: poor, postalAddress: "" });
+  assert.match(pr.text, /- Separately, .*5 ad vendors are still firing/);
+
+  // Clean accessibility and weak consent: nothing to send.
+  const clean: Evidence = {
+    mode: "gpc",
+    critical: 0,
+    gated: 0,
+    firing: [],
+    a11y: { score: 96, severe: 0, top: [] },
+  };
+  assert.equal(leadWith(clean, false), null);
 }
 
 console.log("outreach: all assertions passed");

@@ -1,6 +1,14 @@
 import type { Role } from "./contacts.js";
 import { canonicalVendor } from "@consentinel/shared";
-import { byProminence, joinNames, type Evidence } from "./evidence.js";
+import {
+  MIN_VENDORS,
+  byProminence,
+  joinNames,
+  a11yStrong,
+  leadWith,
+  type A11yEvidence,
+  type Evidence,
+} from "./evidence.js";
 
 /**
  * The cold email, word for word from Charlie's template. Every claim in the
@@ -29,6 +37,8 @@ export interface TemplateInput {
   referredBy?: string;
   /** Shopify store: offer the App Store install as a no-reply option. */
   shopify?: boolean;
+  /** Consent evidence clears the bar on its own. Defaults to 2+ named vendors. */
+  consentStrong?: boolean;
 }
 
 export const SHOPIFY_LISTING = "https://apps.shopify.com/consentinel-1";
@@ -195,12 +205,104 @@ export function gtmBullet(ev: Evidence, list: string[]): string | null {
   return `${which} through your Google Tag Manager container (${ids}), so the fix is a consent setting on ${n === 1 ? "that tag" : "each tag"}`;
 }
 
+/** "Images missing alt text (14 elements)". Titles come from our own rule table. */
+export function a11yBullets(a: A11yEvidence): string[] {
+  return a.top.map(
+    (i) => `${i.title}${i.instances > 1 ? ` (${String(i.instances)} elements)` : ""}`,
+  );
+}
+
+/** One line for the side that doesn't lead. */
+export function a11yAside(a: A11yEvidence): string {
+  return `Separately, your homepage scores ${String(a.score)}/100 on automated accessibility checks, with ${String(a.severe)} serious ${a.severe === 1 ? "issue" : "issues"} (${(a.top[0]?.title ?? "").toLowerCase()} is the biggest)`;
+}
+
+export function consentAside(ev: Evidence): string {
+  const list = gpcLed(ev) && ev.mode === "rejected" ? (ev.gpcIgnored ?? []) : ev.firing;
+  const how = gpcLed(ev)
+    ? "with Global Privacy Control on (the browser opt-out setting every browser has to offer starting January 1)"
+    : "after a visitor declines cookies";
+  return `Separately, ${how}, ${areFiring(list)}`;
+}
+
+/**
+ * Accessibility-led first email (Nov 12, 2026): same shape and sign-off as the
+ * consent email, CTA is the free Shopify app for Shopify stores.
+ */
+function renderA11y(input: TemplateInput, a: A11yEvidence, consentStrong: boolean): Email {
+  const { domain, firstName, ev, postalAddress, referredBy, shopify } = input;
+  const greeting = `Hi ${firstName.trim() || "there"},`;
+  const referral =
+    referredBy === undefined
+      ? null
+      : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
+  const intro = (name: string): string =>
+    `I'm Charlie, founder of ${name}. We help companies catch accessibility and privacy issues on their websites.`;
+  const why = `I ran ${domain}'s homepage through an automated WCAG 2.2 check. These are the kinds of issues that stop some visitors, like people using screen readers, from getting through a site, and most are quick fixes:`;
+  const items = [...a11yBullets(a), ...(consentStrong ? [consentAside(ev)] : [])];
+  const pitchShop = (link: string): string =>
+    `If it helps, our free ${link} shows every issue with the fix, right in your admin, and can recheck the store for you after that.`;
+  const pitchWeb = (link: string): string =>
+    `You can run a free scan anytime at ${link} to see every issue and how to fix it. Consentinel can also recheck the site daily and alert your team in Teams, Jira or Slack when something new breaks.`;
+  const close = "I'd be happy to send over the details or answer any questions.";
+  const sig = ["Cheers,", "Charlie", "Founder, Consentinel"];
+  const optOut = "If you'd rather I didn't follow up, just let me know.";
+
+  const text = [
+    greeting,
+    "",
+    ...(referral ? [referral, ""] : []),
+    intro("Consentinel"),
+    "",
+    why,
+    "",
+    ...items.map((b) => `- ${b}`),
+    "",
+    shopify ? pitchShop(`Shopify app (${SHOPIFY_LISTING})`) : pitchWeb("getconsentinel.com"),
+    "",
+    close,
+    "",
+    ...sig,
+    "",
+    optOut,
+    ...(postalAddress.trim() ? [postalAddress.trim()] : []),
+  ].join("\n");
+
+  const link = (href: string, label: string): string => `<a href="${esc(href)}">${esc(label)}</a>`;
+  const p = (x: string): string => `<p>${x}</p>`;
+  const linked = (sentence: (slot: string) => string, href: string, label: string): string =>
+    esc(sentence("\u0000")).replace("\u0000", link(href, label));
+  const html = [
+    p(esc(greeting)),
+    ...(referral ? [p(esc(referral))] : []),
+    p(linked(intro, SITE, "Consentinel")),
+    p(esc(why)),
+    `<ul>${items.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`,
+    shopify
+      ? p(linked(pitchShop, SHOPIFY_LISTING, "Shopify app"))
+      : p(linked(pitchWeb, SITE, "getconsentinel.com")),
+    p(esc(close)),
+    p(sig.map(esc).join("<br>")),
+    `<p style="color:#888;font-size:12px">${esc(optOut)}${postalAddress.trim() ? `<br>${esc(postalAddress.trim())}` : ""}</p>`,
+  ].join("\n");
+
+  return { subject: subjectFor(domain), text, html };
+}
+
 /**
  * First email, Charlie's wording (Nov 8, 2026): who we are, why it matters now,
  * the site's issues as bullets, what Consentinel does, an offer to help.
  * Colleagues get their own email later (team-draft), never named here.
  */
-export function render({
+export function render(input: TemplateInput): Email {
+  const consentStrong = input.consentStrong ?? input.ev.firing.length >= MIN_VENDORS;
+  const lead = leadWith(input.ev, consentStrong);
+  if (lead === "a11y" && input.ev.a11y) return renderA11y(input, input.ev.a11y, consentStrong);
+  return renderConsent(input);
+}
+
+/** Consent-led first email. A strong accessibility result adds one bullet. */
+function renderConsent({
   domain,
   firstName,
   ev,
@@ -214,11 +316,13 @@ export function render({
       ? null
       : `${referredBy.trim() ? `${referredBy.trim()}'s` : "An"} auto-reply pointed me to you.`;
   const intro = (name: string): string =>
-    `I'm Charlie, founder of ${name}. We help companies make sure their marketing tags respect visitors' privacy choices.`;
+    a11yStrong(ev.a11y)
+      ? `I'm Charlie, founder of ${name}. We help companies catch accessibility and privacy issues on their websites.`
+      : `I'm Charlie, founder of ${name}. We help companies make sure their marketing tags respect visitors' privacy choices.`;
   const why = gpcLed(ev)
     ? "Starting January 1, every browser has to offer an opt-out setting called Global Privacy Control, so far more people will be sending that signal. The usual problem is a tag that was never connected to the consent setup, so it keeps firing anyway."
     : "The usual problem is a tag that was never connected to the consent setup, so it keeps firing after a visitor opts out.";
-  const items = siteBullets(ev);
+  const items = [...siteBullets(ev), ...(a11yStrong(ev.a11y) ? [a11yAside(ev.a11y)] : [])];
   const pitch = (link: string): string =>
     `It's usually a quick fix. You can run a free scan anytime at ${link}, and once it's fixed, Consentinel checks the site daily, points to the exact Google Tag Manager tag to change, and alerts your team in Teams, Jira or Slack if a new gap shows up.`;
   const store = (link: string): string =>

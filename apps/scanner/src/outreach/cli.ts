@@ -5,11 +5,11 @@ import { EXTRA_HEADERS, TEAM_SIZE, extraCols, pickExtras, type Slot } from "./te
 import { draftTeam } from "./team-draft.js";
 import { repairTeam, setTeam, skipTeam, teamNeedList } from "./team-research.js";
 import {
-  MIN_VENDORS,
   NOT_A_SITE,
   byProminence,
   cleanError,
   gather,
+  qualify,
   joinNames,
   tier,
   type Evidence,
@@ -139,7 +139,14 @@ function company(domain: string): string {
   return stem.charAt(0).toUpperCase() + stem.slice(1);
 }
 
+/** The AB 566 re-touch window, New York dates. */
+const RETOUCH_FROM = "2026-12-14";
+const RETOUCH_TO = "2026-12-21";
+
 function keyFinding(ev: Evidence): string {
+  if (ev.firing.length === 0 && ev.a11y) {
+    return `Accessibility ${String(ev.a11y.score)}/100, ${String(ev.a11y.severe)} serious (${ev.a11y.top[0]?.title ?? ""})`;
+  }
   const named = joinNames(byProminence(ev.firing).slice(0, 3));
   return `${named} fire ${ev.mode === "rejected" ? "after reject" : "under GPC"} (${String(ev.firing.length)} ad vendors)`;
 }
@@ -255,7 +262,7 @@ async function run(args: string[]): Promise<Summary> {
     "Scan mode": ev?.mode ?? "",
     Critical: ev?.critical ?? "",
     Stopped: ev?.gated ?? "",
-    "Key finding": ev && ev.firing.length ? keyFinding(ev) : "",
+    "Key finding": ev && (ev.firing.length || ev.a11y) ? keyFinding(ev) : "",
     Tier: ev ? tier(ev, minGpc) : "",
   });
   const note = (s: string): string => `${today}: outreach bot - ${s}`;
@@ -319,9 +326,9 @@ async function run(args: string[]): Promise<Summary> {
       out.skipped[domain] = reason;
       continue;
     }
-    const t = tier(ev, minGpc);
-    if (ev.firing.length < MIN_VENDORS || t === 3) {
-      const reason = `${row ? "rescan: " : ""}weak evidence: ${String(ev.firing.length)} nameable ad vendors (${ev.mode})`;
+    const { consentStrong, lead } = qualify(ev, minGpc);
+    if (!lead) {
+      const reason = `${row ? "rescan: " : ""}weak evidence: ${String(ev.firing.length)} nameable ad vendors (${ev.mode}), accessibility ${ev.a11y ? `${String(ev.a11y.score)}/100` : "not checked"}`;
       await write({
         ...base(domain, ev),
         Status: "Dead",
@@ -407,6 +414,7 @@ async function run(args: string[]): Promise<Summary> {
         shopify: shopifyStore,
         firstName: m.c.firstName,
         ev,
+        consentStrong,
         postalAddress: postal,
         ...(links[i] ? { reportUrl: links[i] } : {}),
         ...(m.role ? { role: m.role } : {}),
@@ -835,6 +843,13 @@ async function main(): Promise<void> {
       );
     }
     case "retouch": {
+      // Nov 12 plan: no more re-pings. The GPC re-touch is the one AB 566 touch,
+      // sent the week before browsers must offer the signal. --now overrides.
+      const day = nyDate(new Date());
+      if (!args.includes("--now") && (day < RETOUCH_FROM || day > RETOUCH_TO)) {
+        console.log(`retouch: off until ${RETOUCH_FROM} (AB 566 week). Pass --now to run anyway.`);
+        break;
+      }
       const sheetId = cfg("OUTREACH_SHEET_ID");
       const tab = cfg("OUTREACH_SHEET_TAB", "Prospects");
       const summary = await retouch(sheetId, tab, await readSheet(sheetId, tab), {
