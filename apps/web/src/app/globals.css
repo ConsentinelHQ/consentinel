@@ -7813,3 +7813,227 @@ a.pager-step:hover {
   color: var(--ink-soft);
   word-break: break-all;
 }
+
+/* Live scan view: the scan running on the visitor's own site. */
+.live {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(16rem, 1fr);
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+  text-align: left;
+}
+.live-browser {
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 24px 60px -30px rgba(29, 29, 31, 0.35);
+}
+.live-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--paper-alt);
+}
+.live-bar > i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--hairline);
+}
+.live-url {
+  flex: 1;
+  margin-left: 0.6rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.live-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--critical);
+}
+.live-rec b {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--critical);
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+.live-screen {
+  position: relative;
+  /* Consent passes shoot 1280x720; accessibility frames are taller and crop at the bottom. */
+  aspect-ratio: 16 / 9;
+  background: var(--paper-alt);
+  overflow: hidden;
+}
+.live .live-screen img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  object-fit: cover;
+  object-position: left top;
+  animation: live-in 0.5s var(--ease-out, ease) both;
+}
+.live-screen-wait {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.live-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(215, 0, 21, 0.06) 48%, transparent 52%);
+  background-size: 100% 220%;
+  animation: live-sweep 2.8s linear infinite;
+}
+.live-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+}
+.live-phase {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-weight: 600;
+}
+.live-phase > span:first-child {
+  animation: live-in 0.4s var(--ease-out, ease) both;
+}
+.live-clock {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+.live-counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+.live-counts > div {
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: var(--paper-alt);
+  transition: background 0.3s ease;
+}
+.live-counts b {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+.live-counts span {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.live-counts .is-bad b {
+  color: var(--critical);
+}
+.live-counts .is-warn b {
+  color: var(--warning);
+}
+.live-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 22rem;
+  overflow: hidden;
+}
+.live-feed li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--paper);
+  font-size: 0.85rem;
+  animation: live-pop 0.45s var(--ease-out, ease) both;
+}
+.live-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.4rem;
+  border-radius: 50%;
+  background: var(--ink-soft);
+}
+.live-feed .is-vendor .live-dot {
+  background: var(--critical);
+}
+.live-feed .is-a11y .live-dot {
+  background: var(--warning);
+}
+.live-feed .is-vendor {
+  border-color: rgba(215, 0, 21, 0.25);
+}
+.live-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.live-text em {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.live-empty {
+  color: var(--ink-soft);
+}
+@keyframes live-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes live-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes live-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+@keyframes live-sweep {
+  from {
+    background-position: 0 120%;
+  }
+  to {
+    background-position: 0 -120%;
+  }
+}
+@media (max-width: 760px) {
+  .live {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-sweep,
+  .live-rec b {
+    animation: none;
+  }
+}

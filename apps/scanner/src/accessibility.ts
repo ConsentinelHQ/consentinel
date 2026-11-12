@@ -10,6 +10,7 @@ import {
   type AccessibilityIssue,
   type AccessibilityPage,
 } from "@consentinel/shared";
+import type { LiveSink } from "./live.js";
 import { IDENTIFIED_USER_AGENT } from "./scanner.js";
 
 const require = createRequire(import.meta.url);
@@ -40,6 +41,8 @@ export interface AccessibilityOptions {
    * images are stored in the scan result, so free scans stay small.
    */
   screenshots?: boolean;
+  /** Live scan view: homepage issues outlined on the page as they're found. */
+  live?: LiveSink;
 }
 
 /** Screenshots per scan. Each is a small JPEG crop, roughly 10-25KB. */
@@ -432,16 +435,17 @@ export async function auditAccessibility(
     const budget = opts.budgetMs ?? Number.POSITIVE_INFINITY;
     // A fresh tab per page: one that hangs can't poison the next.
     const shots = { remaining: opts.screenshots ? MAX_SHOTS : 0, taken: new Set<string>() };
-    const auditInTab = async (url: string): Promise<PageAudit> => {
+    const auditInTab = async (url: string, live?: LiveSink): Promise<PageAudit> => {
       const page = await context.newPage();
       try {
-        return await withLimit(auditPage(page, url, shots), PAGE_HARD_LIMIT_MS);
+        return await withLimit(auditPage(page, url, shots, live), PAGE_HARD_LIMIT_MS);
       } finally {
         await page.close().catch(() => undefined);
       }
     };
 
-    const home = await auditInTab(homeUrl);
+    opts.live?.phase("Checking accessibility");
+    const home = await auditInTab(homeUrl, opts.live);
     const targets = pickAuditPages(homeUrl, home.hrefs, opts.maxPages);
     const results = new Map<string, PageAudit>();
     const [first, ...rest] = targets;
@@ -511,6 +515,7 @@ async function auditPage(
   page: Page,
   url: string,
   shots: { remaining: number; taken: Set<string> },
+  live?: LiveSink,
 ): Promise<PageAudit> {
   try {
     // DOM ready is enough to audit markup. Waiting for "load" on a heavy store
@@ -519,6 +524,7 @@ async function auditPage(
     const status = response?.status() ?? 0;
     if (status >= 400)
       return { violations: [], incomplete: [], hrefs: [], error: `HTTP ${status}` };
+    if (live) await live.frame(page, true);
     await page.waitForLoadState("load", { timeout: 8_000 }).catch(() => undefined);
     // Pages with polling never go idle; take what rendered.
     await page.waitForLoadState("networkidle", { timeout: 3_000 }).catch(() => undefined);
@@ -550,6 +556,7 @@ async function auditPage(
       shots.taken.add(v.id);
       shots.remaining -= 1;
     }
+    if (live) await showLive(page, live, violations);
     return {
       violations,
       incomplete: result.incomplete.map((i) => i.id),
@@ -563,6 +570,52 @@ async function auditPage(
       error: err instanceof Error ? (err.message.split("\n")[0] ?? "failed") : "failed",
     };
   }
+}
+
+/**
+ * Live view: name the worst issues and outline their elements on the page,
+ * then take the frame. Runs after the stored screenshots so it can't touch them.
+ */
+async function showLive(page: Page, live: LiveSink, violations: AxeRuleResult[]): Promise<void> {
+  const worst = [...violations].sort((a, b) => rank(a.impact) - rank(b.impact)).slice(0, 6);
+  for (const v of worst) {
+    const n = v.nodes.length;
+    live.event(
+      "a11y",
+      FIXES[v.id]?.title ?? v.help,
+      `${v.impact ?? "minor"}, ${String(n)} ${n === 1 ? "element" : "elements"}`,
+    );
+  }
+  const selectors = worst
+    .flatMap((v) =>
+      v.nodes.slice(0, 8).map((node) => ({ sel: node.target.at(-1), impact: v.impact })),
+    )
+    .filter(
+      (x): x is { sel: string; impact: string | null | undefined } => typeof x.sel === "string",
+    )
+    .slice(0, 40);
+  try {
+    await page.evaluate((items) => {
+      window.scrollTo(0, 0);
+      for (const { sel, impact } of items) {
+        let el: Element | null = null;
+        try {
+          el = document.querySelector(sel);
+        } catch {
+          continue;
+        }
+        if (!(el instanceof HTMLElement)) continue;
+        const color = impact === "critical" || impact === "serious" ? "#e5484d" : "#f5a524";
+        el.style.setProperty("outline", `3px solid ${color}`, "important");
+        el.style.setProperty("outline-offset", "2px", "important");
+        el.style.setProperty("box-shadow", `0 0 0 6px ${color}33`, "important");
+      }
+    }, selectors);
+    await page.waitForTimeout(150);
+  } catch {
+    // Page navigated or blocked script: the frame still shows the page.
+  }
+  await live.frame(page, true);
 }
 
 function rank(impact: string | null | undefined): number {

@@ -7,6 +7,7 @@ import { GtmPanel } from "./gtm-panel";
 import { CollapsibleSection } from "./collapsible-section";
 import { ReportJump } from "./report-jump";
 import { ScanProgress } from "./scan-progress";
+import { LiveScan } from "./live-scan";
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { FreeReport } from "@/lib/free-report";
 import { joinList } from "@/lib/free-report";
@@ -14,7 +15,7 @@ import { guideForCmp } from "@/lib/guides";
 import { waitCopy } from "@/lib/queue-copy";
 
 type State =
-  | { kind: "loading"; status: string; position?: number; etaSeconds?: number }
+  | { kind: "loading"; status: string; url?: string; position?: number; etaSeconds?: number }
   | { kind: "failed"; message: string; blockedBy?: string }
   | { kind: "ready"; report: FreeReport };
 
@@ -27,8 +28,11 @@ export function ScanResultView({
   actions,
   branded = false,
   upsell = false,
+  liveView = false,
 }: {
   scanId: string;
+  /** Watch the scan run: frames and findings as they happen. */
+  liveView?: boolean;
   shareToken?: string | undefined;
   /** From a "your scan is ready" email link. Unlocks the full report. */
   leadId?: string | undefined;
@@ -56,6 +60,7 @@ export function ScanResultView({
         );
         const data = (await response.json()) as {
           status?: string;
+          url?: string;
           report?: FreeReport;
           error?: string;
           blockedBy?: string;
@@ -79,6 +84,7 @@ export function ScanResultView({
         setState({
           kind: "loading",
           status: data.status ?? "queued",
+          ...(data.url ? { url: data.url } : {}),
           ...(data.position ? { position: data.position } : {}),
           ...(data.etaSeconds ? { etaSeconds: data.etaSeconds } : {}),
         });
@@ -118,12 +124,20 @@ export function ScanResultView({
   if (state.kind === "loading") {
     return (
       <>
-        <h1>Loading your site three times.</h1>
+        <h1>{liveView ? "Watch the scan run on your site." : "Scanning your site."}</h1>
         <p className="lede" style={{ marginTop: "1.25rem" }}>
-          Once refusing consent, once accepting it, and once with the browser’s opt-out signal on.
-          This takes a minute or two.
+          We load it refusing cookies, accepting them, and with the browser’s opt-out signal on,
+          then check it for accessibility issues. This takes a couple of minutes.
         </p>
-        <ScanProgress status={state.status} />
+        {liveView ? (
+          <LiveScan
+            fallback={<ScanProgress status={state.status} />}
+            host={hostOf(state.url ?? "") || "your site"}
+            scanId={scanId}
+          />
+        ) : (
+          <ScanProgress status={state.status} />
+        )}
         {(state.position ?? 0) > 1 || (state.etaSeconds ?? 0) > 0 ? (
           <p className="quiet" style={{ marginTop: "1rem" }}>
             {waitCopy(state.position, state.etaSeconds)}
