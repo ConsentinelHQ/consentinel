@@ -193,10 +193,11 @@ export default function Home() {
       <section className="hero hero-split">
         <div className="wrap hero-grid">
           <div className="hero-copy" data-reveal>
-            <h1>Your site is sending data your visitors said no to.</h1>
+            <h1>Find the accessibility and privacy issues on your site.</h1>
             <p className="lede">
-              Retailers are being sued for this, at up to $5,000 per violation. We show you every
-              tracker that fires after a visitor says no.
+              Most website claims against online stores cite the same few problems: missing alt
+              text, low contrast, and ad tags that keep tracking after a visitor says no. One free
+              scan shows every one and how to fix it.
             </p>
             <ScanForm />
           </div>
