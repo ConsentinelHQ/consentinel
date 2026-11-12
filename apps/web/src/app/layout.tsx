@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s | Consentinel",
   },
   description:
-    "Scan any website and get evidence of trackers firing before consent, cookies dropped without permission, and personal data leaking to ad platforms.",
+    "Scan any website for accessibility issues (WCAG 2.2 AA) and privacy issues: trackers firing before consent, ignored opt-outs and data leaking to ad platforms. Free scan, daily monitoring.",
   metadataBase: new URL("https://www.getconsentinel.com"),
   // Google Search Console HTML-tag verification. Set the token in Vercel; absent, no tag.
   ...(process.env["GOOGLE_SITE_VERIFICATION"]

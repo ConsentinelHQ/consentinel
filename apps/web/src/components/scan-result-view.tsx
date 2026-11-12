@@ -159,6 +159,12 @@ function Report({
   upsell: boolean;
 }) {
   const clean = report.findings.length === 0;
+  // Worst section first: accessibility leads unless trackers leak and it scores fair or better.
+  // Same rule as the Shopify app and the outreach email.
+  const a11yFirst =
+    !!report.accessibility &&
+    report.accessibility.issues.length + report.accessibility.lockedCount > 0 &&
+    (report.counts.critical === 0 || report.accessibility.score < 70);
 
   // Funnel: a public report seen. Once per mount, fire and forget.
   useEffect(() => {
@@ -192,6 +198,14 @@ function Report({
         {actions}
 
         <ReportJump report={report} />
+
+        {a11yFirst && report.accessibility && (
+          <AccessibilityPanel
+            planNote={!upsell && !branded}
+            summary={report.accessibility}
+            upsell={upsell}
+          />
+        )}
 
         <CollapsibleSection
           className="specimen"
@@ -231,7 +245,7 @@ function Report({
         {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
         {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
         {report.gtm && <GtmPanel report={report} />}
-        {report.accessibility && (
+        {!a11yFirst && report.accessibility && (
           <AccessibilityPanel
             planNote={!upsell && !branded}
             summary={report.accessibility}
@@ -333,6 +347,14 @@ function Report({
       })()}
 
       <ReportJump report={report} />
+
+      {a11yFirst && report.accessibility && (
+        <AccessibilityPanel
+          planNote={!upsell && !branded}
+          summary={report.accessibility}
+          upsell={upsell}
+        />
+      )}
 
       <CollapsibleSection
         className="specimen"
@@ -455,7 +477,7 @@ function Report({
       {report.gpcCheck && <GpcPanel check={report.gpcCheck} />}
       {report.disclosure && <DisclosurePanel check={report.disclosure} upsell={upsell} />}
       {report.gtm && <GtmPanel report={report} />}
-      {report.accessibility && (
+      {!a11yFirst && report.accessibility && (
         <AccessibilityPanel
           planNote={!upsell && !branded}
           summary={report.accessibility}
