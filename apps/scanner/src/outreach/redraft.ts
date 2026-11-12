@@ -1,4 +1,4 @@
-import { gather, MIN_VENDORS, tier } from "./evidence.js";
+import { gather, qualify } from "./evidence.js";
 import {
   createDraft,
   deleteDraft,
@@ -161,12 +161,14 @@ export async function redraft(
       out.skipped[x.m.email] = ev.slice(0, 200);
       continue;
     }
-    if (ev.firing.length < MIN_VENDORS || tier(ev, o.minGpc) === 3) {
+    const q = qualify(ev, o.minGpc);
+    if (!q.lead) {
       out.skipped[x.m.email] = `rescan found weak evidence (${String(ev.firing.length)} vendors)`;
       continue;
     }
     const shopifyStore = await isShopify(x.domain);
     const email = render({
+      consentStrong: q.consentStrong,
       domain: x.domain,
       shopify: shopifyStore,
       firstName: x.m.firstName,

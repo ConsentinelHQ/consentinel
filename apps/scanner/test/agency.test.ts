@@ -73,7 +73,24 @@ const results = [
 ];
 const mail = agencyEmail({ firstName: "Sam", results });
 assert.match(mail.text, /^Hi Sam,/);
-assert.match(mail.text, /on 3 stores from your work page\. On 2 of them \(a\.com and b\.com\)/i);
+assert.match(mail.text, /on 3 stores from your work page:/i);
+assert.match(mail.text, /- 2 of them keep firing ad tags after a shopper opts out/);
+assert.match(mail.text, /free on 3 client stores for 60 days/);
+assert.match(mail.text, /we pay you 25%/);
+// Accessibility counts as an issue too, and leads.
+const mixed = agencyEmail({
+  firstName: "Sam",
+  results: [
+    { domain: "x.com", leaking: [], a11yScore: 52, a11ySevere: 6 },
+    { domain: "y.com", leaking: [], a11yScore: 71, a11ySevere: 2 },
+    { domain: "z.com", leaking: [] },
+  ],
+});
+assert.match(
+  mixed.text,
+  /- 2 of them have serious accessibility issues on the homepage \(x\.com scores 52\/100/,
+);
+assert.doesNotMatch(mixed.text, /ad tags/);
 assert.match(mail.text, /4 vendors on a\.com, including Meta, Google Ads and TikTok/);
 assert.match(mail.text, /white-label reports/);
 assert.doesNotMatch(mail.text + mail.html, /CIPA|lawsuit|suit|fine|legal|liab/i);

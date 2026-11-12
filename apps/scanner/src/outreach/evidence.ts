@@ -1,4 +1,5 @@
-import { canonicalVendor, type ScanResult } from "@consentinel/shared";
+import { canonicalVendor, type AccessibilityAudit, type ScanResult } from "@consentinel/shared";
+import { auditAccessibility } from "../accessibility.js";
 import { scan } from "../index.js";
 
 /** Fewer than this and the email is a shrug, not a finding. */
@@ -24,6 +25,65 @@ export interface Evidence {
   notMentioned?: string[];
   /** The last scan behind this evidence, uploaded as the prospect's report. */
   latest?: ScanResult;
+  /** Homepage accessibility audit. Absent when it failed or wasn't run. */
+  a11y?: A11yEvidence;
+}
+
+/** What the email can say about accessibility. Automated WCAG 2.2 A/AA checks only. */
+export interface A11yEvidence {
+  score: number;
+  /** Critical plus serious issues: the ones worth leading with. */
+  severe: number;
+  /** Worst first, capped at 3. */
+  top: { title: string; instances: number }[];
+}
+
+export function toA11yEvidence(audit: AccessibilityAudit): A11yEvidence | undefined {
+  if (audit.pages.every((p) => p.status === "failed")) return undefined;
+  const rank = { critical: 0, serious: 1, moderate: 2, minor: 3 } as const;
+  const top = [...audit.issues]
+    .sort((a, b) => rank[a.impact] - rank[b.impact] || b.instances - a.instances)
+    .slice(0, 3)
+    .map((i) => ({ title: i.title, instances: i.instances }));
+  return { score: audit.score, severe: audit.counts.critical + audit.counts.serious, top };
+}
+
+/** Worth an email on accessibility alone: at least one serious issue and a score under 90. */
+export function a11yStrong(a: A11yEvidence | undefined): a is A11yEvidence {
+  return !!a && a.severe >= 1 && a.score < 90 && a.top.length > 0;
+}
+
+/**
+ * Which finding leads. Consent leads only when it's strong and accessibility is
+ * fair or better; the same rule the Shopify app uses to order its sections.
+ */
+export function leadWith(ev: Evidence, consentStrong: boolean): "consent" | "a11y" | null {
+  const a = a11yStrong(ev.a11y) ? ev.a11y : undefined;
+  if (consentStrong && (!a || a.score >= 70)) return "consent";
+  if (a) return "a11y";
+  return consentStrong ? "consent" : null;
+}
+
+/** Consent strength by the old bar, plus what leads. Null lead: nothing worth sending. */
+export function qualify(
+  ev: Evidence,
+  minGpcVendors: number,
+): { consentStrong: boolean; lead: "consent" | "a11y" | null } {
+  const consentStrong = ev.firing.length >= MIN_VENDORS && tier(ev, minGpcVendors) !== 3;
+  return { consentStrong, lead: leadWith(ev, consentStrong) };
+}
+
+/** Homepage only, no screenshots, a minute at most. Never throws. */
+async function homepageA11y(url: string): Promise<A11yEvidence | undefined> {
+  try {
+    const audit = await Promise.race([
+      auditAccessibility(url, { maxPages: 1, budgetMs: 60_000, screenshots: false }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 90_000)),
+    ]);
+    return toA11yEvidence(audit);
+  } catch {
+    return undefined;
+  }
 }
 
 interface Tally {
@@ -114,6 +174,13 @@ const withPolicy = (ev: Evidence, runs: ScanResult[]): Evidence => {
 
 /** A clicked reject is the stronger claim; GPC only when no reject was possible. */
 export async function gather(url: string): Promise<Evidence | string> {
+  const ev = await gatherConsent(url);
+  if (typeof ev === "string") return ev;
+  const a11y = await homepageA11y(url);
+  return a11y ? { ...ev, a11y } : ev;
+}
+
+async function gatherConsent(url: string): Promise<Evidence | string> {
   try {
     const normal = await scan(url);
     if (normal.consentAttempt?.performed) {

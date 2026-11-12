@@ -1,7 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { findContacts, findPerson, type Contact } from "./contacts.js";
-import { byProminence, gather, joinNames, MIN_VENDORS, type Evidence } from "./evidence.js";
+import {
+  a11yStrong,
+  byProminence,
+  gather,
+  joinNames,
+  MIN_VENDORS,
+  type Evidence,
+} from "./evidence.js";
 import { createDraft, getMessage, normDomain, search } from "./google.js";
 import { extractText, header, stripQuoted } from "./mail.js";
 import { addBusinessDays, nyDate, repoRoot } from "./state.js";
@@ -20,7 +27,19 @@ export interface ClientResult {
   domain: string;
   /** Ad vendors still firing after the opt-out. Empty when clean or the scan failed. */
   leaking: string[];
+  /** Homepage accessibility score and critical+serious count, when the audit ran. */
+  a11yScore?: number;
+  a11ySevere?: number;
   error?: string;
+}
+
+/** A client with something worth showing the agency: leaking tags or a poor accessibility score. */
+export function hasIssue(r: ClientResult): boolean {
+  return r.leaking.length > 0 || poorA11y(r);
+}
+
+function poorA11y(r: ClientResult): boolean {
+  return r.a11yScore !== undefined && (r.a11ySevere ?? 0) > 0;
 }
 
 export interface Agency {
@@ -147,25 +166,34 @@ export const agencySubject = (): string => "Quick check on a few of your client 
  */
 export function agencyEmail(a: { firstName: string; results: ClientResult[] }): Email {
   const scanned = a.results.filter((r) => !r.error);
-  const leaking = a.results.filter((r) => r.leaking.length > 0);
+  const flagged = a.results.filter(hasIssue);
+  if (flagged.length === 0) throw new Error("agencyEmail needs at least one client with issues");
+  const leaking = flagged.filter((r) => r.leaking.length > 0);
+  const poor = flagged.filter(poorA11y);
+  const lines: string[] = [];
+  if (poor.length > 0) {
+    const worst = [...poor].sort((x, y) => (x.a11yScore ?? 100) - (y.a11yScore ?? 100))[0]!;
+    lines.push(
+      `${String(poor.length)} of them have serious accessibility issues on the homepage (${worst.domain} scores ${String(worst.a11yScore)}/100 on automated WCAG 2.2 checks)`,
+    );
+  }
   const top = [...leaking].sort((x, y) => y.leaking.length - x.leaking.length)[0];
-  if (!top) throw new Error("agencyEmail needs at least one leaking client");
-  const n = top.leaking.length;
-  const named = joinNames(byProminence(top.leaking).slice(0, 3));
-  const example =
-    n <= 3
-      ? `${String(n)} vendors on ${top.domain}: ${named}`
-      : `${String(n)} vendors on ${top.domain}, including ${named}`;
-  const list = joinNames(leaking.map((r) => r.domain));
+  if (top) {
+    const n = top.leaking.length;
+    const named = joinNames(byProminence(top.leaking).slice(0, 3));
+    lines.push(
+      `${String(leaking.length)} of them keep firing ad tags after a shopper opts out (${n <= 3 ? `${String(n)} vendors on ${top.domain}: ${named}` : `${String(n)} vendors on ${top.domain}, including ${named}`})`,
+    );
+  }
   const greeting = `Hi ${a.firstName.trim() || "there"},`;
   const intro = (name: string): string =>
-    `I'm Charlie, I build ${name} - a tool that checks whether sites actually stop tracking after a shopper opts out.`;
-  const finding = `I ran it on ${String(scanned.length)} stores from your work page. On ${String(leaking.length)} of them (${list}), ad tags kept firing after the opt-out - ${example}.`;
+    `I'm Charlie, I build ${name} - it checks stores for accessibility and privacy issues and rechecks them every day.`;
+  const finding = `I ran it on ${String(scanned.length)} stores from your work page:`;
   const why =
-    "This almost never comes from the build itself. It's usually a pixel or app added later that never got connected to the consent setup, so it's a quick fix. And starting January 1, every browser has to offer the opt-out setting, so more shoppers will be sending it.";
+    "None of this usually comes from the build. It's a theme edit, an app or a pixel added later, and it's billable work your team can fix quickly.";
   const offer =
-    "I built an agency plan around this: one dashboard for every client site, daily rescans, and white-label reports under your name. It could be an easy add-on to your retainers.";
-  const ask = `Happy to send the reports for those ${String(leaking.length)} stores if they'd be useful.`;
+    "I'd like to offer you the agency plan free on 3 client stores for 60 days: one dashboard for every client, daily rescans, alerts and white-label reports under your name. After that, we pay you 25% of what every client you bring on pays, every month.";
+  const ask = `Happy to send the reports for those ${String(flagged.length)} stores if they'd be useful.`;
   const sig = ["Charlie", "Founder, Consentinel"];
   const optOut = "If you'd rather not hear from me, just say so and I won't email again.";
 
@@ -175,6 +203,8 @@ export function agencyEmail(a: { firstName: string; results: ClientResult[] }): 
     intro("Consentinel"),
     "",
     finding,
+    "",
+    ...lines.map((l) => `- ${l}`),
     "",
     why,
     "",
@@ -191,6 +221,7 @@ export function agencyEmail(a: { firstName: string; results: ClientResult[] }): 
     p(esc(greeting)),
     p(esc(intro("\u0000")).replace("\u0000", `<a href="${SITE}">Consentinel</a>`)),
     p(esc(finding)),
+    `<ul>${lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`,
     p(esc(why)),
     p(esc(offer)),
     p(esc(ask)),
@@ -201,10 +232,10 @@ export function agencyEmail(a: { firstName: string; results: ClientResult[] }): 
 }
 
 export function agencyFollowUpEmail(a: { firstName: string; results: ClientResult[] }): Email {
-  const leaking = a.results.filter((r) => r.leaking.length > 0).map((r) => r.domain);
+  const flagged = a.results.filter(hasIssue).map((r) => r.domain);
   const parts = [
     `Hi ${a.firstName.trim() || "there"},`,
-    `Following up in case this got buried. I can send the reports for ${joinNames(leaking)} - each one shows which tags fire after the opt-out and when.`,
+    `Following up in case this got buried. I can send the reports for ${joinNames(flagged)} - each one lists the accessibility issues and tags to fix, and the 60-day free offer stands.`,
     "Charlie",
   ];
   return {
@@ -264,16 +295,22 @@ export async function runAgencies(
         results.push(
           typeof ev === "string"
             ? { domain, leaking: [], error: ev.slice(0, 200) }
-            : { domain, leaking: leakingVendors(ev) },
+            : {
+                domain,
+                leaking: leakingVendors(ev),
+                ...(a11yStrong(ev.a11y)
+                  ? { a11yScore: ev.a11y.score, a11ySevere: ev.a11y.severe }
+                  : {}),
+              },
         );
       }
       a.results = results;
       save(s);
     }
-    const leaking = a.results.filter((r) => r.leaking.length > 0).length;
-    if (leaking < MIN_LEAKING) {
+    const flagged = a.results.filter(hasIssue).length;
+    if (flagged < MIN_LEAKING) {
       a.status = "skipped";
-      a.reason = `${String(leaking)} of ${String(a.results.length)} clients leaking`;
+      a.reason = `${String(flagged)} of ${String(a.results.length)} clients with issues`;
       out.skipped[a.domain] = a.reason;
       save(s);
       continue;

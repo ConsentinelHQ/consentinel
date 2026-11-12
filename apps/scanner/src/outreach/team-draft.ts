@@ -1,5 +1,5 @@
 import { roleFor } from "./contacts.js";
-import { MIN_VENDORS, gather, type Evidence } from "./evidence.js";
+import { MIN_VENDORS, gather, leadWith, type Evidence } from "./evidence.js";
 import { createDraft, normDomain, updateRow, type Sheet, type SheetRow } from "./google.js";
 import { reportLink, type ApiOpts } from "./prep.js";
 import { GONE, REFERRED } from "./referral.js";
@@ -82,7 +82,8 @@ export async function draftTeam(
       ev = await gather(`https://${domain}`);
       evidence.set(domain, ev);
     }
-    if (typeof ev === "string" || ev.firing.length < MIN_VENDORS) {
+    const consentStrong = typeof ev !== "string" && ev.firing.length >= MIN_VENDORS;
+    if (typeof ev === "string" || !leadWith(ev, consentStrong)) {
       log(`team   ${domain}: skipped, ${typeof ev === "string" ? ev : "weak evidence"}`);
       continue;
     }
@@ -93,6 +94,7 @@ export async function draftTeam(
     const leaver = members(row.values).find((o) => /left company/i.test(o.check));
     const shopifyStore = await isShopify(domain);
     const email = render({
+      consentStrong,
       domain,
       shopify: shopifyStore,
       firstName: m.firstName,
