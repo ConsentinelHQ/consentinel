@@ -1,6 +1,13 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { findContact, findContacts, roleFor, type Contact, type RoleContact } from "./contacts.js";
+import {
+  findContact,
+  findContacts,
+  roleFor,
+  siteEmail,
+  type Contact,
+  type RoleContact,
+} from "./contacts.js";
 import { EXTRA_HEADERS, TEAM_SIZE, extraCols, pickExtras, type Slot } from "./team.js";
 import { draftTeam } from "./team-draft.js";
 import { repairTeam, setTeam, skipTeam, teamNeedList } from "./team-research.js";
@@ -784,6 +791,11 @@ async function main(): Promise<void> {
         limit: Number(flag(args, "--limit") ?? "5"),
       });
       console.log(JSON.stringify(summary));
+      break;
+    }
+    case "site-email": {
+      // Check the free lookup by hand: outreach site-email rumpl.com olukai.com
+      for (const d of args) console.log(`${d}: ${(await siteEmail(d, [])) ?? "none listed"}`);
       break;
     }
     case "contacts": {

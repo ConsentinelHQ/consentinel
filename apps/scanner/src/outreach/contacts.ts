@@ -1,5 +1,6 @@
 /**
- * Contact lookup. Providers run as a waterfall: Anymail, GetProspect, Prospeo
+ * Contact lookup. The store's own site goes first: free, and small stores list
+ * the address the founder reads. Then paid providers as a waterfall: Anymail, GetProspect, Prospeo
  * and Tomba charge only on a hit, so they go first; Hunter charges per search, so it's
  * last. A provider that errors (out of credits, bad key, outage) is skipped for
  * the rest of the run. Lookups throw only when every provider errored, so the
@@ -7,7 +8,7 @@
  * Returns a Contact, or a string explaining why there's none.
  */
 
-export type Source = "anymail" | "getprospect" | "prospeo" | "tomba" | "hunter";
+export type Source = "site" | "anymail" | "getprospect" | "prospeo" | "tomba" | "hunter";
 
 export interface Contact {
   firstName: string;
@@ -671,10 +672,127 @@ export async function hunter(
   return hunterProvider.find(domain, [key], exclude);
 }
 
+// ---------- The store's own site ----------
+
+/** Pages small stores put their email on. Shopify paths first. */
+const SITE_PAGES = [
+  "/pages/contact",
+  "/pages/contact-us",
+  "/pages/about",
+  "/pages/about-us",
+  "/pages/our-story",
+  "/contact",
+  "/about",
+  "/",
+  "/policies/refund-policy",
+  "/policies/terms-of-service",
+] as const;
+
+/** Never write to these: no one reads them, or they're the wrong desk. */
+const SITE_SKIP =
+  /^(no-?reply|donotreply|privacy|legal|dpo|gdpr|compliance|careers?|jobs|hr|wholesale|press|media|pr|affiliates?|partners?|returns?|abuse|unsubscribe|example|email|name|you|your)$/i;
+/** Inboxes a founder reads at a small store, best first. */
+const SITE_RANK: readonly RegExp[] = [
+  /^(founders?|ceo|owner|founder\.?.*)$/i,
+  /^(hello|hi|hey|team|howdy)$/i,
+  /^(info|contact|contactus|inquiries|enquiries|general|office|sales|shop|store|orders)$/i,
+  /^(support|help|care|customercare|customerservice|service|cs)$/i,
+];
+const GENERIC =
+  /^(hello|hi|hey|team|howdy|info|contact|contactus|inquiries|enquiries|general|office|sales|shop|store|orders|support|help|care|customercare|customerservice|service|cs)$/i;
+
+/** Rank for an address: lower is better. A person's own address beats every shared inbox. */
+export function siteRank(local: string): number {
+  if (
+    !GENERIC.test(local) &&
+    /^[a-z]{2,15}(\.[a-z]{2,20})?$/i.test(local) &&
+    !SITE_RANK[0]!.test(local)
+  ) {
+    return 0;
+  }
+  const i = SITE_RANK.findIndex((r) => r.test(local));
+  return i === -1 ? 9 : i + 1;
+}
+
+/** On-domain addresses in a page, mailto links and plain text both. */
+export function emailsIn(html: string, domain: string): string[] {
+  const root = domain.replace(/^www\./, "").toLowerCase();
+  const text = html.replace(/&#64;|&#x40;|\s*\[at\]\s*|\s*\(at\)\s*/gi, "@");
+  const found = new Set<string>();
+  for (const m of text.matchAll(/[a-z0-9._%+-]+@([a-z0-9-]+\.)+[a-z]{2,}/gi)) {
+    const email = m[0].toLowerCase().replace(/\.+$/, "");
+    const host = email.split("@")[1] ?? "";
+    if (host !== root && !host.endsWith(`.${root}`)) continue;
+    if (/\.(png|jpe?g|gif|webp|svg)$/.test(email)) continue;
+    const local = email.split("@")[0] ?? "";
+    if (SITE_SKIP.test(local)) continue;
+    found.add(email);
+  }
+  return [...found];
+}
+
+/** The best address a store lists on its own pages, or null. */
+export async function siteEmail(domain: string, exclude: string[]): Promise<string | null> {
+  const seen = new Set<string>();
+  for (const path of SITE_PAGES) {
+    try {
+      const res = await fetch(`https://${domain}${path}`, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; ConsentinelBot/1.0; +https://www.getconsentinel.com)",
+        },
+        redirect: "follow",
+        signal: AbortSignal.timeout(8_000),
+      });
+      if (!res.ok) continue;
+      for (const e of emailsIn(await res.text(), domain)) seen.add(e);
+    } catch {
+      continue;
+    }
+    // A person's own address ends the search early.
+    if ([...seen].some((e) => siteRank(e.split("@")[0] ?? "") === 0 && !exclude.includes(e))) break;
+  }
+  const ranked = [...seen]
+    .filter((e) => !exclude.includes(e))
+    .sort((a, b) => siteRank(a.split("@")[0] ?? "") - siteRank(b.split("@")[0] ?? ""));
+  return ranked[0] ?? null;
+}
+
+const siteProvider: Provider = {
+  name: "site",
+  env: [],
+  async find(domain, _keys, exclude) {
+    const email = await siteEmail(domain, exclude);
+    if (!email) return "site: no address listed on the store's pages";
+    const local = email.split("@")[0] ?? "";
+    // A person's own address names them; a shared inbox gets "Hi there".
+    const first = siteRank(local) === 0 ? (local.split(".")[0] ?? "") : "";
+    return {
+      firstName: first ? first.charAt(0).toUpperCase() + first.slice(1) : "",
+      fullName: "",
+      email,
+      title: "Listed on the store's site",
+      // Listed publicly, not mailbox-verified: drafts only, never auto-sent.
+      verified: "accept_all",
+      source: "site",
+    };
+  },
+  person: () => Promise.resolve("site: can't look up a named person"),
+  // Colleagues come from the paid providers; the site lists one inbox.
+  roles: () => Promise.resolve([]),
+};
+
 // ---------- Waterfall ----------
 
-/** Charge-on-hit providers first, per-search Hunter last. */
-const PROVIDERS: readonly Provider[] = [anymail, getprospect, prospeo, tomba, hunterProvider];
+/** The store's own site first (free), then charge-on-hit providers, per-search Hunter last. */
+const PROVIDERS: readonly Provider[] = [
+  siteProvider,
+  anymail,
+  getprospect,
+  prospeo,
+  tomba,
+  hunterProvider,
+];
 
 /** Providers that errored this run (no credits, bad key, outage). Not retried until the next run. */
 const spent = new Map<Source, string>();
@@ -718,7 +836,10 @@ async function waterfall<T>(
     try {
       const hit = await call(p, keys);
       if (typeof hit !== "string") return hit;
-      reasons.push(hit);
+      // A site miss isn't an answer: if every lookup service is out of credits
+      // too, throw so the domain retries on a later run instead of going dead.
+      if (p.name === "site") errors.push(hit);
+      else reasons.push(hit);
     } catch (error) {
       spent.set(p.name, message(error));
       errors.push(`${p.name}: ${message(error)}`);
@@ -766,7 +887,8 @@ export async function findContacts(
   const found: RoleContact[] = [];
   const errors: string[] = [];
   let answered = false;
-  const providers = configured(opts.hunter === false ? ["hunter"] : []);
+  // The site lists one shared inbox, never a colleague by role.
+  const providers = configured(opts.hunter === false ? ["hunter", "site"] : ["site"]);
   for (const { p, keys } of providers) {
     const missing = roles.filter((r) => !found.some((f) => f.role === r));
     if (missing.length === 0) break;
