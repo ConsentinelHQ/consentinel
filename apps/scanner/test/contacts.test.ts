@@ -312,6 +312,14 @@ routes["shop.com/pages/about"] = () => ({
   assert.equal(hit.email, "sarah.lee@shop.com", "a person's own address wins");
   assert.equal(hit.firstName, "Sarah");
 }
+setup(ENV);
+routes["shop.com/pages/contact"] = () => ({ status: 200, body: "Say meow@shop.com" });
+{
+  const hit = await findContact("shop.com");
+  assert.ok(typeof hit !== "string");
+  assert.equal(hit.email, "meow@shop.com");
+  assert.equal(hit.firstName, "", "a single word isn't a name");
+}
 // Nothing on the site and every service out of credits: throw, so it retries later.
 setup(ENV);
 routes[ANY] = outOfCredits;
