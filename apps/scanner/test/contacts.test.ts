@@ -169,9 +169,9 @@ routes[HSEARCH] = () => ({ status: 429, body: { errors: [{ details: "usage limit
   assert.match(hit, /hunter: usage limit/);
 }
 
-// 7. No keys at all is a config error.
+// 7. No keys at all: only the site runs, and a miss there retries later.
 setup({});
-await assert.rejects(findContact("shop.com"), /set at least one of/);
+await assert.rejects(findContact("shop.com"), /site: no address listed/);
 
 // 8. Roles: Prospeo fills owner and budget from one search, bounced address excluded.
 setup({ PROSPEO_API_KEY: "p" });
@@ -285,3 +285,39 @@ routes[HSEARCH] = () => ({
 }
 
 console.log("contacts: all checks passed");
+
+// Site: the store's own pages come first and cost nothing.
+setup(ENV);
+routes["shop.com/pages/contact"] = () => ({
+  status: 200,
+  body: '<a href="mailto:privacy@shop.com">x</a> Email us: hello@shop.com or support [at] shop.com. Partner? wholesale@shop.com. Not us: hi@other.com',
+});
+{
+  const hit = await findContact("shop.com");
+  assert.ok(typeof hit !== "string");
+  assert.equal(hit.source, "site");
+  assert.equal(hit.email, "hello@shop.com", "hello beats support; privacy and wholesale skipped");
+  assert.equal(hit.firstName, "", "shared inbox gets Hi there");
+  assert.equal(hit.verified, "accept_all", "never auto-sent");
+  assert.ok(!calls.includes(ANY), "paid lookups never ran");
+}
+setup(ENV);
+routes["shop.com/pages/about"] = () => ({
+  status: 200,
+  body: "Write to our founder: sarah.lee@shop.com, or hello@shop.com",
+});
+{
+  const hit = await findContact("shop.com");
+  assert.ok(typeof hit !== "string");
+  assert.equal(hit.email, "sarah.lee@shop.com", "a person's own address wins");
+  assert.equal(hit.firstName, "Sarah");
+}
+// Nothing on the site and every service out of credits: throw, so it retries later.
+setup(ENV);
+routes[ANY] = outOfCredits;
+routes[PSEARCH] = () => ({ status: 429, body: { error: true, error_code: "RATE_LIMITED" } });
+routes[TSEARCH] = outOfCredits;
+routes[HSEARCH] = outOfCredits;
+await assert.rejects(() => findContact("shop.com"));
+
+console.log("contacts: site lookups passed");
