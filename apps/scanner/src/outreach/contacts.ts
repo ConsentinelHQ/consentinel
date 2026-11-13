@@ -765,8 +765,12 @@ const siteProvider: Provider = {
     const email = await siteEmail(domain, exclude);
     if (!email) return "site: no address listed on the store's pages";
     const local = email.split("@")[0] ?? "";
-    // A person's own address names them; a shared inbox gets "Hi there".
-    const first = siteRank(local) === 0 ? (local.split(".")[0] ?? "") : "";
+    // Only first.last reads as a name. A single word can be a brand inbox
+    // (meow@, spices@, heythere@), so it gets "Hi there".
+    const first =
+      siteRank(local) === 0 && /^[a-z]{2,15}\.[a-z]{2,20}$/i.test(local)
+        ? (local.split(".")[0] ?? "")
+        : "";
     return {
       firstName: first ? first.charAt(0).toUpperCase() + first.slice(1) : "",
       fullName: "",
